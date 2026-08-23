@@ -123,6 +123,8 @@ export default async function DashboardPage() {
               accent: user.brandAccent ?? "",
               site: user.brandSite ?? "",
             }}
+            logo={user.brandLogo ?? null}
+            paidPlan={plan !== "free"}
           />
 
           <SigningPanel accountId={user.id} />

@@ -14,7 +14,9 @@ function PlanFeatures({ plan }: { plan: Plan }) {
     `${plan.monthlyRenders.toLocaleString()} renders / month`,
     plan.watermark ? "OGsmith watermark" : "No watermark",
     "All templates & themes",
+    ...(plan.watermark ? [] : ["Custom logo on cards"]),
     "CDN-cached responses",
+    "Quota alert emails",
     plan.id === "scale" ? "Priority support" : "Email support",
   ];
   return (

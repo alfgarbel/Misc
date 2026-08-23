@@ -4,8 +4,11 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { verifyPassword, setSessionCookie } from "@/lib/auth";
+import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
+
+const limiter = makeRateLimiter(10);
 
 const bodySchema = z.object({
   email: z.string().email().max(254),
@@ -13,6 +16,12 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  if (limiter.limited(clientIp(req.headers))) {
+    return NextResponse.json(
+      { error: "Too many attempts. Try again in a minute." },
+      { status: 429 }
+    );
+  }
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });

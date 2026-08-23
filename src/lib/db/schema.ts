@@ -15,6 +15,7 @@ export const users = sqliteTable("users", {
   brandTheme: text("brand_theme"),
   brandAccent: text("brand_accent"),
   brandSite: text("brand_site"),
+  brandLogo: text("brand_logo"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -80,6 +81,8 @@ export const usage = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     month: text("month").notNull(),
     count: integer("count").notNull().default(0),
+    alert80At: integer("alert80_at", { mode: "timestamp" }),
+    alert100At: integer("alert100_at", { mode: "timestamp" }),
   },
   (t) => [primaryKey({ columns: [t.userId, t.month] })]
 );

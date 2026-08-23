@@ -11,11 +11,49 @@ export interface BrandValues {
   site: string;
 }
 
-export default function BrandPanel({ initial }: { initial: BrandValues }) {
+export default function BrandPanel({
+  initial,
+  logo,
+  paidPlan,
+}: {
+  initial: BrandValues;
+  logo: string | null;
+  paidPlan: boolean;
+}) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
   const [status, setStatus] = useState<string | null>(null);
+  const [logoStatus, setLogoStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  async function uploadLogo(file: File) {
+    if (file.size > 60_000) {
+      setLogoStatus("Logo must be under 60KB. Try a smaller PNG.");
+      return;
+    }
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+    const res = await fetch("/api/brand/logo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ logo: dataUrl }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setLogoStatus(res.ok ? "Logo saved" : data.error ?? "Could not save logo");
+    if (res.ok) router.refresh();
+  }
+
+  async function removeLogo() {
+    const res = await fetch("/api/brand/logo", { method: "DELETE" });
+    if (res.ok) {
+      setLogoStatus("Logo removed");
+      router.refresh();
+    }
+  }
 
   function set<K extends keyof BrandValues>(k: K, v: string) {
     setValues((prev) => ({ ...prev, [k]: v }));
@@ -125,6 +163,63 @@ export default function BrandPanel({ initial }: { initial: BrandValues }) {
           ) : null}
         </div>
       </form>
+
+      <div className="mt-6 border-t border-zinc-800 pt-5">
+        <h3 className="mb-1 text-sm font-semibold">
+          Logo{" "}
+          <span className="ml-1 rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-xs font-normal text-indigo-300">
+            Pro
+          </span>
+        </h3>
+        <p className="mb-3 text-sm text-zinc-400">
+          Shown on your cards next to the site name.
+          {paidPlan
+            ? " PNG/JPEG/GIF, up to 60KB."
+            : " Uploading works now, but logos only render on paid plans."}
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logo}
+              alt="Current logo"
+              className="h-12 w-12 rounded-lg border border-zinc-700 bg-zinc-950 object-contain"
+            />
+          ) : null}
+          <label className="cursor-pointer rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500">
+            {logo ? "Replace logo" : "Upload logo"}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void uploadLogo(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {logo ? (
+            <button
+              onClick={removeLogo}
+              className="text-sm text-red-400 hover:text-red-300"
+            >
+              Remove
+            </button>
+          ) : null}
+          {logoStatus ? (
+            <span
+              className={`text-sm ${
+                logoStatus.includes("saved") || logoStatus.includes("removed")
+                  ? "text-emerald-400"
+                  : "text-red-400"
+              }`}
+            >
+              {logoStatus}
+            </span>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

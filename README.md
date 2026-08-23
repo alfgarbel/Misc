@@ -40,7 +40,13 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
   monthly render counts and last-used timestamps on the dashboard.
 - **Brand defaults** — saved template/theme/accent/site per account, applied
   to authenticated renders when a parameter is omitted, so image URLs can be
-  as short as `?key=…&title=Hello` (explicit params always win).
+  as short as `?key=…&title=Hello` (explicit params always win). Paid plans
+  can upload a logo (≤60KB PNG/JPEG/GIF, stored as a data URI — no blob
+  storage needed) that renders on every card.
+- **Quota alert emails** — one email at 80% of quota and one at the cap,
+  at most once each per month (claimed atomically, safe under concurrency).
+- **Abuse protection** — per-IP rate limits on login, signup, password-reset,
+  and demo renders.
 - **Signed URLs** — alternative auth mode: HMAC-SHA256-signed image URLs
   (`acct` + `sig`) bind the exact parameters, so leaked links can't be reused
   or modified; per-account rotatable signing secret.
@@ -86,6 +92,6 @@ Run tests with `npm test`. Build with `npm run build`.
 
 ## Roadmap ideas
 
-- Custom fonts / logo upload per account (paid-tier differentiator)
+- Custom fonts per account
 - Team accounts with shared billing
-- Webhook/email alerts when nearing the monthly quota
+- Admin metrics page (signups, conversion, MRR at a glance)

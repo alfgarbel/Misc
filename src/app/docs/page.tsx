@@ -146,7 +146,9 @@ export default function DocsPage() {
           <code className="text-zinc-300">/api/og?key=…&amp;title=Hello</code>.
           Parameters in the URL always override defaults. You can create up to
           10 named API keys and revoke them independently — per-key render
-          counts show on the dashboard.
+          counts show on the dashboard. On paid plans, an uploaded logo
+          (dashboard → Brand defaults) renders on every card next to the site
+          name.
         </p>
 
         <h2 id="signed-urls" className="mt-12 text-2xl font-semibold">
@@ -205,6 +207,10 @@ Authorization: Bearer og_yourkey
             usually never hit the API (and never count against quota).
           </li>
           <li>Quotas reset on the 1st of each month (UTC).</li>
+          <li>
+            You get one email at 80% of quota and one when the cap is reached —
+            never more than one of each per month.
+          </li>
           <li>Demo requests (no key) are watermarked and limited to ~20/minute.</li>
         </ul>
 

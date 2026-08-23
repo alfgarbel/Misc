@@ -7,25 +7,14 @@ import { verifySignature } from "@/lib/signing";
 import { applyBrandDefaults, parseOgParams } from "@/lib/og/params";
 import { renderOgImage } from "@/lib/og/render";
 import { checkAndRecordRender, recordKeyRender } from "@/lib/usage";
+import { maybeSendQuotaAlert } from "@/lib/alerts";
+import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
 import { PLANS } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
 // Best-effort per-instance rate limit for unauthenticated (demo) renders.
-const DEMO_LIMIT_PER_MINUTE = 20;
-const demoHits = new Map<string, { count: number; windowStart: number }>();
-
-function demoRateLimited(ip: string, now: number = Date.now()): boolean {
-  const windowMs = 60_000;
-  const entry = demoHits.get(ip);
-  if (!entry || now - entry.windowStart > windowMs) {
-    demoHits.set(ip, { count: 1, windowStart: now });
-    return false;
-  }
-  entry.count += 1;
-  if (demoHits.size > 10_000) demoHits.clear();
-  return entry.count > DEMO_LIMIT_PER_MINUTE;
-}
+const demoLimiter = makeRateLimiter(20);
 
 function jsonError(status: number, message: string, extra?: object) {
   return NextResponse.json({ error: message, ...extra }, { status });
@@ -82,10 +71,12 @@ export async function GET(req: NextRequest) {
 
   let watermark = true;
   let cacheable = false;
+  let logo: string | null = null;
 
   if (userId) {
     const db = getDb();
     const quota = await checkAndRecordRender(db, userId);
+    await maybeSendQuotaAlert(db, userId, quota.plan, quota.used);
     if (!quota.allowed) {
       return jsonError(
         429,
@@ -95,17 +86,17 @@ export async function GET(req: NextRequest) {
     }
     if (keyId) await recordKeyRender(db, keyId);
     watermark = PLANS[quota.plan].watermark;
+    // Custom logo is a paid-plan feature.
+    if (!watermark) logo = account?.brandLogo ?? null;
     cacheable = true;
   } else {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    if (demoRateLimited(ip)) {
+    if (demoLimiter.limited(clientIp(req.headers))) {
       return jsonError(429, "Demo rate limit exceeded. Sign up for an API key.");
     }
   }
 
   try {
-    const image = await renderOgImage(parsed.data, { watermark });
+    const image = await renderOgImage(parsed.data, { watermark, logo });
     return new NextResponse(image.body, {
       status: 200,
       headers: {

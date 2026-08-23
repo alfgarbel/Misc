@@ -47,6 +47,25 @@ function palette(theme: "dark" | "light"): Palette {
     : { bg: "#fafafa", fg: "#18181b", muted: "#52525b" };
 }
 
+interface TplProps {
+  p: OgParams;
+  watermark: boolean;
+  logo?: string | null;
+}
+
+function Logo({ src, size = 40 }: { src: string; size?: number }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      width={size}
+      height={size}
+      style={{ borderRadius: 8, objectFit: "contain", marginRight: 16 }}
+      alt=""
+    />
+  );
+}
+
 function Watermark({ theme }: { theme: "dark" | "light" }) {
   return (
     <div
@@ -69,7 +88,7 @@ function Watermark({ theme }: { theme: "dark" | "light" }) {
   );
 }
 
-function GradientTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+function GradientTemplate({ p, watermark, logo }: TplProps) {
   const c = palette(p.theme);
   return (
     <div
@@ -125,15 +144,19 @@ function GradientTemplate({ p, watermark }: { p: OgParams; watermark: boolean })
             color: c.muted,
           }}
         >
-          <div
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 999,
-              backgroundColor: p.accent,
-              marginRight: 16,
-            }}
-          />
+          {logo ? (
+            <Logo src={logo} />
+          ) : (
+            <div
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: 999,
+                backgroundColor: p.accent,
+                marginRight: 16,
+              }}
+            />
+          )}
           {p.site}
         </div>
       ) : null}
@@ -142,7 +165,7 @@ function GradientTemplate({ p, watermark }: { p: OgParams; watermark: boolean })
   );
 }
 
-function MinimalTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+function MinimalTemplate({ p, watermark, logo }: TplProps) {
   const c = palette(p.theme);
   return (
     <div
@@ -185,15 +208,25 @@ function MinimalTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) 
         </div>
       ) : null}
       <div style={{ display: "flex", flexGrow: 1 }} />
-      {p.site ? (
-        <div style={{ fontSize: 28, color: c.muted, display: "flex" }}>{p.site}</div>
+      {p.site || logo ? (
+        <div
+          style={{
+            fontSize: 28,
+            color: c.muted,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          {logo ? <Logo src={logo} /> : null}
+          {p.site}
+        </div>
       ) : null}
       {watermark ? <Watermark theme={p.theme} /> : null}
     </div>
   );
 }
 
-function SplitTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+function SplitTemplate({ p, watermark, logo }: TplProps) {
   const c = palette(p.theme);
   return (
     <div
@@ -231,8 +264,17 @@ function SplitTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
             {p.subtitle}
           </div>
         ) : null}
-        {p.site ? (
-          <div style={{ marginTop: 44, fontSize: 26, color: c.muted, display: "flex" }}>
+        {p.site || logo ? (
+          <div
+            style={{
+              marginTop: 44,
+              fontSize: 26,
+              color: c.muted,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            {logo ? <Logo src={logo} size={36} /> : null}
             {p.site}
           </div>
         ) : null}
@@ -278,7 +320,7 @@ function SplitTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
   );
 }
 
-function TerminalTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+function TerminalTemplate({ p, watermark, logo }: TplProps) {
   return (
     <div
       style={{
@@ -318,8 +360,17 @@ function TerminalTemplate({ p, watermark }: { p: OgParams; watermark: boolean })
           <div style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: "#f87171", marginRight: 12 }} />
           <div style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: "#fbbf24", marginRight: 12 }} />
           <div style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: "#34d399" }} />
-          {p.site ? (
-            <div style={{ marginLeft: 24, fontSize: 22, color: "#a1a1aa", display: "flex" }}>
+          {p.site || logo ? (
+            <div
+              style={{
+                marginLeft: 24,
+                fontSize: 22,
+                color: "#a1a1aa",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {logo ? <Logo src={logo} size={26} /> : null}
               {p.site}
             </div>
           ) : null}
@@ -369,7 +420,7 @@ function TerminalTemplate({ p, watermark }: { p: OgParams; watermark: boolean })
   );
 }
 
-function QuoteTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+function QuoteTemplate({ p, watermark, logo }: TplProps) {
   const c = palette(p.theme);
   return (
     <div
@@ -433,7 +484,7 @@ function QuoteTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
           {p.subtitle}
         </div>
       ) : null}
-      {p.site ? (
+      {p.site || logo ? (
         <div
           style={{
             position: "absolute",
@@ -442,8 +493,10 @@ function QuoteTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
             fontSize: 24,
             color: c.muted,
             display: "flex",
+            alignItems: "center",
           }}
         >
+          {logo ? <Logo src={logo} size={34} /> : null}
           {p.site}
         </div>
       ) : null}
@@ -452,7 +505,7 @@ function QuoteTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
   );
 }
 
-function AnnounceTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+function AnnounceTemplate({ p, watermark, logo }: TplProps) {
   const c = palette(p.theme);
   return (
     <div
@@ -473,6 +526,11 @@ function AnnounceTemplate({ p, watermark }: { p: OgParams; watermark: boolean })
         textAlign: "center",
       }}
     >
+      {logo ? (
+        <div style={{ display: "flex", marginBottom: 28 }}>
+          <Logo src={logo} size={64} />
+        </div>
+      ) : null}
       {p.site ? (
         <div
           style={{
@@ -521,10 +579,10 @@ function AnnounceTemplate({ p, watermark }: { p: OgParams; watermark: boolean })
 
 export async function renderOgImage(
   p: OgParams,
-  opts: { watermark: boolean }
+  opts: { watermark: boolean; logo?: string | null }
 ): Promise<ImageResponse> {
   const fonts = await loadFonts();
-  const props = { p, watermark: opts.watermark };
+  const props = { p, watermark: opts.watermark, logo: opts.logo ?? null };
   let element: React.ReactElement;
   switch (p.template) {
     case "minimal":
