@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Night Garden</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+  /* A single visual world: this piece is deliberately nocturnal. Every color
+     is painted explicitly so the page holds on any host ground. */
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #050810;
+  }
+  #sky {
+    position: fixed;
+    inset: 0;
+    display: block;
+    cursor: crosshair;
+  }
+  .hud {
+    position: fixed;
+    left: clamp(16px, 4vw, 48px);
+    bottom: clamp(14px, 4vh, 40px);
+    color: #dfe9f4;
+    user-select: none;
+    pointer-events: none;
+    opacity: 0;
+    animation: hud-in 2.4s ease 0.8s forwards;
+  }
+  @keyframes hud-in { to { opacity: 1; } }
+  .hud h1 {
+    font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+    letter-spacing: 0.04em;
+    margin: 0 0 0.35rem;
+    text-shadow: 0 0 24px rgba(125, 245, 210, 0.25);
+  }
+  .hud .meta, .hud .hint {
+    font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin: 0;
+    line-height: 1.9;
+  }
+  .hud .meta { color: rgba(223, 233, 244, 0.72); }
+  .hud .hint { color: rgba(183, 140, 255, 0.62); }
+  @media (prefers-reduced-motion: reduce) {
+    .hud { animation: none; opacity: 1; }
+  }
+</style>
+
+<canvas id="sky" aria-label="A generative night garden of glowing plants, fireflies, and the moon at its current phase"></canvas>
+<div class="hud">
+  <h1>The Night Garden</h1>
+  <p class="meta"><span id="phase-label"></span> &middot; <span id="date-label"></span></p>
+  <p class="hint">click to plant a seed &middot; press R to regrow</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var canvas = document.getElementById("sky");
+  var ctx = canvas.getContext("2d");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var W = 0, H = 0, DPR = 1;
+
+  // ---------- seeded randomness ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hashString(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  var now = new Date();
+  var daySeed = hashString(now.toDateString());
+  var seedBump = 0;
+
+  // ---------- moon phase ----------
+  // Synodic month from a known new moon: 2000-01-06 18:14 UTC.
+  var SYNODIC = 29.530588853;
+  var NEW_MOON_EPOCH = Date.UTC(2000, 0, 6, 18, 14, 0);
+  function moonPhaseFraction(date) {
+    var days = (date.getTime() - NEW_MOON_EPOCH) / 86400000;
+    var p = (days / SYNODIC) % 1;
+    return p < 0 ? p + 1 : p;
+  }
+  function moonPhaseName(p) {
+    var names = ["new moon", "waxing crescent", "first quarter", "waxing gibbous",
+                 "full moon", "waning gibbous", "last quarter", "waning crescent"];
+    var idx = Math.round(p * 8) % 8;
+    return names[idx];
+  }
+  var phase = moonPhaseFraction(now);
+
+  document.getElementById("phase-label").textContent = moonPhaseName(phase);
+  document.getElementById("date-label").textContent =
+    now.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+
+  // ---------- world state ----------
+  var stars = [], plants = [], fireflies = [];
+  var groundPts = [], backPts = [];
+  var shootingStar = null, nextShootAt = 0;
+  var startTime = performance.now();
+
+  var PLANT_HUES = [160, 168, 175, 200, 210, 265, 275, 285, 320]; // teal-dominant, violet, one rare rose
+  var MAX_PLANTS = 26;
+
+  function groundY(x) {
+    // piecewise-linear sample of the front ridge
+    if (groundPts.length < 2) return H * 0.86;
+    var step = W / (groundPts.length - 1);
+    var i = Math.max(0, Math.min(groundPts.length - 2, Math.floor(x / step)));
+    var f = x / step - i;
+    return groundPts[i] + (groundPts[i + 1] - groundPts[i]) * f;
+  }
+
+  function ridge(rng, base, amp) {
+    var n = 48, pts = [];
+    var p1 = rng() * 6.28, p2 = rng() * 6.28, p3 = rng() * 6.28;
+    for (var i = 0; i <= n; i++) {
+      var u = i / n;
+      var y = base
+        + Math.sin(u * 3.1 + p1) * amp
+        + Math.sin(u * 7.3 + p2) * amp * 0.45
+        + Math.sin(u * 13.7 + p3) * amp * 0.2;
+      pts.push(y);
+    }
+    return pts;
+  }
+
+  // ---------- plants: recursive luminous flora ----------
+  function makePlant(x, y, rng, hue, scale) {
+    var plant = { x: x, y: y, hue: hue, segments: [], tips: [], born: performance.now(), totalT: 0 };
+    var maxDepth = 4 + Math.floor(rng() * 2);
+
+    function branch(depth, angle, len, tStart, parentIdx) {
+      var seg = { angle: angle, len: len, depth: depth, tStart: tStart, parent: parentIdx };
+      var idx = plant.segments.push(seg) - 1;
+      var tEnd = tStart + len / 60;
+      plant.totalT = Math.max(plant.totalT, tEnd);
+      if (depth >= maxDepth || len < 7) {
+        plant.tips.push({ seg: idx, phase: rng() * 6.28, size: (4 + rng() * 5) * scale });
+        return;
+      }
+      var kids = rng() < 0.18 ? 3 : 2;
+      var spread = 0.32 + rng() * 0.3;
+      for (var k = 0; k < kids; k++) {
+        var off = kids === 1 ? 0 : (k / (kids - 1) - 0.5) * 2 * spread;
+        off += (rng() - 0.5) * 0.18;
+        branch(depth + 1, angle + off, len * (0.66 + rng() * 0.14), tEnd, idx);
+      }
+      // occasional lone side shoot for asymmetry
+      if (rng() < 0.25) {
+        branch(depth + 2, angle + (rng() < 0.5 ? -1 : 1) * (0.7 + rng() * 0.4),
+               len * 0.4, tEnd, idx);
+      }
+    }
+
+    var trunkLen = (46 + rng() * 46) * scale;
+    branch(0, -Math.PI / 2 + (rng() - 0.5) * 0.24, trunkLen, 0, -1);
+    return plant;
+  }
+
+  function plantSeed(x, existingRng) {
+    var rng = existingRng || mulberry32((daySeed ^ hashString("seed" + plants.length + ":" + seedBump)) >>> 0);
+    var px = Math.max(20, Math.min(W - 20, x));
+    var hue = PLANT_HUES[Math.floor(rng() * PLANT_HUES.length)];
+    var scale = (0.7 + rng() * 0.6) * Math.min(1, H / 700);
+    plants.push(makePlant(px, groundY(px) + 2, rng, hue, scale));
+    if (plants.length > MAX_PLANTS) plants.shift();
+  }
+
+  // ---------- fireflies ----------
+  function makeFirefly(rng) {
+    return {
+      x: rng() * W,
+      y: H * (0.35 + rng() * 0.5),
+      vx: (rng() - 0.5) * 20,
+      vy: (rng() - 0.5) * 12,
+      phase: rng() * 6.28,
+      speed: 2.2 + rng() * 2.4,
+      retarget: 0,
+      tx: 0, ty: 0
+    };
+  }
+
+  // ---------- build a garden ----------
+  function buildWorld() {
+    var rng = mulberry32((daySeed + seedBump * 0x9E3779B9) >>> 0);
+    stars = []; plants = []; fireflies = []; shootingStar = null;
+
+    var starCount = Math.floor((W * H) / 6500);
+    for (var i = 0; i < starCount; i++) {
+      stars.push({
+        x: rng() * W,
+        y: rng() * H * 0.78,
+        r: 0.4 + rng() * 1.1,
+        tw: 0.5 + rng() * 2.2,
+        ph: rng() * 6.28
+      });
+    }
+
+    backPts = ridge(rng, H * 0.78, H * 0.05);
+    groundPts = ridge(rng, H * 0.88, H * 0.035);
+
+    var plantCount = Math.max(5, Math.min(11, Math.floor(W / 150)));
+    for (var p = 0; p < plantCount; p++) {
+      var px = W * (0.06 + 0.88 * (p + rng() * 0.8) / plantCount);
+      plantSeed(px, mulberry32((daySeed ^ hashString("p" + p + ":" + seedBump)) >>> 0));
+    }
+
+    var flyCount = Math.min(40, Math.floor(W / 34));
+    for (var f = 0; f < flyCount; f++) fireflies.push(makeFirefly(rng));
+
+    nextShootAt = performance.now() + 4000 + rng() * 8000;
+  }
+
+  // ---------- wind ----------
+  function windAt(t, x) {
+    return Math.sin(t * 0.55 + x * 0.0022) * 0.5
+         + Math.sin(t * 0.21 + x * 0.0041 + 1.7) * 0.32
+         + Math.sin(t * 1.31 + x * 0.001 + 4.1) * 0.1;
+  }
+
+  // ---------- drawing ----------
+  function drawSkyGradient() {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#050810");
+    g.addColorStop(0.55, "#0a1220");
+    g.addColorStop(0.85, "#101b30");
+    g.addColorStop(1, "#0c1526");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawStars(t) {
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      var a = reduceMotion ? 0.7 : 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * s.tw + s.ph));
+      ctx.globalAlpha = a * 0.85;
+      ctx.fillStyle = "#dfe9f4";
+      ctx.fillRect(s.x, s.y, s.r, s.r);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawShootingStar(nowMs) {
+    if (reduceMotion) return;
+    if (!shootingStar && nowMs > nextShootAt) {
+      var sr = Math.random;
+      shootingStar = {
+        x: W * (0.15 + sr() * 0.7),
+        y: H * (0.05 + sr() * 0.25),
+        vx: (sr() < 0.5 ? -1 : 1) * (380 + sr() * 260),
+        vy: 120 + sr() * 120,
+        life: 1
+      };
+      nextShootAt = nowMs + 9000 + sr() * 16000;
+    }
+    if (shootingStar) {
+      var s = shootingStar;
+      var dt = 1 / 60;
+      s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt * 1.4;
+      if (s.life <= 0) { shootingStar = null; return; }
+      var tailX = s.x - s.vx * 0.13, tailY = s.y - s.vy * 0.13;
+      var g = ctx.createLinearGradient(s.x, s.y, tailX, tailY);
+      g.addColorStop(0, "rgba(223,233,244," + (0.9 * s.life) + ")");
+      g.addColorStop(1, "rgba(223,233,244,0)");
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(tailX, tailY);
+      ctx.stroke();
+    }
+  }
+
+  function drawMoon() {
+    var r = Math.min(W, H) * 0.052;
+    var cx = W * 0.78, cy = H * 0.18;
+
+    // halo
+    var halo = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r * 5);
+    halo.addColorStop(0, "rgba(223,233,244,0.14)");
+    halo.addColorStop(1, "rgba(223,233,244,0)");
+    ctx.fillStyle = halo;
+    ctx.fillRect(cx - r * 5, cy - r * 5, r * 10, r * 10);
+
+    // earthshine disc
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 6.2832);
+    ctx.fillStyle = "#1b2536";
+    ctx.fill();
+
+    // lit region: limb semicircle + elliptical terminator
+    var p = phase;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (p > 0.5) { ctx.scale(-1, 1); p = 1 - p; } // waning mirrors waxing
+    var k = Math.cos(2 * Math.PI * p); // 1 = new, -1 = full (within waxing half)
+    var sx = Math.max(0.012, Math.abs(-k)) * (-k < 0 ? -1 : 1);
+    ctx.beginPath();
+    ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false); // lit right limb
+    ctx.save();
+    ctx.scale(sx, 1);
+    ctx.arc(0, 0, r, Math.PI / 2, 3 * Math.PI / 2, false); // terminator
+    ctx.restore();
+    ctx.closePath();
+    ctx.fillStyle = "#dfe9f4";
+    ctx.fill();
+
+    // a few maria for texture, clipped to the disc
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, 6.2832);
+    ctx.clip();
+    ctx.fillStyle = "rgba(16,27,48,0.18)";
+    var maria = [[-0.3, -0.25, 0.28], [0.18, 0.05, 0.2], [-0.05, 0.38, 0.16], [0.38, -0.3, 0.13]];
+    for (var m = 0; m < maria.length; m++) {
+      ctx.beginPath();
+      ctx.arc(maria[m][0] * r, maria[m][1] * r, maria[m][2] * r, 0, 6.2832);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawHills() {
+    ctx.fillStyle = "#0b1322";
+    fillRidge(backPts);
+    ctx.fillStyle = "#070c17";
+    fillRidge(groundPts);
+  }
+  function fillRidge(pts) {
+    var step = W / (pts.length - 1);
+    ctx.beginPath();
+    ctx.moveTo(0, pts[0]);
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(i * step, pts[i]);
+    ctx.lineTo(W, H); ctx.lineTo(0, H);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawPlant(plant, t, nowMs) {
+    var age = reduceMotion ? Infinity : (nowMs - plant.born) / 1000;
+    var segs = plant.segments;
+    var maxDepth = 1;
+    var i, s;
+    for (i = 0; i < segs.length; i++) if (segs[i].depth > maxDepth) maxDepth = segs[i].depth;
+
+    var wind = reduceMotion ? 0 : windAt(t, plant.x);
+
+    // resolve endpoints with sway accumulated along the chain
+    for (i = 0; i < segs.length; i++) {
+      s = segs[i];
+      var grow = Math.max(0, Math.min(1, (age - s.tStart) / (s.len / 60)));
+      s.g = grow;
+      var swayAmp = Math.pow(s.depth / maxDepth, 1.6) * 0.11;
+      var a = s.angle + wind * swayAmp
+            + (reduceMotion ? 0 : Math.sin(t * 1.9 + i * 1.3) * swayAmp * 0.25);
+      if (s.parent === -1) { s.x0 = plant.x; s.y0 = plant.y; }
+      else { s.x0 = segs[s.parent].x1; s.y0 = segs[s.parent].y1; }
+      // inherit parent's realized rotation so the whole limb bends together
+      var pa = s.parent === -1 ? 0 : segs[s.parent].bend;
+      a += pa * 0.85;
+      s.bend = a - s.angle;
+      s.x1 = s.x0 + Math.cos(a) * s.len * grow;
+      s.y1 = s.y0 + Math.sin(a) * s.len * grow;
+    }
+
+    // stems, dark at the root and luminous toward the tips
+    for (i = 0; i < segs.length; i++) {
+      s = segs[i];
+      if (s.g <= 0) continue;
+      var d = s.depth / maxDepth;
+      var light = 22 + d * 40;
+      var alpha = 0.55 + d * 0.4;
+      ctx.strokeStyle = "hsla(" + plant.hue + ", 65%, " + light + "%, " + alpha + ")";
+      ctx.lineWidth = Math.max(0.6, (maxDepth - s.depth + 1) * 0.75);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(s.x0, s.y0);
+      ctx.lineTo(s.x1, s.y1);
+      ctx.stroke();
+    }
+
+    // blooms at grown tips
+    for (i = 0; i < plant.tips.length; i++) {
+      var tip = plant.tips[i];
+      s = segs[tip.seg];
+      if (s.g < 1) continue;
+      var pulse = reduceMotion ? 0.75 : 0.55 + 0.45 * Math.sin(t * 1.4 + tip.phase);
+      var R = tip.size * (0.8 + pulse * 0.35);
+      var glow = ctx.createRadialGradient(s.x1, s.y1, 0, s.x1, s.y1, R * 3.2);
+      glow.addColorStop(0, "hsla(" + plant.hue + ", 90%, 72%, " + (0.5 * pulse + 0.2) + ")");
+      glow.addColorStop(1, "hsla(" + plant.hue + ", 90%, 72%, 0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(s.x1 - R * 3.2, s.y1 - R * 3.2, R * 6.4, R * 6.4);
+      ctx.beginPath();
+      ctx.arc(s.x1, s.y1, R * 0.42, 0, 6.2832);
+      ctx.fillStyle = "hsla(" + plant.hue + ", 55%, 90%, 0.95)";
+      ctx.fill();
+      plant.tips[i].wx = s.x1; plant.tips[i].wy = s.y1;
+    }
+  }
+
+  function collectBloomTargets() {
+    var pts = [];
+    for (var p = 0; p < plants.length; p++) {
+      var tips = plants[p].tips;
+      for (var i = 0; i < tips.length; i++) {
+        if (tips[i].wx !== undefined) pts.push(tips[i]);
+      }
+    }
+    return pts;
+  }
+
+  function drawFireflies(t, dt) {
+    var targets = collectBloomTargets();
+    for (var i = 0; i < fireflies.length; i++) {
+      var f = fireflies[i];
+      if (!reduceMotion) {
+        f.retarget -= dt;
+        if (f.retarget <= 0) {
+          f.retarget = 3 + Math.random() * 5;
+          if (targets.length && Math.random() < 0.6) {
+            var tgt = targets[Math.floor(Math.random() * targets.length)];
+            f.tx = tgt.wx + (Math.random() - 0.5) * 60;
+            f.ty = tgt.wy - 10 - Math.random() * 50;
+          } else {
+            f.tx = Math.random() * W;
+            f.ty = H * (0.3 + Math.random() * 0.55);
+          }
+        }
+        var dx = f.tx - f.x, dy = f.ty - f.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) + 0.001;
+        f.vx += (dx / dist) * f.speed * dt * 14;
+        f.vy += (dy / dist) * f.speed * dt * 14;
+        f.vx += Math.sin(t * 2.3 + i * 2.1) * 6 * dt;
+        f.vy += Math.cos(t * 1.7 + i * 1.4) * 6 * dt;
+        var sp = Math.sqrt(f.vx * f.vx + f.vy * f.vy);
+        var maxSp = 26;
+        if (sp > maxSp) { f.vx *= maxSp / sp; f.vy *= maxSp / sp; }
+        f.x += f.vx * dt; f.y += f.vy * dt;
+        if (f.x < -20) f.x = W + 20; if (f.x > W + 20) f.x = -20;
+        if (f.y < H * 0.15) f.y = H * 0.15;
+        if (f.y > H * 0.96) f.y = H * 0.96;
+      }
+      var blink = reduceMotion
+        ? 0.6
+        : Math.pow(Math.max(0, Math.sin(t * 0.9 + f.phase)), 3);
+      if (blink < 0.02) continue;
+      var R = 1.6 + blink * 2.2;
+      var g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, R * 5);
+      g.addColorStop(0, "rgba(255,217,138," + (0.75 * blink) + ")");
+      g.addColorStop(1, "rgba(255,217,138,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(f.x - R * 5, f.y - R * 5, R * 10, R * 10);
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, R * 0.5, 0, 6.2832);
+      ctx.fillStyle = "rgba(255,240,205," + (0.9 * blink) + ")";
+      ctx.fill();
+    }
+  }
+
+  function drawMist(t) {
+    var y = H * 0.9;
+    var g = ctx.createLinearGradient(0, y - H * 0.12, 0, H);
+    var drift = reduceMotion ? 0 : Math.sin(t * 0.12) * 0.015;
+    g.addColorStop(0, "rgba(125,245,210,0)");
+    g.addColorStop(0.6, "rgba(125,245,210," + (0.035 + drift) + ")");
+    g.addColorStop(1, "rgba(125,245,210,0.015)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, y - H * 0.12, W, H * 0.24);
+  }
+
+  // ---------- frame loop ----------
+  var lastMs = performance.now();
+  function frame(nowMs) {
+    var t = (nowMs - startTime) / 1000;
+    var dt = Math.min(0.05, (nowMs - lastMs) / 1000);
+    lastMs = nowMs;
+
+    drawSkyGradient();
+    drawStars(t);
+    drawShootingStar(nowMs);
+    drawMoon();
+    drawHills();
+    drawMist(t);
+    for (var p = 0; p < plants.length; p++) drawPlant(plants[p], t, nowMs);
+    drawFireflies(t, dt);
+
+    if (!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  // ---------- interaction ----------
+  canvas.addEventListener("pointerdown", function (e) {
+    plantSeed(e.clientX);
+    if (reduceMotion) frame(performance.now());
+  });
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "r" || e.key === "R") {
+      seedBump++;
+      buildWorld();
+      if (reduceMotion) frame(performance.now());
+    }
+  });
+
+  // ---------- resize ----------
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    buildWorld();
+    if (reduceMotion) frame(performance.now());
+  }
+  window.addEventListener("resize", resize);
+
+  resize();
+  if (!reduceMotion) requestAnimationFrame(frame);
+})();
+</script>
+</html>
