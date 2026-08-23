@@ -163,8 +163,10 @@ export default function DocsPage() {
         <p className="mt-3 text-sm text-zinc-400">
           Signature: take every query parameter except{" "}
           <code className="text-zinc-300">sig</code> (including{" "}
-          <code className="text-zinc-300">acct</code>, with decoded values),
-          sort pairs by name, join as <code className="text-zinc-300">name=value</code>{" "}
+          <code className="text-zinc-300">acct</code>), percent-encode each name
+          and value with{" "}
+          <code className="text-zinc-300">encodeURIComponent</code>, sort pairs
+          by name, join as <code className="text-zinc-300">name=value</code>{" "}
           with <code className="text-zinc-300">&amp;</code>, and HMAC-SHA256 it
           with your secret (hex output).
         </p>
@@ -175,6 +177,7 @@ function signedOgUrl(params, accountId, secret) {
   const p = new URLSearchParams(params);
   p.set("acct", accountId);
   const msg = [...p.entries()]
+    .map(([k, v]) => [encodeURIComponent(k), encodeURIComponent(v)])
     .sort(([a, x], [b, y]) =>
       a === b ? x.localeCompare(y) : a.localeCompare(b))
     .map(([k, v]) => \`\${k}=\${v}\`)

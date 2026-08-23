@@ -22,9 +22,23 @@ describe("URL signing", () => {
     expect(canonicalMessage(p)).toBe("acct=u1&template=split&title=Hello");
   });
 
-  it("uses decoded values in the canonical message", () => {
+  it("percent-encodes names and values in the canonical message", () => {
     const p = new URLSearchParams("title=Caf%C3%A9%20%26%20Bar&acct=u1");
-    expect(canonicalMessage(p)).toBe("acct=u1&title=Café & Bar");
+    expect(canonicalMessage(p)).toBe("acct=u1&title=Caf%C3%A9%20%26%20Bar");
+  });
+
+  it("distinct param sets never share a canonical message", () => {
+    // Without per-part encoding these two would collide:
+    const merged = new URLSearchParams();
+    merged.set("a", "1&b=2");
+    const split = new URLSearchParams("a=1&b=2");
+    expect(canonicalMessage(merged)).not.toBe(canonicalMessage(split));
+    // …so a signature for one must not validate the other.
+    merged.set("sig", signParams(merged, secret));
+    const forged = new URLSearchParams("a=1&b=2");
+    forged.set("sig", merged.get("sig")!);
+    expect(verifySignature(forged, secret)).toBe(false);
+    expect(verifySignature(merged, secret)).toBe(true);
   });
 
   it("round-trips sign and verify", () => {

@@ -10,6 +10,10 @@ export const runtime = "nodejs";
 
 const limiter = makeRateLimiter(10);
 
+// A valid bcrypt hash of a random string; compared against when the email
+// doesn't exist so response timing doesn't reveal account existence.
+const DUMMY_HASH = "$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+
 const bodySchema = z.object({
   email: z.string().email().max(254),
   password: z.string().min(1).max(200),
@@ -29,7 +33,13 @@ export async function POST(req: NextRequest) {
   const email = parsed.data.email.toLowerCase().trim();
   const db = getDb();
   const user = await db.query.users.findFirst({ where: eq(users.email, email) });
-  if (!user || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
+  // Always run a hash comparison so unknown emails take the same time as
+  // wrong passwords (no account-existence timing oracle).
+  const ok = await verifyPassword(
+    parsed.data.password,
+    user?.passwordHash ?? DUMMY_HASH
+  );
+  if (!user || !ok) {
     return NextResponse.json(
       { error: "Incorrect email or password" },
       { status: 401 }

@@ -45,8 +45,13 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
   storage needed) that renders on every card.
 - **Quota alert emails** — one email at 80% of quota and one at the cap,
   at most once each per month (claimed atomically, safe under concurrency).
-- **Abuse protection** — per-IP rate limits on login, signup, password-reset,
-  and demo renders.
+- **Abuse protection** — per-IP rate limits on login, signup, password reset
+  (request + submit), and demo renders; a constant-time login path (no
+  account-existence timing oracle); security headers (nosniff, frame-deny,
+  HSTS, referrer & permissions policies) on every response.
+- **Admin metrics** — `/admin` (emails listed in `ADMIN_EMAILS`, verified
+  accounts only; others get a 404): MRR, plan mix, signups/day, renders/month,
+  top accounts, active keys.
 - **Signed URLs** — alternative auth mode: HMAC-SHA256-signed image URLs
   (`acct` + `sig`) bind the exact parameters, so leaked links can't be reused
   or modified; per-account rotatable signing secret.
@@ -90,8 +95,21 @@ Run tests with `npm test`. Build with `npm run build`.
    the server console.
 5. **Domain:** point one at the deployment and update `NEXT_PUBLIC_APP_URL`.
 
+## Security notes
+
+- API keys and auth tokens are stored only as SHA-256 hashes; passwords as
+  bcrypt hashes. URL signatures are HMAC-SHA256 over an unambiguous
+  (percent-encoded) canonical string, compared in constant time.
+- Sessions are stateless JWTs (30-day expiry, httpOnly/secure/lax cookies), so
+  a password reset does not revoke previously issued sessions before expiry —
+  acceptable for v1; move to server-side sessions if this matters to you.
+- Rate limits are in-memory per serverless instance: effective against
+  single-source abuse, not a distributed attacker. Add an edge rate limiter
+  (e.g. Vercel WAF) if that becomes a concern.
+- Logo uploads accept only base64 PNG/JPEG/GIF data URIs (≤60KB); SVG is
+  rejected deliberately (script risk).
+
 ## Roadmap ideas
 
 - Custom fonts per account
 - Team accounts with shared billing
-- Admin metrics page (signups, conversion, MRR at a glance)

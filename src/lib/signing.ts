@@ -9,12 +9,17 @@ export function generateSigningSecret(): string {
 
 /**
  * Canonical message for URL signing: every (name, value) pair except `sig`,
- * with decoded values, sorted by name then value, joined as "name=value" with
- * "&". Documented in /docs — client snippets must match this exactly.
+ * percent-encoded with encodeURIComponent, sorted by name then value, joined
+ * as "name=value" with "&". Encoding each part is what makes the message
+ * unambiguous — without it, {a: "1&b=2"} and {a: "1", b: "2"} would collide.
+ * Documented in /docs — client snippets must match this exactly.
  */
 export function canonicalMessage(params: URLSearchParams): string {
   const entries = [...params.entries()]
     .filter(([k]) => k !== "sig")
+    .map(
+      ([k, v]) => [encodeURIComponent(k), encodeURIComponent(v)] as const
+    )
     .sort(([ak, av], [bk, bv]) =>
       ak === bk ? av.localeCompare(bv) : ak.localeCompare(bk)
     );
