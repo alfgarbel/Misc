@@ -369,6 +369,156 @@ function TerminalTemplate({ p, watermark }: { p: OgParams; watermark: boolean })
   );
 }
 
+function QuoteTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+  const c = palette(p.theme);
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "70px 90px",
+        backgroundColor: c.bg,
+        backgroundImage: `radial-gradient(circle at 0% 100%, ${withAlpha(
+          p.accent,
+          0.18
+        )} 0%, transparent 55%)`,
+        color: c.fg,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 160,
+          fontWeight: 700,
+          color: p.accent,
+          lineHeight: 0.6,
+          marginBottom: 8,
+        }}
+      >
+        “
+      </div>
+      <div
+        style={{
+          fontSize: Math.min(titleFontSize(p.title), 60),
+          fontWeight: 700,
+          lineHeight: 1.2,
+          letterSpacing: "-0.01em",
+          maxWidth: 1000,
+        }}
+      >
+        {p.title}
+      </div>
+      {p.subtitle ? (
+        <div
+          style={{
+            marginTop: 36,
+            display: "flex",
+            alignItems: "center",
+            fontSize: 30,
+            color: c.muted,
+          }}
+        >
+          <div
+            style={{
+              width: 48,
+              height: 4,
+              backgroundColor: p.accent,
+              borderRadius: 999,
+              marginRight: 20,
+            }}
+          />
+          {p.subtitle}
+        </div>
+      ) : null}
+      {p.site ? (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 40,
+            left: 90,
+            fontSize: 24,
+            color: c.muted,
+            display: "flex",
+          }}
+        >
+          {p.site}
+        </div>
+      ) : null}
+      {watermark ? <Watermark theme={p.theme} /> : null}
+    </div>
+  );
+}
+
+function AnnounceTemplate({ p, watermark }: { p: OgParams; watermark: boolean }) {
+  const c = palette(p.theme);
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 80,
+        backgroundColor: c.bg,
+        backgroundImage: `radial-gradient(circle at 50% -20%, ${withAlpha(
+          p.accent,
+          0.4
+        )} 0%, transparent 60%)`,
+        color: c.fg,
+        textAlign: "center",
+      }}
+    >
+      {p.site ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            padding: "10px 24px",
+            borderRadius: 999,
+            border: `2px solid ${withAlpha(p.accent, 0.6)}`,
+            backgroundColor: withAlpha(p.accent, 0.12),
+            color: p.theme === "dark" ? "#e4e4e7" : "#3f3f46",
+            fontSize: 26,
+            marginBottom: 44,
+          }}
+        >
+          {p.site}
+        </div>
+      ) : null}
+      <div
+        style={{
+          fontSize: titleFontSize(p.title),
+          fontWeight: 700,
+          lineHeight: 1.12,
+          letterSpacing: "-0.02em",
+          maxWidth: 1000,
+        }}
+      >
+        {p.title}
+      </div>
+      {p.subtitle ? (
+        <div
+          style={{
+            marginTop: 28,
+            fontSize: 32,
+            color: c.muted,
+            lineHeight: 1.4,
+            maxWidth: 900,
+          }}
+        >
+          {p.subtitle}
+        </div>
+      ) : null}
+      {watermark ? <Watermark theme={p.theme} /> : null}
+    </div>
+  );
+}
+
 export async function renderOgImage(
   p: OgParams,
   opts: { watermark: boolean }
@@ -385,6 +535,12 @@ export async function renderOgImage(
       break;
     case "terminal":
       element = <TerminalTemplate {...props} />;
+      break;
+    case "quote":
+      element = <QuoteTemplate {...props} />;
+      break;
+    case "announce":
+      element = <AnnounceTemplate {...props} />;
       break;
     default:
       element = <GradientTemplate {...props} />;

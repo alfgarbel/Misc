@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { users } from "@/lib/db/schema";
 import { resolveApiKey } from "@/lib/keys";
+import { verifySignature } from "@/lib/signing";
 import { parseOgParams } from "@/lib/og/params";
 import { renderOgImage } from "@/lib/og/render";
 import { checkAndRecordRender } from "@/lib/usage";
@@ -38,15 +41,29 @@ export async function GET(req: NextRequest) {
   }
 
   const key = params.get("key");
+  const acct = params.get("acct");
   let watermark = true;
   let cacheable = false;
 
+  // Two authenticated modes: a plain API key, or an HMAC-signed URL
+  // (acct + sig) that binds the signature to the exact parameters.
+  let userId: string | null = null;
   if (key) {
-    const db = getDb();
-    const userId = await resolveApiKey(db, key);
+    userId = await resolveApiKey(getDb(), key);
     if (!userId) {
       return jsonError(401, "Invalid or revoked API key");
     }
+  } else if (acct) {
+    const db = getDb();
+    const user = await db.query.users.findFirst({ where: eq(users.id, acct) });
+    if (!user?.signingSecret || !verifySignature(params, user.signingSecret)) {
+      return jsonError(401, "Invalid signature");
+    }
+    userId = user.id;
+  }
+
+  if (userId) {
+    const db = getDb();
     const quota = await checkAndRecordRender(db, userId);
     if (!quota.allowed) {
       return jsonError(

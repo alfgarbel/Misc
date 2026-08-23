@@ -41,6 +41,30 @@ export async function getUserPlan(
   return normalizePlan(sub.plan);
 }
 
+export interface MonthUsage {
+  month: string;
+  count: number;
+}
+
+/** Usage for the trailing `months` months (oldest first), zero-filled. */
+export async function getUsageHistory(
+  db: Database,
+  userId: string,
+  months = 6,
+  now: Date = new Date()
+): Promise<MonthUsage[]> {
+  const keys: string[] = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    keys.push(currentMonth(d));
+  }
+  const rows = await db.query.usage.findMany({
+    where: eq(usage.userId, userId),
+  });
+  const byMonth = new Map(rows.map((r) => [r.month, r.count]));
+  return keys.map((month) => ({ month, count: byMonth.get(month) ?? 0 }));
+}
+
 export interface QuotaCheck {
   allowed: boolean;
   plan: PlanId;

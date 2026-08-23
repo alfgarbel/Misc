@@ -4,6 +4,8 @@ import { and, eq, isNull } from "drizzle-orm";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import KeyPanel from "@/components/KeyPanel";
+import SigningPanel from "@/components/SigningPanel";
+import VerifyBanner from "@/components/VerifyBanner";
 import {
   UpgradeButton,
   ManageBillingButton,
@@ -12,7 +14,7 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { apiKeys } from "@/lib/db/schema";
-import { getMonthlyUsage, getUserPlan } from "@/lib/usage";
+import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
 import { PLANS } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -23,13 +25,15 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const db = getDb();
-  const [plan, used, activeKey] = await Promise.all([
+  const [plan, used, activeKey, history] = await Promise.all([
     getUserPlan(db, user.id),
     getMonthlyUsage(db, user.id),
     db.query.apiKeys.findFirst({
       where: and(eq(apiKeys.userId, user.id), isNull(apiKeys.revokedAt)),
     }),
+    getUsageHistory(db, user.id, 6),
   ]);
+  const historyMax = Math.max(1, ...history.map((h) => h.count));
   const planInfo = PLANS[plan];
   const pct = Math.min(100, Math.round((used / planInfo.monthlyRenders) * 100));
 
@@ -46,6 +50,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid gap-6">
+          {!user.emailVerifiedAt ? <VerifyBanner /> : null}
           {/* Usage */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
             <div className="mb-2 flex items-baseline justify-between">
@@ -76,7 +81,35 @@ export default async function DashboardPage() {
             ) : null}
           </div>
 
+          {/* Usage history */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+            <h2 className="mb-4 font-semibold">Last 6 months</h2>
+            <div className="flex h-32 items-end gap-3">
+              {history.map((h) => (
+                <div
+                  key={h.month}
+                  className="flex flex-1 flex-col items-center gap-2"
+                >
+                  <span className="text-xs text-zinc-500">
+                    {h.count.toLocaleString()}
+                  </span>
+                  <div
+                    className="w-full rounded-t bg-indigo-500/70"
+                    style={{
+                      height: `${Math.max(3, (h.count / historyMax) * 80)}px`,
+                    }}
+                  />
+                  <span className="text-xs text-zinc-500">
+                    {h.month.slice(5)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <KeyPanel keyPrefix={activeKey?.keyPrefix ?? null} />
+
+          <SigningPanel accountId={user.id} />
 
           {/* Billing */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">

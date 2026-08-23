@@ -18,7 +18,7 @@ const PARAMS: Array<{
   },
   {
     name: "template",
-    type: "gradient | minimal | split | terminal",
+    type: "gradient | minimal | split | terminal | quote | announce",
     def: "gradient",
     desc: "Which card layout to render.",
   },
@@ -51,6 +51,12 @@ const PARAMS: Array<{
     type: "hex color",
     def: "#6366f1",
     desc: "Accent color. URL-encode the hash: %236366f1.",
+  },
+  {
+    name: "acct + sig",
+    type: "string",
+    def: "—",
+    desc: "Signed-URL auth: your account ID plus an HMAC signature. Alternative to key — see Signed URLs below.",
   },
 ];
 
@@ -127,6 +133,54 @@ export default function DocsPage() {
   og.searchParams.set("site", "myblog.com");
   return { openGraph: { images: [og.toString()] } };
 }`}</CodeBlock>
+        </div>
+
+        <h2 id="signed-urls" className="mt-12 text-2xl font-semibold">
+          Signed URLs
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Instead of embedding your API key, you can sign each URL with your
+          account&apos;s signing secret (dashboard → Signed URLs). The signature
+          binds the exact parameters, so a leaked URL can&apos;t be modified or
+          reused for other content, and your secret never appears in markup.
+        </p>
+        <p className="mt-3 text-sm text-zinc-400">
+          Signature: take every query parameter except{" "}
+          <code className="text-zinc-300">sig</code> (including{" "}
+          <code className="text-zinc-300">acct</code>, with decoded values),
+          sort pairs by name, join as <code className="text-zinc-300">name=value</code>{" "}
+          with <code className="text-zinc-300">&amp;</code>, and HMAC-SHA256 it
+          with your secret (hex output).
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`import { createHmac } from "crypto";
+
+function signedOgUrl(params, accountId, secret) {
+  const p = new URLSearchParams(params);
+  p.set("acct", accountId);
+  const msg = [...p.entries()]
+    .sort(([a, x], [b, y]) =>
+      a === b ? x.localeCompare(y) : a.localeCompare(b))
+    .map(([k, v]) => \`\${k}=\${v}\`)
+    .join("&");
+  p.set("sig", createHmac("sha256", secret).update(msg).digest("hex"));
+  return \`https://YOUR-DEPLOYMENT/api/og?\${p}\`;
+}
+
+signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</CodeBlock>
+        </div>
+
+        <h2 className="mt-12 text-2xl font-semibold">Check your usage</h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Poll your quota programmatically — useful for alerting before you hit
+          the cap:
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`GET /api/usage
+Authorization: Bearer og_yourkey
+
+{ "month": "2026-08", "plan": "pro", "used": 1204,
+  "limit": 20000, "remaining": 18796, "watermark": false }`}</CodeBlock>
         </div>
 
         <h2 className="mt-12 text-2xl font-semibold">Quotas & caching</h2>

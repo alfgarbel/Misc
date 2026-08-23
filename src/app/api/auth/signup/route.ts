@@ -6,6 +6,10 @@ import { getDb } from "@/lib/db";
 import { users, subscriptions } from "@/lib/db/schema";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
 import { rotateApiKey } from "@/lib/keys";
+import { generateSigningSecret } from "@/lib/signing";
+import { createAuthToken } from "@/lib/tokens";
+import { sendEmail, verificationEmail } from "@/lib/mailer";
+import { appUrl } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -40,10 +44,22 @@ export async function POST(req: NextRequest) {
     id: userId,
     email,
     passwordHash: await hashPassword(parsed.data.password),
+    signingSecret: generateSigningSecret(),
   });
   await db.insert(subscriptions).values({ userId, plan: "free" });
   const apiKey = await rotateApiKey(db, userId);
   await setSessionCookie(userId);
+
+  // Fire-and-forget verification email; signup must not fail if mail does.
+  try {
+    const token = await createAuthToken(db, userId, "verify");
+    void sendEmail({
+      to: email,
+      ...verificationEmail(`${appUrl()}/verify?token=${token}`),
+    });
+  } catch (err) {
+    console.error("verification email failed:", err);
+  }
 
   // The plaintext key is returned once, at signup, so the dashboard can show it.
   return NextResponse.json({ ok: true, apiKey });

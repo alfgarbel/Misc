@@ -84,6 +84,10 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
             <Link href="/signup" className="text-indigo-400 hover:underline">
               Create an account
             </Link>
+            {" · "}
+            <Link href="/forgot" className="text-indigo-400 hover:underline">
+              Forgot password?
+            </Link>
           </>
         )}
       </p>

@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-export const TEMPLATES = ["gradient", "minimal", "split", "terminal"] as const;
+export const TEMPLATES = [
+  "gradient",
+  "minimal",
+  "split",
+  "terminal",
+  "quote",
+  "announce",
+] as const;
 export type TemplateId = (typeof TEMPLATES)[number];
 
 const hexColor = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;

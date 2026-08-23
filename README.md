@@ -29,11 +29,18 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
 
 - **Next.js 16** (App Router, TypeScript, Tailwind) — landing page with live
   playground, docs, pricing, terms/privacy.
-- **Image API** — `GET /api/og` with 4 templates (gradient, minimal, split,
-  terminal), dark/light themes, accent colors, auto-scaling typography.
-  Rendered with `next/og` (satori) + bundled Inter fonts (OFL licensed).
-- **Auth** — email + password (bcrypt), JWT session cookies (jose).
+- **Image API** — `GET /api/og` with 6 templates (gradient, minimal, split,
+  terminal, quote, announce), dark/light themes, accent colors, auto-scaling
+  typography. Rendered with `next/og` (satori) + bundled Inter fonts (OFL).
+- **Auth** — email + password (bcrypt), JWT session cookies (jose), email
+  verification and password reset (single-use hashed tokens; sends via Resend
+  when `RESEND_API_KEY` is set, logs to console otherwise).
 - **API keys** — SHA-256 hashed at rest, shown once, one-click rotation.
+- **Signed URLs** — alternative auth mode: HMAC-SHA256-signed image URLs
+  (`acct` + `sig`) bind the exact parameters, so leaked links can't be reused
+  or modified; per-account rotatable signing secret.
+- **Usage API** — `GET /api/usage` (Bearer key) returns plan, used, remaining;
+  the dashboard shows a 6-month usage history chart.
 - **Metering** — per-user monthly render counters with hard quota enforcement
   (429 when exceeded; no overage billing surprises).
 - **Billing** — Stripe Checkout subscriptions + customer portal + webhook
@@ -67,11 +74,13 @@ Run tests with `npm test`. Build with `npm run build`.
    webhook endpoint `https://your-domain/api/stripe/webhook` subscribed to
    `checkout.session.completed`, `customer.subscription.updated`,
    `customer.subscription.deleted`, and set `STRIPE_WEBHOOK_SECRET`.
-4. **Domain:** point one at the deployment and update `NEXT_PUBLIC_APP_URL`.
+4. **Email (Resend, free tier):** set `RESEND_API_KEY` and `EMAIL_FROM` to
+   send real verification/reset emails; without them the flows log links to
+   the server console.
+5. **Domain:** point one at the deployment and update `NEXT_PUBLIC_APP_URL`.
 
 ## Roadmap ideas
 
-- Email verification + password reset (needs an email provider, e.g. Resend)
 - Custom fonts / logo upload per account (paid-tier differentiator)
-- Signed URLs (HMAC of params) so keys never appear in markup
 - Per-key usage analytics and a template gallery with more layouts
+- Team accounts and multiple named API keys per account
