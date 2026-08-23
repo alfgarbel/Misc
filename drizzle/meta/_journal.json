@@ -15,6 +15,13 @@
       "when": 1787497358662,
       "tag": "0001_spotty_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787500187556,
+      "tag": "0002_ambiguous_garia",
+      "breakpoints": true
     }
   ]
 }

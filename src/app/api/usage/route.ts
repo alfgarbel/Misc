@@ -17,16 +17,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing API key" }, { status: 401 });
   }
   const db = getDb();
-  const userId = await resolveApiKey(db, key);
-  if (!userId) {
+  const resolved = await resolveApiKey(db, key);
+  if (!resolved) {
     return NextResponse.json(
       { error: "Invalid or revoked API key" },
       { status: 401 }
     );
   }
   const [plan, used] = await Promise.all([
-    getUserPlan(db, userId),
-    getMonthlyUsage(db, userId),
+    getUserPlan(db, resolved.userId),
+    getMonthlyUsage(db, resolved.userId),
   ]);
   return NextResponse.json({
     month: currentMonth(),

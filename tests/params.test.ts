@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseOgParams } from "@/lib/og/params";
+import { parseOgParams, applyBrandDefaults } from "@/lib/og/params";
 
 function parse(qs: string) {
   return parseOgParams(new URLSearchParams(qs));
@@ -44,5 +44,49 @@ describe("og params", () => {
   it("accepts 3-digit hex accents", () => {
     const r = parse("accent=%23f43");
     expect(r.success).toBe(true);
+  });
+});
+
+describe("brand defaults", () => {
+  const defaults = {
+    template: "split",
+    theme: "light",
+    accent: "#f43f5e",
+    site: "acme.dev",
+  };
+
+  it("fills in missing fields only", () => {
+    const merged = applyBrandDefaults(
+      new URLSearchParams("title=Hello&theme=dark"),
+      defaults
+    );
+    expect(merged.get("template")).toBe("split");
+    expect(merged.get("theme")).toBe("dark"); // explicit param wins
+    expect(merged.get("accent")).toBe("#f43f5e");
+    expect(merged.get("site")).toBe("acme.dev");
+    expect(merged.get("title")).toBe("Hello");
+  });
+
+  it("ignores null/empty defaults and leaves input untouched", () => {
+    const input = new URLSearchParams("title=Hello");
+    const merged = applyBrandDefaults(input, {
+      template: null,
+      theme: undefined,
+      accent: "",
+      site: null,
+    });
+    expect([...merged.entries()]).toEqual([["title", "Hello"]]);
+    // Original params object is not mutated.
+    expect(input.get("template")).toBeNull();
+  });
+
+  it("merged defaults still parse", () => {
+    const merged = applyBrandDefaults(new URLSearchParams("title=Hi"), defaults);
+    const r = parseOgParams(merged);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.template).toBe("split");
+      expect(r.data.site).toBe("acme.dev");
+    }
   });
 });

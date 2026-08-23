@@ -28,14 +28,19 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
 ## What's inside
 
 - **Next.js 16** (App Router, TypeScript, Tailwind) — landing page with live
-  playground, docs, pricing, terms/privacy.
+  playground, template gallery, docs, pricing, terms/privacy, sitemap/robots.
 - **Image API** — `GET /api/og` with 6 templates (gradient, minimal, split,
   terminal, quote, announce), dark/light themes, accent colors, auto-scaling
   typography. Rendered with `next/og` (satori) + bundled Inter fonts (OFL).
 - **Auth** — email + password (bcrypt), JWT session cookies (jose), email
   verification and password reset (single-use hashed tokens; sends via Resend
   when `RESEND_API_KEY` is set, logs to console otherwise).
-- **API keys** — SHA-256 hashed at rest, shown once, one-click rotation.
+- **API keys** — up to 10 named keys per account (e.g. per site/environment),
+  SHA-256 hashed at rest, shown once, independently revocable, with per-key
+  monthly render counts and last-used timestamps on the dashboard.
+- **Brand defaults** — saved template/theme/accent/site per account, applied
+  to authenticated renders when a parameter is omitted, so image URLs can be
+  as short as `?key=…&title=Hello` (explicit params always win).
 - **Signed URLs** — alternative auth mode: HMAC-SHA256-signed image URLs
   (`acct` + `sig`) bind the exact parameters, so leaked links can't be reused
   or modified; per-account rotatable signing secret.
@@ -82,5 +87,5 @@ Run tests with `npm test`. Build with `npm run build`.
 ## Roadmap ideas
 
 - Custom fonts / logo upload per account (paid-tier differentiator)
-- Per-key usage analytics and a template gallery with more layouts
-- Team accounts and multiple named API keys per account
+- Team accounts with shared billing
+- Webhook/email alerts when nearing the monthly quota

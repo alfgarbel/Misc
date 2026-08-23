@@ -26,6 +26,29 @@ export const ogParamsSchema = z.object({
 
 export type OgParams = z.infer<typeof ogParamsSchema>;
 
+export interface BrandDefaults {
+  template?: string | null;
+  theme?: string | null;
+  accent?: string | null;
+  site?: string | null;
+}
+
+/**
+ * Fills in account-level defaults for parameters the request didn't specify.
+ * Applied only to authenticated renders, after signature verification.
+ */
+export function applyBrandDefaults(
+  searchParams: URLSearchParams,
+  defaults: BrandDefaults
+): URLSearchParams {
+  const merged = new URLSearchParams(searchParams);
+  for (const field of ["template", "theme", "accent", "site"] as const) {
+    const value = defaults[field];
+    if (value && !merged.get(field)) merged.set(field, value);
+  }
+  return merged;
+}
+
 export function parseOgParams(searchParams: URLSearchParams) {
   const raw: Record<string, string> = {};
   for (const k of ["template", "title", "subtitle", "site", "theme", "accent"]) {

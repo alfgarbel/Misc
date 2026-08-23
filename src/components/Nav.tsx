@@ -11,6 +11,9 @@ export default async function Nav() {
           OGsmith
         </Link>
         <nav className="flex items-center gap-6 text-sm text-zinc-400">
+          <Link href="/templates" className="hover:text-white">
+            Templates
+          </Link>
           <Link href="/docs" className="hover:text-white">
             Docs
           </Link>

@@ -11,6 +11,10 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash").notNull(),
   signingSecret: text("signing_secret"),
   emailVerifiedAt: integer("email_verified_at", { mode: "timestamp" }),
+  brandTemplate: text("brand_template"),
+  brandTheme: text("brand_theme"),
+  brandAccent: text("brand_accent"),
+  brandSite: text("brand_site"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -35,13 +39,27 @@ export const apiKeys = sqliteTable("api_keys", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull().default("Default"),
   keyHash: text("key_hash").notNull().unique(),
   keyPrefix: text("key_prefix").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
+  lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
   revokedAt: integer("revoked_at", { mode: "timestamp" }),
 });
+
+export const keyUsage = sqliteTable(
+  "key_usage",
+  {
+    keyId: text("key_id")
+      .notNull()
+      .references(() => apiKeys.id, { onDelete: "cascade" }),
+    month: text("month").notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.keyId, t.month] })]
+);
 
 export const subscriptions = sqliteTable("subscriptions", {
   userId: text("user_id")

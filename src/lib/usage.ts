@@ -1,6 +1,6 @@
 import { sql, and, eq } from "drizzle-orm";
 import type { Database } from "./db";
-import { usage, subscriptions } from "./db/schema";
+import { usage, subscriptions, apiKeys, keyUsage } from "./db/schema";
 import { currentMonth, normalizePlan, withinQuota, type PlanId } from "./plans";
 
 export async function getMonthlyUsage(
@@ -39,6 +39,27 @@ export async function getUserPlan(
   // A canceled/unpaid subscription falls back to free limits.
   if (sub.status !== "active" && sub.status !== "trialing") return "free";
   return normalizePlan(sub.plan);
+}
+
+/** Attributes one render to a specific API key and bumps its last-used time. */
+export async function recordKeyRender(
+  db: Database,
+  keyId: string,
+  month: string = currentMonth()
+): Promise<void> {
+  await Promise.all([
+    db
+      .insert(keyUsage)
+      .values({ keyId, month, count: 1 })
+      .onConflictDoUpdate({
+        target: [keyUsage.keyId, keyUsage.month],
+        set: { count: sql`${keyUsage.count} + 1` },
+      }),
+    db
+      .update(apiKeys)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(apiKeys.id, keyId)),
+  ]);
 }
 
 export interface MonthUsage {

@@ -135,6 +135,20 @@ export default function DocsPage() {
 }`}</CodeBlock>
         </div>
 
+        <h2 className="mt-12 text-2xl font-semibold">Account defaults</h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Set default <code className="text-zinc-300">template</code>,{" "}
+          <code className="text-zinc-300">theme</code>,{" "}
+          <code className="text-zinc-300">accent</code>, and{" "}
+          <code className="text-zinc-300">site</code> values in the dashboard
+          (Brand defaults). They apply to authenticated renders whenever the
+          parameter is omitted, so a URL can be as short as{" "}
+          <code className="text-zinc-300">/api/og?key=…&amp;title=Hello</code>.
+          Parameters in the URL always override defaults. You can create up to
+          10 named API keys and revoke them independently — per-key render
+          counts show on the dashboard.
+        </p>
+
         <h2 id="signed-urls" className="mt-12 text-2xl font-semibold">
           Signed URLs
         </h2>

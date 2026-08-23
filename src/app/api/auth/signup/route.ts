@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { users, subscriptions } from "@/lib/db/schema";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
-import { rotateApiKey } from "@/lib/keys";
+import { createApiKey } from "@/lib/keys";
 import { generateSigningSecret } from "@/lib/signing";
 import { createAuthToken } from "@/lib/tokens";
 import { sendEmail, verificationEmail } from "@/lib/mailer";
@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
     signingSecret: generateSigningSecret(),
   });
   await db.insert(subscriptions).values({ userId, plan: "free" });
-  const apiKey = await rotateApiKey(db, userId);
+  const created = await createApiKey(db, userId, "Default");
+  const apiKey = created?.key ?? null;
   await setSessionCookie(userId);
 
   // Fire-and-forget verification email; signup must not fail if mail does.

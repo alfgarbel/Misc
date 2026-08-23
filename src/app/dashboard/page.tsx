@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { and, eq, isNull } from "drizzle-orm";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import KeyPanel from "@/components/KeyPanel";
+import KeysManager from "@/components/KeysManager";
+import BrandPanel from "@/components/BrandPanel";
 import SigningPanel from "@/components/SigningPanel";
 import VerifyBanner from "@/components/VerifyBanner";
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/BillingButtons";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { apiKeys } from "@/lib/db/schema";
+import { listActiveKeys } from "@/lib/keys";
 import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
 import { PLANS } from "@/lib/plans";
 
@@ -25,12 +25,10 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const db = getDb();
-  const [plan, used, activeKey, history] = await Promise.all([
+  const [plan, used, keys, history] = await Promise.all([
     getUserPlan(db, user.id),
     getMonthlyUsage(db, user.id),
-    db.query.apiKeys.findFirst({
-      where: and(eq(apiKeys.userId, user.id), isNull(apiKeys.revokedAt)),
-    }),
+    listActiveKeys(db, user.id),
     getUsageHistory(db, user.id, 6),
   ]);
   const historyMax = Math.max(1, ...history.map((h) => h.count));
@@ -107,7 +105,25 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <KeyPanel keyPrefix={activeKey?.keyPrefix ?? null} />
+          <KeysManager
+            keys={keys.map((k) => ({
+              id: k.id,
+              name: k.name,
+              keyPrefix: k.keyPrefix,
+              createdAt: k.createdAt.toISOString(),
+              lastUsedAt: k.lastUsedAt?.toISOString() ?? null,
+              rendersThisMonth: k.rendersThisMonth,
+            }))}
+          />
+
+          <BrandPanel
+            initial={{
+              template: user.brandTemplate ?? "",
+              theme: user.brandTheme ?? "",
+              accent: user.brandAccent ?? "",
+              site: user.brandSite ?? "",
+            }}
+          />
 
           <SigningPanel accountId={user.id} />
 

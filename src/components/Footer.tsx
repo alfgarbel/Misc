@@ -6,6 +6,9 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
         <p>© {new Date().getFullYear()} OGsmith</p>
         <div className="flex gap-6">
+          <Link href="/templates" className="hover:text-zinc-300">
+            Templates
+          </Link>
           <Link href="/docs" className="hover:text-zinc-300">
             Docs
           </Link>

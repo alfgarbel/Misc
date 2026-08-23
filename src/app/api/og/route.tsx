@@ -4,9 +4,9 @@ import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { resolveApiKey } from "@/lib/keys";
 import { verifySignature } from "@/lib/signing";
-import { parseOgParams } from "@/lib/og/params";
+import { applyBrandDefaults, parseOgParams } from "@/lib/og/params";
 import { renderOgImage } from "@/lib/og/render";
-import { checkAndRecordRender } from "@/lib/usage";
+import { checkAndRecordRender, recordKeyRender } from "@/lib/usage";
 import { PLANS } from "@/lib/plans";
 
 export const runtime = "nodejs";
@@ -32,27 +32,26 @@ function jsonError(status: number, message: string, extra?: object) {
 }
 
 export async function GET(req: NextRequest) {
-  const params = req.nextUrl.searchParams;
-  const parsed = parseOgParams(params);
-  if (!parsed.success) {
-    return jsonError(400, "Invalid parameters", {
-      details: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
-    });
-  }
-
+  let params = req.nextUrl.searchParams;
   const key = params.get("key");
   const acct = params.get("acct");
-  let watermark = true;
-  let cacheable = false;
 
   // Two authenticated modes: a plain API key, or an HMAC-signed URL
   // (acct + sig) that binds the signature to the exact parameters.
   let userId: string | null = null;
+  let keyId: string | null = null;
+  let account: typeof users.$inferSelect | null = null;
+
   if (key) {
-    userId = await resolveApiKey(getDb(), key);
-    if (!userId) {
+    const db = getDb();
+    const resolved = await resolveApiKey(db, key);
+    if (!resolved) {
       return jsonError(401, "Invalid or revoked API key");
     }
+    userId = resolved.userId;
+    keyId = resolved.keyId;
+    account =
+      (await db.query.users.findFirst({ where: eq(users.id, userId) })) ?? null;
   } else if (acct) {
     const db = getDb();
     const user = await db.query.users.findFirst({ where: eq(users.id, acct) });
@@ -60,7 +59,29 @@ export async function GET(req: NextRequest) {
       return jsonError(401, "Invalid signature");
     }
     userId = user.id;
+    account = user;
   }
+
+  // Account defaults fill in unspecified template/theme/accent/site,
+  // after signature verification (the signature covers the sent params).
+  if (account) {
+    params = applyBrandDefaults(params, {
+      template: account.brandTemplate,
+      theme: account.brandTheme,
+      accent: account.brandAccent,
+      site: account.brandSite,
+    });
+  }
+
+  const parsed = parseOgParams(params);
+  if (!parsed.success) {
+    return jsonError(400, "Invalid parameters", {
+      details: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
+    });
+  }
+
+  let watermark = true;
+  let cacheable = false;
 
   if (userId) {
     const db = getDb();
@@ -72,6 +93,7 @@ export async function GET(req: NextRequest) {
         { plan: quota.plan, used: quota.used }
       );
     }
+    if (keyId) await recordKeyRender(db, keyId);
     watermark = PLANS[quota.plan].watermark;
     cacheable = true;
   } else {
@@ -84,7 +106,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const image = await renderOgImage(parsed.data, { watermark });
-    const res = new NextResponse(image.body, {
+    return new NextResponse(image.body, {
       status: 200,
       headers: {
         "Content-Type": "image/png",
@@ -93,7 +115,6 @@ export async function GET(req: NextRequest) {
           : "public, max-age=60, s-maxage=300",
       },
     });
-    return res;
   } catch (err) {
     console.error("OG render failed:", err);
     return jsonError(500, "Image rendering failed");
