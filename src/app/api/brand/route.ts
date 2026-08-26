@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { TEMPLATES } from "@/lib/og/params";
+import { bumpCacheVersion } from "@/lib/cachebust";
 
 export const runtime = "nodejs";
 
@@ -40,7 +41,8 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  await getDb()
+  const db = getDb();
+  await db
     .update(users)
     .set({
       brandTemplate: parsed.data.template,
@@ -49,5 +51,7 @@ export async function POST(req: NextRequest) {
       brandSite: parsed.data.site,
     })
     .where(eq(users.id, user.id));
-  return NextResponse.json({ ok: true });
+  // Already-published cards keep serving the old look until their URL changes.
+  const version = await bumpCacheVersion(db, user.id, { brandChanged: true });
+  return NextResponse.json({ ok: true, version });
 }

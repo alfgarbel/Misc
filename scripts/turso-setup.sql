@@ -85,6 +85,10 @@ CREATE UNIQUE INDEX `auth_tokens_token_hash_unique` ON `auth_tokens` (`token_has
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);
 CREATE UNIQUE INDEX `users_google_id_unique` ON `users` (`google_id`);
 
+-- ---------- 0005_add_cache_version ----------
+ALTER TABLE `users` ADD `cache_version` integer DEFAULT 1 NOT NULL;
+ALTER TABLE `users` ADD `brand_updated_at` integer;
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -96,3 +100,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('3a869c15272863eb
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('410b9d112bf6f488442a4a74e5f5dd13d43ed3d33a18786b5abe539bdc4be2a8', 1787500187556);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('9eb462ee4510c7bc739edd27af8399109f25631d904322695be7b8c12b61e04c', 1787506065273);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('f9837ce82da1990a8d3c6505f49ccb3b1ac802dd1533e06745c491158459cd79', 1787754917007);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d74e9d38e0dc433c486a49567b6d5fb39e55b220e04d440d1776668e5a7bc536', 1787761634209);

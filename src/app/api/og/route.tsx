@@ -10,6 +10,7 @@ import { checkAndRecordRender, recordKeyRender } from "@/lib/usage";
 import { maybeSendQuotaAlert } from "@/lib/alerts";
 import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
 import { PLANS } from "@/lib/plans";
+import { CACHE_VERSION_PARAM, isValidCacheVersion } from "@/lib/cachebust";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,18 @@ export async function GET(req: NextRequest) {
   let params = req.nextUrl.searchParams;
   const key = params.get("key");
   const acct = params.get("acct");
+
+  // `v` never reaches the renderer — it exists only to change the URL, which
+  // is the one thing social and CDN caches key on. It is still bounded, so a
+  // caller can't mint unlimited distinct URLs for the same image.
+  const version = params.get(CACHE_VERSION_PARAM);
+  if (version !== null && !isValidCacheVersion(version)) {
+    return jsonError(400, "Invalid parameters", {
+      details: [
+        `${CACHE_VERSION_PARAM}: must be 1-32 characters of A-Z, a-z, 0-9, dot, dash or underscore`,
+      ],
+    });
+  }
 
   // Two authenticated modes: a plain API key, or an HMAC-signed URL
   // (acct + sig) that binds the signature to the exact parameters.

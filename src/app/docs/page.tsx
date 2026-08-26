@@ -54,6 +54,12 @@ const PARAMS: Array<{
     desc: "Accent color. URL-encode the hash: %236366f1.",
   },
   {
+    name: "v",
+    type: "string (≤ 32 chars)",
+    def: "—",
+    desc: "Cache-busting token. Ignored when rendering; changing it is what forces social platforms to re-fetch. See Refreshing cached cards.",
+  },
+  {
     name: "acct + sig",
     type: "string",
     def: "—",
@@ -192,6 +198,51 @@ function signedOgUrl(params, accountId, secret) {
 signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</CodeBlock>
         </div>
 
+        <h2 id="cache-refresh" className="mt-12 text-2xl font-semibold">
+          Refreshing cached cards
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Once a link has been shared, X, Slack, Discord and WhatsApp keep
+          serving the image they cached the first time, and none of them offer a
+          way to clear it. Facebook and LinkedIn have scraper tools; the rest do
+          not. Every one of them keys the cache on the image URL alone, so the
+          only reliable lever is a different URL.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          That is what <code className="text-zinc-300">v</code> is for. It never
+          reaches the renderer — two URLs that differ only in{" "}
+          <code className="text-zinc-300">v</code> produce the identical image —
+          but to a cache they are different resources:
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`<meta
+  property="og:image"
+  content="${base}/api/og?key=og_yourkey&title=My%20post&v=3"
+/>`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Your account carries a version number, shown in the dashboard under
+          Cache refresh. It increments automatically whenever you change a brand
+          default or your logo — the edits that silently leave published cards
+          looking wrong — and you can bump it by hand from the same panel. Read
+          it into your templates and every page you re-deploy picks up the new
+          artwork:
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`const og = new URL("${base}/api/og");
+og.searchParams.set("key", process.env.OGSMITH_KEY);
+og.searchParams.set("title", post.title);
+og.searchParams.set("v", process.env.OGSMITH_CACHE_VERSION);`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Values are limited to 32 characters of{" "}
+          <code className="text-zinc-300">A-Z a-z 0-9 . - _</code>. A build ID or
+          content hash works just as well as the account version if you would
+          rather refresh per page. Signed URLs cover{" "}
+          <code className="text-zinc-300">v</code> like any other parameter, so
+          re-sign after changing it.
+        </p>
+
         <h2 className="mt-12 text-2xl font-semibold">Check your usage</h2>
         <p className="mt-4 text-sm text-zinc-400">
           Poll your quota programmatically — useful for alerting before you hit
@@ -211,6 +262,13 @@ Authorization: Bearer og_yourkey
           <li>
             Responses are CDN-cached for 24 hours — repeat crawls of the same URL
             usually never hit the API (and never count against quota).
+          </li>
+          <li>
+            To break that cache after a design change, change the URL with{" "}
+            <a href="#cache-refresh" className="text-indigo-400 hover:underline">
+              <code>v</code>
+            </a>
+            . Nothing else reaches a social platform&apos;s cache.
           </li>
           <li>Quotas reset on the 1st of each month (UTC).</li>
           <li>
