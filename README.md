@@ -64,7 +64,8 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
   upgrade buttons explain billing isn't configured yet.
 - **Database** — SQLite/libSQL via Drizzle ORM: `file:local.db` locally,
   [Turso](https://turso.tech) in production (free tier is plenty to start).
-- **Tests** — 22 vitest unit tests over keys, quotas, params, and auth.
+- **Tests** — 60 vitest unit tests over keys, quotas, signing, tokens, alerts,
+  rate limiting, brand validation, admin metrics, params, and auth.
 
 ## Local development
 
@@ -79,11 +80,16 @@ Run tests with `npm test`. Build with `npm run build`.
 
 ## Deploying to production (≈30 minutes)
 
+0. **Branch:** the code lives on `claude/saas-product-creation-cxufyo`. Merge it
+   into your default branch first, or point Vercel's production branch at it —
+   Vercel deploys the default branch and will otherwise find nothing.
 1. **Database (Turso, free):**
    `turso db create ogsmith` → set `DATABASE_URL` (libsql://…) and
-   `DATABASE_AUTH_TOKEN`, then run `npm run db:migrate` once with those vars.
+   `DATABASE_AUTH_TOKEN`, then run migrations once against it. Note that
+   `db:migrate` reads real environment variables (it does not parse `.env`):
+   `DATABASE_URL=libsql://… DATABASE_AUTH_TOKEN=… npm run db:migrate`
 2. **Host (Vercel, free):** import the repo, set env vars from `.env.example`
-   (`AUTH_SECRET`, `DATABASE_URL`, `DATABASE_AUTH_TOKEN`,
+   (`AUTH_SECRET`, `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `ADMIN_EMAILS`,
    `NEXT_PUBLIC_APP_URL=https://your-domain`).
 3. **Stripe:** create two recurring prices (Pro $9/mo, Scale $29/mo), set
    `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_SCALE`. Add a
