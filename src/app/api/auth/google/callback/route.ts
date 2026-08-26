@@ -28,10 +28,14 @@ export async function GET(req: NextRequest) {
   const state = params.get("state");
   const expected = req.cookies.get(OAUTH_STATE_COOKIE)?.value;
 
-  // Reject anything whose state doesn't match the cookie we just set.
-  if (!code || !state || !expected || state !== expected) {
-    return fail(req, "bad_state");
-  }
+  // Reject anything whose state doesn't match the cookie we set at the start.
+  // The cases are distinguished because they have very different causes:
+  // a missing cookie is almost always a proxy or browser stripping it,
+  // while a mismatch is a stale, reused, or forged link.
+  if (!code) return fail(req, "no_code");
+  if (!state) return fail(req, "no_state");
+  if (!expected) return fail(req, "cookie_missing");
+  if (state !== expected) return fail(req, "state_mismatch");
 
   let result;
   try {

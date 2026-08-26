@@ -1,6 +1,12 @@
 const ERRORS: Record<string, string> = {
   google_unavailable: "Google sign-in isn't configured on this deployment yet.",
   google_denied: "Google sign-in was cancelled.",
+  no_code: "Google didn't send an authorisation code back. Please try again.",
+  no_state: "Google didn't return the security token. Please try again.",
+  cookie_missing:
+    "Your browser didn't send back the cookie we set when sign-in started, so we can't confirm the request came from you. This is usually a corporate network filter, a privacy extension, or blocked cookies. Try a normal (non-private) window on a network without a web filter — or sign in with an email and password instead.",
+  state_mismatch:
+    "That sign-in link was already used or has expired. Please start again.",
   bad_state:
     "That sign-in link expired or didn't come from here. Please try again.",
   unverified_google_email:
