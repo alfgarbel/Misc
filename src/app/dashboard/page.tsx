@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import KeysManager from "@/components/KeysManager";
 import BrandPanel from "@/components/BrandPanel";
 import SigningPanel from "@/components/SigningPanel";
+import RefreshPanel from "@/components/RefreshPanel";
 import VerifyBanner from "@/components/VerifyBanner";
 import {
   UpgradeButton,
@@ -16,6 +17,7 @@ import { getDb } from "@/lib/db";
 import { listActiveKeys } from "@/lib/keys";
 import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
 import { PLANS, VAT_NOTE } from "@/lib/plans";
+import { refreshStatus } from "@/lib/cachebust";
 import { appUrl } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -34,6 +36,7 @@ export default async function DashboardPage() {
   ]);
   const historyMax = Math.max(1, ...history.map((h) => h.count));
   const planInfo = PLANS[plan];
+  const refresh = refreshStatus(user);
   const pct = Math.min(100, Math.round((used / planInfo.monthlyRenders) * 100));
 
   return (
@@ -128,6 +131,13 @@ export default async function DashboardPage() {
             paidPlan={plan !== "free"}
           />
 
+          <RefreshPanel
+            version={refresh.version}
+            brandUpdatedAt={refresh.brandUpdatedAt?.toISOString() ?? null}
+            needsRepublish={refresh.needsRepublish}
+            baseUrl={appUrl()}
+          />
+
           <SigningPanel accountId={user.id} />
 
           {/* Billing */}
@@ -166,7 +176,7 @@ export default async function DashboardPage() {
             <h2 className="mb-3 font-semibold">Quickstart</h2>
             <code className="block overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-emerald-400">
               &lt;meta property=&quot;og:image&quot;
-              content=&quot;{`${appUrl()}`}/api/og?key=YOUR_KEY&amp;title=Hello&amp;template=gradient&quot;
+              content=&quot;{`${appUrl()}`}/api/og?key=YOUR_KEY&amp;title=Hello&amp;template=gradient&amp;v={refresh.version}&quot;
               /&gt;
             </code>
             <p className="mt-3 text-sm text-zinc-500">

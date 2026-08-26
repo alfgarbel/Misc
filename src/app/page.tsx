@@ -14,12 +14,16 @@ const FEATURES: Array<{ title: string; body: string }> = [
     body: "No SDK required. Point your <meta property=\"og:image\"> at a URL and you're done — works from any language or framework.",
   },
   {
+    title: "Change your look after you ship",
+    body: "X, Slack, Discord and WhatsApp cache your card forever and give you no way to clear it. Bump your cache version and every published link picks up the new artwork.",
+  },
+  {
     title: "Fast and serverless",
     body: "Images render in milliseconds with satori — no headless browser, no queue. Responses are CDN-cached so repeat crawls are free.",
   },
   {
     title: "Beautiful templates",
-    body: "Four hand-tuned templates with themes and accent colors. Legible typography at any title length, tuned for social feeds.",
+    body: "Six hand-tuned templates with themes and accent colors. Legible typography at any title length, tuned for social feeds.",
   },
   {
     title: "Usage you can predict",

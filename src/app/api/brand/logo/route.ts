@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { validateLogoDataUrl, MAX_LOGO_DATA_URL_LENGTH } from "@/lib/brand";
+import { bumpCacheVersion } from "@/lib/cachebust";
 
 export const runtime = "nodejs";
 
@@ -25,11 +26,13 @@ export async function POST(req: NextRequest) {
   if (!check.ok) {
     return NextResponse.json({ error: check.reason }, { status: 400 });
   }
-  await getDb()
+  const db = getDb();
+  await db
     .update(users)
     .set({ brandLogo: parsed.data.logo })
     .where(eq(users.id, user.id));
-  return NextResponse.json({ ok: true });
+  const version = await bumpCacheVersion(db, user.id, { brandChanged: true });
+  return NextResponse.json({ ok: true, version });
 }
 
 export async function DELETE() {
@@ -37,9 +40,11 @@ export async function DELETE() {
   if (!user) {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
-  await getDb()
+  const db = getDb();
+  await db
     .update(users)
     .set({ brandLogo: null })
     .where(eq(users.id, user.id));
-  return NextResponse.json({ ok: true });
+  const version = await bumpCacheVersion(db, user.id, { brandChanged: true });
+  return NextResponse.json({ ok: true, version });
 }

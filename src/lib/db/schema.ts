@@ -19,6 +19,11 @@ export const users = sqliteTable("users", {
   brandAccent: text("brand_accent"),
   brandSite: text("brand_site"),
   brandLogo: text("brand_logo"),
+  // Bumped whenever anything that changes how existing cards render is
+  // edited. Callers put it in the URL as ?v=, which is what actually
+  // invalidates social and CDN caches — those key on the URL alone.
+  cacheVersion: integer("cache_version").notNull().default(1),
+  brandUpdatedAt: integer("brand_updated_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
