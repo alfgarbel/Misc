@@ -122,7 +122,7 @@ export default function DocsPage() {
         <div className="mt-4">
           <CodeBlock>{`<meta
   property="og:image"
-  content="${base}/api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent=%23f43f5e"
+  content="${base}/api/og?key=og_yourkey&template=split&title=My%20post&site=example.com&accent=%23f43f5e"
 />
 <meta name="twitter:card" content="summary_large_image" />`}</CodeBlock>
         </div>
@@ -133,7 +133,7 @@ export default function DocsPage() {
   const og = new URL("${base}/api/og");
   og.searchParams.set("key", process.env.OGSMITH_KEY);
   og.searchParams.set("title", post.title);
-  og.searchParams.set("site", "myblog.com");
+  og.searchParams.set("site", "example.com");
   return { openGraph: { images: [og.toString()] } };
 }`}</CodeBlock>
         </div>

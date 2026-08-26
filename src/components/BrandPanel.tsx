@@ -142,7 +142,7 @@ export default function BrandPanel({
             value={values.site}
             onChange={(e) => set("site", e.target.value)}
             maxLength={100}
-            placeholder="yoursite.com (empty = none)"
+            placeholder="example.com (empty = none)"
             className={selectClass}
           />
         </label>

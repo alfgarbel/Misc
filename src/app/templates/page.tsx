@@ -17,7 +17,7 @@ const SAMPLES: Record<
   gradient: {
     title: "A soft glow for big launches",
     subtitle: "The default template — works for almost anything",
-    site: "yoursite.com",
+    site: "example.com",
     accent: "#6366f1",
     theme: "dark",
     blurb: "Radial accent glow with bottom-anchored copy. The default.",
@@ -25,7 +25,7 @@ const SAMPLES: Record<
   minimal: {
     title: "Let the headline do the talking",
     subtitle: "Clean editorial layout with an accent bar",
-    site: "blog.yoursite.com",
+    site: "blog.example.com",
     accent: "#10b981",
     theme: "light",
     blurb: "Quiet, editorial, great for blogs and docs.",
@@ -33,7 +33,7 @@ const SAMPLES: Record<
   split: {
     title: "Content left, color right",
     subtitle: "A bold panel that pops in the feed",
-    site: "yoursite.com",
+    site: "example.com",
     accent: "#f43f5e",
     theme: "light",
     blurb: "Two-column card with a decorated accent panel.",
@@ -41,7 +41,7 @@ const SAMPLES: Record<
   terminal: {
     title: "npm install something-great",
     subtitle: "Made for developer tools and CLI releases",
-    site: "cli.yoursite.dev",
+    site: "cli.example.com",
     accent: "#34d399",
     theme: "dark",
     blurb: "Editor-window chrome — ideal for dev tools.",
@@ -49,7 +49,7 @@ const SAMPLES: Record<
   quote: {
     title: "The best way to predict the future is to invent it",
     subtitle: "Alan Kay",
-    site: "quotes.yoursite.com",
+    site: "quotes.example.com",
     accent: "#a855f7",
     theme: "dark",
     blurb: "Pull-quote layout with attribution.",

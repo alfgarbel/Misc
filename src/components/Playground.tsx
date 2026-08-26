@@ -11,7 +11,7 @@ export default function Playground() {
   const [subtitle, setSubtitle] = useState(
     "One GET request. A perfect 1200×630 image for every page."
   );
-  const [site, setSite] = useState("yoursite.com");
+  const [site, setSite] = useState("example.com");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [accent, setAccent] = useState(ACCENTS[0]);
   // Only update the image when the user clicks Render, to stay inside demo limits.
