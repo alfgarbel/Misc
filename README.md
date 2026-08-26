@@ -71,9 +71,16 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
 
 ```bash
 npm install
-cp .env.example .env          # set AUTH_SECRET (openssl rand -hex 32)
+cp .env.example .env          # set AUTH_SECRET (see below)
 npm run db:migrate            # creates local.db
 npm run dev
+```
+
+Generate `AUTH_SECRET` with Node, which works identically in PowerShell and
+bash (no `openssl` required):
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 Run tests with `npm test`. Build with `npm run build`.
@@ -83,11 +90,22 @@ Run tests with `npm test`. Build with `npm run build`.
 0. **Branch:** the code lives on `claude/saas-product-creation-cxufyo`. Merge it
    into your default branch first, or point Vercel's production branch at it —
    Vercel deploys the default branch and will otherwise find nothing.
-1. **Database (Turso, free):**
-   `turso db create ogsmith` → set `DATABASE_URL` (libsql://…) and
-   `DATABASE_AUTH_TOKEN`, then run migrations once against it. Note that
-   `db:migrate` reads real environment variables (it does not parse `.env`):
-   `DATABASE_URL=libsql://… DATABASE_AUTH_TOKEN=… npm run db:migrate`
+1. **Database (Turso, free):** create a database in the
+   [Turso dashboard](https://turso.tech) (no CLI needed — their `curl | bash`
+   installer is macOS/Linux only), then copy its `libsql://` URL and a database
+   token into `DATABASE_URL` and `DATABASE_AUTH_TOKEN`. Run migrations once
+   against it — `db:migrate` reads real environment variables and does **not**
+   parse `.env`:
+
+   ```powershell
+   # Windows PowerShell (no inline VAR=value syntax)
+   $env:DATABASE_URL="libsql://…"; $env:DATABASE_AUTH_TOKEN="…"
+   npm run db:migrate
+   ```
+   ```bash
+   # macOS / Linux
+   DATABASE_URL=libsql://… DATABASE_AUTH_TOKEN=… npm run db:migrate
+   ```
 2. **Host (Vercel, free):** import the repo, set env vars from `.env.example`
    (`AUTH_SECRET`, `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `ADMIN_EMAILS`,
    `NEXT_PUBLIC_APP_URL=https://your-domain`).
@@ -95,7 +113,9 @@ Run tests with `npm test`. Build with `npm run build`.
    `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_SCALE`. Add a
    webhook endpoint `https://your-domain/api/stripe/webhook` subscribed to
    `checkout.session.completed`, `customer.subscription.updated`,
-   `customer.subscription.deleted`, and set `STRIPE_WEBHOOK_SECRET`.
+   `customer.subscription.deleted`, and set `STRIPE_WEBHOOK_SECRET`. Activate
+   the Customer portal under Stripe → Settings → Billing, or the "Manage
+   billing" button errors.
 4. **Email (Resend, free tier):** set `RESEND_API_KEY` and `EMAIL_FROM` to
    send real verification/reset emails; without them the flows log links to
    the server console.
