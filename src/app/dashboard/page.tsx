@@ -16,6 +16,7 @@ import { getDb } from "@/lib/db";
 import { listActiveKeys } from "@/lib/keys";
 import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
 import { PLANS } from "@/lib/plans";
+import { appUrl } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
@@ -164,7 +165,7 @@ export default async function DashboardPage() {
             <h2 className="mb-3 font-semibold">Quickstart</h2>
             <code className="block overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-emerald-400">
               &lt;meta property=&quot;og:image&quot;
-              content=&quot;https://YOUR-DEPLOYMENT/api/og?key=YOUR_KEY&amp;title=Hello&amp;template=gradient&quot;
+              content=&quot;{`${appUrl()}`}/api/og?key=YOUR_KEY&amp;title=Hello&amp;template=gradient&quot;
               /&gt;
             </code>
             <p className="mt-3 text-sm text-zinc-500">

@@ -3,9 +3,10 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Playground from "@/components/Playground";
 import { PLANS } from "@/lib/plans";
+import { appUrl } from "@/lib/stripe";
 
 const EXAMPLE_URL =
-  "/api/og?template=gradient&title=Ship%20social%20cards%20without%20a%20designer&subtitle=One%20GET%20request.%20A%20perfect%201200%C3%97630%20image%20for%20every%20page.&site=ogsmith.dev";
+  "/api/og?template=gradient&title=Ship%20social%20cards%20without%20a%20designer&subtitle=One%20GET%20request.%20A%20perfect%201200%C3%97630%20image%20for%20every%20page.&site=ogsmith.app";
 
 const FEATURES: Array<{ title: string; body: string }> = [
   {
@@ -27,6 +28,7 @@ const FEATURES: Array<{ title: string; body: string }> = [
 ];
 
 export default function Home() {
+  const base = appUrl().replace(/\/$/, "");
   return (
     <>
       <Nav />
@@ -71,7 +73,7 @@ export default function Home() {
           </div>
           <code className="mx-auto mt-4 block w-fit max-w-full overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs text-emerald-400">
             &lt;meta property=&quot;og:image&quot;
-            content=&quot;https://your-domain.com/api/og?title=...&quot; /&gt;
+            content=&quot;{base}/api/og?title=...&quot; /&gt;
           </code>
         </section>
 

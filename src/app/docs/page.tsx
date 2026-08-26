@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { appUrl } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Docs" };
 
@@ -69,6 +70,8 @@ function CodeBlock({ children }: { children: React.ReactNode }) {
 }
 
 export default function DocsPage() {
+  // Shown in every snippet so the docs always quote this deployment's own URL.
+  const base = appUrl().replace(/\/$/, "");
   return (
     <>
       <Nav />
@@ -119,7 +122,7 @@ export default function DocsPage() {
         <div className="mt-4">
           <CodeBlock>{`<meta
   property="og:image"
-  content="https://YOUR-DEPLOYMENT/api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent=%23f43f5e"
+  content="${base}/api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent=%23f43f5e"
 />
 <meta name="twitter:card" content="summary_large_image" />`}</CodeBlock>
         </div>
@@ -127,7 +130,7 @@ export default function DocsPage() {
         <h2 className="mt-12 text-2xl font-semibold">Next.js example</h2>
         <div className="mt-4">
           <CodeBlock>{`export function generateMetadata({ params }) {
-  const og = new URL("https://YOUR-DEPLOYMENT/api/og");
+  const og = new URL("${base}/api/og");
   og.searchParams.set("key", process.env.OGSMITH_KEY);
   og.searchParams.set("title", post.title);
   og.searchParams.set("site", "myblog.com");
@@ -183,7 +186,7 @@ function signedOgUrl(params, accountId, secret) {
     .map(([k, v]) => \`\${k}=\${v}\`)
     .join("&");
   p.set("sig", createHmac("sha256", secret).update(msg).digest("hex"));
-  return \`https://YOUR-DEPLOYMENT/api/og?\${p}\`;
+  return \`${base}/api/og?\${p}\`;
 }
 
 signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</CodeBlock>
