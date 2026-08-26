@@ -4,7 +4,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { UpgradeButton } from "@/components/BillingButtons";
 import { getCurrentUser } from "@/lib/auth";
-import { PLANS, type Plan } from "@/lib/plans";
+import { PLANS, VAT_NOTE, VAT_SHORT, type Plan } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Pricing" };
 export const dynamic = "force-dynamic";
@@ -62,6 +62,9 @@ export default async function PricingPage() {
                 ${plan.priceMonthlyUsd}
                 <span className="text-base font-normal text-zinc-500">/mo</span>
               </p>
+              {plan.priceMonthlyUsd > 0 ? (
+                <p className="mt-1 text-xs text-zinc-500">{VAT_SHORT}</p>
+              ) : null}
               <PlanFeatures plan={plan} />
               <div className="mt-8">
                 {plan.id === "free" ? (
@@ -96,6 +99,9 @@ export default async function PricingPage() {
         <p className="mt-10 text-center text-sm text-zinc-500">
           Renders that hit the CDN cache don&apos;t count against your quota.
           Need more than 150k renders? <span className="text-zinc-300">Get in touch.</span>
+        </p>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-zinc-500">
+          {VAT_NOTE}
         </p>
       </main>
       <Footer />

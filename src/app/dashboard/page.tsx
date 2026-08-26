@@ -15,7 +15,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { listActiveKeys } from "@/lib/keys";
 import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
-import { PLANS } from "@/lib/plans";
+import { PLANS, VAT_NOTE } from "@/lib/plans";
 import { appUrl } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -158,6 +158,7 @@ export default async function DashboardPage() {
                 </>
               )}
             </div>
+            <p className="mt-4 text-xs text-zinc-500">{VAT_NOTE}</p>
           </div>
 
           {/* Quickstart */}

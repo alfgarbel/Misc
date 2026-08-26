@@ -23,6 +23,13 @@ export default function TermsPage() {
             Quotas reset monthly and unused renders do not roll over.
           </p>
           <p>
+            All prices are stated exclusive of VAT. Where VAT is due, it is
+            calculated at checkout based on your billing country and shown
+            separately before you pay. Business customers in the EU outside
+            Spain who supply a valid VAT number are not charged VAT, and the
+            reverse charge mechanism applies.
+          </p>
+          <p>
             The service is provided &quot;as is&quot; without warranty. Our total
             liability is limited to the amount you paid in the preceding month.
             We may update these terms; continued use constitutes acceptance.

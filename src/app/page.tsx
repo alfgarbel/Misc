@@ -2,7 +2,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Playground from "@/components/Playground";
-import { PLANS } from "@/lib/plans";
+import { PLANS, VAT_NOTE, VAT_SHORT } from "@/lib/plans";
 import { appUrl } from "@/lib/stripe";
 
 const EXAMPLE_URL =
@@ -124,6 +124,11 @@ export default function Home() {
                   <p className="mt-2 text-3xl font-bold">
                     ${plan.priceMonthlyUsd}
                     <span className="text-base font-normal text-zinc-500">/mo</span>
+                    {plan.priceMonthlyUsd > 0 ? (
+                      <span className="ml-2 text-xs font-normal text-zinc-500">
+                        {VAT_SHORT}
+                      </span>
+                    ) : null}
                   </p>
                   <p className="mt-3 text-sm text-zinc-400">
                     {plan.monthlyRenders.toLocaleString()} renders / month
@@ -132,9 +137,12 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            <p className="mx-auto mt-6 max-w-xl text-sm text-zinc-500">
+              {VAT_NOTE}
+            </p>
             <Link
               href="/pricing"
-              className="mt-8 inline-block rounded-lg border border-zinc-700 px-6 py-3 font-medium text-zinc-300 hover:border-zinc-500"
+              className="mt-6 inline-block rounded-lg border border-zinc-700 px-6 py-3 font-medium text-zinc-300 hover:border-zinc-500"
             >
               Compare plans
             </Link>

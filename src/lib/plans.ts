@@ -1,5 +1,14 @@
 export type PlanId = "free" | "pro" | "scale";
 
+/**
+ * Displayed prices are net of tax: Stripe adds VAT on top at checkout based
+ * on the customer's location, and zero-rates EU businesses that supply a
+ * valid VAT number. Kept here so every surface words it identically.
+ */
+export const VAT_NOTE =
+  "Prices exclude VAT. Tax is calculated at checkout from your billing country; EU businesses can enter a VAT number for reverse charge.";
+export const VAT_SHORT = "excl. VAT";
+
 export interface Plan {
   id: PlanId;
   name: string;
