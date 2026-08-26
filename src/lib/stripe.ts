@@ -33,3 +33,46 @@ export function planForPriceId(priceId: string): PlanId | null {
 export function appUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
+
+/**
+ * Whether to ask Stripe to calculate VAT. Gated by an env var because
+ * enabling it before Stripe Tax is switched on in the dashboard makes
+ * checkout fail — this way the code can ship ahead of the dashboard work.
+ */
+export function stripeTaxEnabled(): boolean {
+  return process.env.STRIPE_TAX_ENABLED === "true";
+}
+
+/**
+ * Builds the Checkout session. Prices are treated as tax-exclusive in
+ * Stripe, so VAT is added on top of the $9/$29 rather than carved out.
+ */
+export function checkoutSessionParams(opts: {
+  priceId: string;
+  customerId: string;
+  userId: string;
+}): Stripe.Checkout.SessionCreateParams {
+  const base: Stripe.Checkout.SessionCreateParams = {
+    mode: "subscription",
+    customer: opts.customerId,
+    client_reference_id: opts.userId,
+    line_items: [{ price: opts.priceId, quantity: 1 }],
+    allow_promotion_codes: true,
+    success_url: `${appUrl()}/dashboard?upgraded=1`,
+    cancel_url: `${appUrl()}/pricing`,
+  };
+  if (!stripeTaxEnabled()) return base;
+
+  return {
+    ...base,
+    // Work out the right rate from the customer's location.
+    automatic_tax: { enabled: true },
+    // Let EU businesses enter a VAT number, which triggers reverse charge.
+    tax_id_collection: { enabled: true },
+    // Tax can't be determined without knowing where the customer is.
+    billing_address_collection: "required",
+    // Stripe rejects automatic_tax against an existing customer unless it is
+    // allowed to write the address it just collected back to that customer.
+    customer_update: { address: "auto", name: "auto" },
+  };
+}

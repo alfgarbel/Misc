@@ -4,7 +4,12 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { subscriptions } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth";
-import { getStripe, stripeConfigured, priceIdForPlan, appUrl } from "@/lib/stripe";
+import {
+  getStripe,
+  stripeConfigured,
+  priceIdForPlan,
+  checkoutSessionParams,
+} from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -55,15 +60,9 @@ export async function POST(req: NextRequest) {
       });
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    client_reference_id: user.id,
-    line_items: [{ price: priceId, quantity: 1 }],
-    allow_promotion_codes: true,
-    success_url: `${appUrl()}/dashboard?upgraded=1`,
-    cancel_url: `${appUrl()}/pricing`,
-  });
+  const session = await stripe.checkout.sessions.create(
+    checkoutSessionParams({ priceId, customerId, userId: user.id })
+  );
 
   return NextResponse.json({ url: session.url });
 }
