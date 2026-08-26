@@ -73,6 +73,18 @@ ALTER TABLE `usage` ADD `alert80_at` integer;
 ALTER TABLE `usage` ADD `alert100_at` integer;
 ALTER TABLE `users` ADD `brand_logo` text;
 
+-- ---------- 0004_optimal_warbound ----------
+DROP INDEX "api_keys_key_hash_unique";
+DROP INDEX "auth_tokens_token_hash_unique";
+DROP INDEX "users_email_unique";
+ALTER TABLE `users` ALTER COLUMN "password_hash" TO "password_hash" text;
+ALTER TABLE `users` ADD `google_id` text;
+ALTER TABLE `users` ADD `name` text;
+CREATE UNIQUE INDEX `api_keys_key_hash_unique` ON `api_keys` (`key_hash`);
+CREATE UNIQUE INDEX `auth_tokens_token_hash_unique` ON `auth_tokens` (`token_hash`);
+CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);
+CREATE UNIQUE INDEX `users_google_id_unique` ON `users` (`google_id`);
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -83,3 +95,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('57afcf772c2d1292
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('3a869c15272863ebe6e10b99278eff4ec62f20dd040e36661bd6e02f23093ef1', 1787497358662);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('410b9d112bf6f488442a4a74e5f5dd13d43ed3d33a18786b5abe539bdc4be2a8', 1787500187556);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('9eb462ee4510c7bc739edd27af8399109f25631d904322695be7b8c12b61e04c', 1787506065273);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('f9837ce82da1990a8d3c6505f49ccb3b1ac802dd1533e06745c491158459cd79', 1787754917007);

@@ -8,7 +8,10 @@ import {
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  // Null for accounts that only ever signed in with Google.
+  passwordHash: text("password_hash"),
+  googleId: text("google_id").unique(),
+  name: text("name"),
   signingSecret: text("signing_secret"),
   emailVerifiedAt: integer("email_verified_at", { mode: "timestamp" }),
   brandTemplate: text("brand_template"),

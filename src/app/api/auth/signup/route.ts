@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { users, subscriptions } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
-import { createApiKey } from "@/lib/keys";
-import { generateSigningSecret } from "@/lib/signing";
+import { provisionAccount } from "@/lib/accounts";
 import { createAuthToken } from "@/lib/tokens";
 import { sendEmail, verificationEmail } from "@/lib/mailer";
 import { appUrl } from "@/lib/stripe";
@@ -48,16 +46,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const userId = randomUUID();
-  await db.insert(users).values({
-    id: userId,
+  const { userId, apiKey } = await provisionAccount(db, {
     email,
     passwordHash: await hashPassword(parsed.data.password),
-    signingSecret: generateSigningSecret(),
   });
-  await db.insert(subscriptions).values({ userId, plan: "free" });
-  const created = await createApiKey(db, userId, "Default");
-  const apiKey = created?.key ?? null;
   await setSessionCookie(userId);
 
   // Fire-and-forget verification email; signup must not fail if mail does.
