@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5">
       <p className="text-sm text-zinc-500">{label}</p>
       <p className="mt-1 text-3xl font-bold">{value}</p>
       {sub ? <p className="mt-1 text-xs text-zinc-500">{sub}</p> : null}
@@ -32,7 +32,7 @@ export default async function AdminPage() {
   return (
     <>
       <Nav />
-      <main className="mx-auto max-w-5xl px-6 py-12">
+      <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         <h1 className="mb-8 text-2xl font-bold">Admin</h1>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -53,8 +53,8 @@ export default async function AdminPage() {
           <Tile label="Active API keys" value={m.activeKeys.toLocaleString()} />
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5">
             <h2 className="mb-3 font-semibold">Signups — last 30 days</h2>
             <AdminBarChart
               bars={m.signupsLast30Days.map((d, i) => ({
@@ -64,7 +64,7 @@ export default async function AdminPage() {
               }))}
             />
           </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5">
             <h2 className="mb-3 font-semibold">Renders — last 6 months</h2>
             <AdminBarChart
               bars={m.rendersByMonth.map((r) => ({
@@ -76,8 +76,8 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5">
             <h2 className="mb-4 font-semibold">Plan mix</h2>
             <div className="flex flex-col gap-3">
               {(["free", "pro", "scale"] as const).map((plan) => (
@@ -99,7 +99,7 @@ export default async function AdminPage() {
               ))}
             </div>
           </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5">
             <h2 className="mb-4 font-semibold">Top accounts this month</h2>
             {m.topAccounts.length === 0 ? (
               <p className="text-sm text-zinc-500">No renders yet this month.</p>

@@ -27,7 +27,7 @@ export default function Playground() {
   const shownUrl = rendered ?? url;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="grid gap-8 lg:grid-cols-2 [&>*]:min-w-0">
       <div className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm text-zinc-400">
           Template

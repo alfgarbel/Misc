@@ -39,7 +39,7 @@ export default async function DashboardPage() {
   return (
     <>
       <Nav />
-      <main className="mx-auto max-w-4xl px-6 py-12">
+      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
         <div className="mb-10 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -48,10 +48,10 @@ export default async function DashboardPage() {
           <LogoutButton />
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-6 [&>*]:min-w-0">
           {!user.emailVerifiedAt ? <VerifyBanner /> : null}
           {/* Usage */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
             <div className="mb-2 flex items-baseline justify-between">
               <h2 className="font-semibold">Usage this month</h2>
               <span className="rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-0.5 text-xs text-indigo-300">
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Usage history */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
             <h2 className="mb-4 font-semibold">Last 6 months</h2>
             <div className="flex h-32 items-end gap-3">
               {history.map((h) => (
@@ -131,7 +131,7 @@ export default async function DashboardPage() {
           <SigningPanel accountId={user.id} />
 
           {/* Billing */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
             <h2 className="mb-4 font-semibold">Billing</h2>
             <div className="flex flex-wrap gap-3">
               {plan === "free" ? (
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Quickstart */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
             <h2 className="mb-3 font-semibold">Quickstart</h2>
             <code className="block overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-emerald-400">
               &lt;meta property=&quot;og:image&quot;

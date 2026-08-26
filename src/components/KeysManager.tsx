@@ -76,7 +76,7 @@ export default function KeysManager({ keys }: { keys: KeyRow[] }) {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
       <h2 className="mb-1 font-semibold">API keys</h2>
       <p className="mb-4 text-sm text-zinc-400">
         Up to 10 active keys — use separate keys per site or environment so you
@@ -158,7 +158,7 @@ export default function KeysManager({ keys }: { keys: KeyRow[] }) {
           onChange={(e) => setName(e.target.value)}
           maxLength={60}
           placeholder="Key name (e.g. blog-production)"
-          className="min-w-64 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+          className="w-full min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500 sm:w-auto sm:min-w-64"
         />
         <button
           type="submit"

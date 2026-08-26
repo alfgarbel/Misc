@@ -36,7 +36,7 @@ export default async function PricingPage() {
   return (
     <>
       <Nav />
-      <main className="mx-auto max-w-6xl px-6 py-16">
+      <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h1 className="text-center text-4xl font-bold">Pricing</h1>
         <p className="mt-3 text-center text-zinc-400">
           Every plan is a flat monthly price with a generous render quota.

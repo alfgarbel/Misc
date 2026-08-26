@@ -34,11 +34,11 @@ export default function Home() {
       <Nav />
       <main>
         {/* Hero */}
-        <section className="mx-auto max-w-6xl px-6 pb-16 pt-20 text-center">
+        <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-20">
           <p className="mx-auto mb-4 w-fit rounded-full border border-indigo-500/40 bg-indigo-500/10 px-4 py-1 text-sm text-indigo-300">
             Open Graph images as an API
           </p>
-          <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
+          <h1 className="mx-auto max-w-3xl text-3xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
             Social cards for every page,{" "}
             <span className="text-indigo-400">from one URL</span>
           </h1>
@@ -47,16 +47,16 @@ export default function Home() {
             pixel-perfect 1200×630 Open Graph images on demand — no headless
             browser, no design tool, no build step.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center sm:gap-4">
             <Link
               href="/signup"
-              className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500"
+              className="rounded-lg bg-indigo-600 px-6 py-3 text-center font-medium text-white hover:bg-indigo-500"
             >
               Get your free API key
             </Link>
             <Link
               href="/docs"
-              className="rounded-lg border border-zinc-700 px-6 py-3 font-medium text-zinc-300 hover:border-zinc-500"
+              className="rounded-lg border border-zinc-700 px-6 py-3 text-center font-medium text-zinc-300 hover:border-zinc-500"
             >
               Read the docs
             </Link>
@@ -79,11 +79,11 @@ export default function Home() {
 
         {/* Features */}
         <section className="border-t border-zinc-800 bg-zinc-950 py-20">
-          <div className="mx-auto grid max-w-6xl gap-8 px-6 sm:grid-cols-2">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:grid-cols-2 sm:px-6">
             {FEATURES.map((f) => (
               <div
                 key={f.title}
-                className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6"
+                className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6"
               >
                 <h3 className="mb-2 font-semibold text-white">{f.title}</h3>
                 <p className="text-sm leading-relaxed text-zinc-400">{f.body}</p>
@@ -94,7 +94,7 @@ export default function Home() {
 
         {/* Playground */}
         <section className="border-t border-zinc-800 py-20">
-          <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className="mb-2 text-3xl font-bold">Try it live</h2>
             <p className="mb-10 text-zinc-400">
               Tweak the parameters and render a real image from the API.
@@ -105,7 +105,7 @@ export default function Home() {
 
         {/* Pricing teaser */}
         <section className="border-t border-zinc-800 bg-zinc-950 py-20">
-          <div className="mx-auto max-w-6xl px-6 text-center">
+          <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
             <h2 className="mb-2 text-3xl font-bold">Simple pricing</h2>
             <p className="mb-10 text-zinc-400">
               Start free. Upgrade when your traffic does.

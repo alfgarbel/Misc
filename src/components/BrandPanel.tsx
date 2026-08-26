@@ -78,10 +78,10 @@ export default function BrandPanel({
   }
 
   const selectClass =
-    "rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500";
+    "w-full min-w-0 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500";
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
       <h2 className="mb-1 font-semibold">Brand defaults</h2>
       <p className="mb-4 text-sm text-zinc-400">
         Saved defaults apply to authenticated renders whenever a parameter is
@@ -91,7 +91,7 @@ export default function BrandPanel({
         </code>
         . Explicit parameters always win.
       </p>
-      <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
+      <form onSubmit={save} className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
         <label className="flex flex-col gap-1 text-sm text-zinc-400">
           Default template
           <select

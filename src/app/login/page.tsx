@@ -21,7 +21,7 @@ export default async function LoginPage({
   return (
     <>
       <Nav />
-      <main className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-20">
+      <main className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-16 sm:px-6 sm:py-20">
         <h1 className="text-3xl font-bold">Welcome back</h1>
         <GoogleError code={error} />
         {google ? (

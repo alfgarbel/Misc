@@ -21,7 +21,7 @@ export default async function SignupPage({
   return (
     <>
       <Nav />
-      <main className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-20">
+      <main className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-16 sm:px-6 sm:py-20">
         <div className="text-center">
           <h1 className="mb-2 text-3xl font-bold">Create your account</h1>
           <p className="text-zinc-400">

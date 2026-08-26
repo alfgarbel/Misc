@@ -32,7 +32,7 @@ export default function SigningPanel({ accountId }: { accountId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
       <h2 className="mb-1 font-semibold">Signed URLs</h2>
       <p className="mb-4 text-sm text-zinc-400">
         Instead of putting your API key in image URLs, sign each URL with an

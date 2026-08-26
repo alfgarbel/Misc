@@ -75,7 +75,7 @@ export default function DocsPage() {
   return (
     <>
       <Nav />
-      <main className="mx-auto max-w-3xl px-6 py-16">
+      <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <h1 className="text-4xl font-bold">API reference</h1>
         <p className="mt-3 text-zinc-400">
           One endpoint. GET it, get a 1200×630 PNG back.
