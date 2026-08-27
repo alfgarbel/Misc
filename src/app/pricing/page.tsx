@@ -15,6 +15,7 @@ function PlanFeatures({ plan }: { plan: Plan }) {
     plan.watermark ? "OGsmith watermark" : "No watermark",
     "All templates & themes",
     "Cards straight from a URL",
+    `${plan.experiments} split ${plan.experiments === 1 ? "test" : "tests"}`,
     `${plan.templates} custom ${plan.templates === 1 ? "design" : "designs"} in the editor`,
     `${plan.assets} uploaded fonts & images`,
     ...(plan.watermark ? [] : ["Custom logo on cards"]),

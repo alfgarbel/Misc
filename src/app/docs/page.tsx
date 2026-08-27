@@ -62,6 +62,18 @@ const PARAMS: Array<{
     desc: "Canvas the card is rendered at. See Sizes. Ignored with tpl, where the size belongs to the design.",
   },
   {
+    name: "exp",
+    type: "string",
+    def: "—",
+    desc: "Slug of one of your experiments. Picks a design variant for this page and records that a card was served. See Experiments.",
+  },
+  {
+    name: "k",
+    type: "string (≤ 500 chars)",
+    def: "—",
+    desc: "Identifies the page under test, for exp. Must be a stable id — a post slug or database id, never the title. Defaults to the url value when you pass one.",
+  },
+  {
     name: "url",
     type: "https URL",
     def: "—",
@@ -412,6 +424,100 @@ signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</Cod
           </a>{" "}
           automatically, because a design change leaves every card you have
           already shared showing the old artwork.
+        </p>
+
+        <h2 id="experiments" className="mt-12 text-2xl font-semibold">
+          Experiments
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Before anything else, the honest constraint:{" "}
+          <strong className="text-zinc-200">
+            you cannot A/B test a card across viewers
+          </strong>
+          . A social platform fetches your image once and shows that single
+          copy to everyone who sees the post — there is no per-viewer request
+          to split on. Any tool claiming otherwise is either splitting
+          something else or not doing what it says.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          What does work is randomising by <em>page</em>. Half your articles
+          get design A, half get design B, and you compare the two groups. That
+          is a real experiment — it just needs more pages than a viewer-level
+          test would need viewers, and it answers &ldquo;which design works
+          better across my content&rdquo; rather than &ldquo;which works better
+          for this one post&rdquo;.
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`${base}/api/og?key=og_yourkey&exp=headline-test&k=post-123&title=My%20post`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          <code className="text-zinc-300">k</code> identifies the page and must
+          never change for it — a post slug or database id is ideal. With{" "}
+          <code className="text-zinc-300">&amp;url=</code> it defaults to that
+          URL. A page&apos;s variant is decided once and stored, so editing an
+          experiment later never changes the artwork on posts already shared.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          <strong className="text-zinc-200">Never key on the headline.</strong>{" "}
+          It is content, and content gets edited. Fixing one typo would change
+          the key, and a changed key is a new page: it would be counted twice
+          in the denominator and land in the other variant about half the time,
+          with its history split across both arms. The API refuses the title
+          for exactly this reason and asks for an id instead.
+        </p>
+
+        <h3 className="mt-8 text-lg font-semibold">Editing during a test</h3>
+        <p className="mt-4 text-sm text-zinc-400">
+          Fixing a typo in a card is fine. Change the text, bump your{" "}
+          <a href="#cache-refresh" className="text-indigo-400 hover:underline">
+            cache version
+          </a>{" "}
+          so platforms refetch, and the experiment is untouched — the key
+          didn&apos;t change, so the page keeps its variant and its numbers.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Changing what a <em>variant</em> looks like is different. The numbers
+          you have already describe the old design, so leaving them in place
+          pools two different cards into one rate. The dashboard warns when you
+          do this and offers <em>Reset results</em>, which clears the counters
+          while keeping every page on the variant it already has — so
+          measurement restarts cleanly and nothing already shared changes
+          appearance.
+        </p>
+
+        <h3 className="mt-8 text-lg font-semibold">Measuring the outcome</h3>
+        <p className="mt-4 text-sm text-zinc-400">
+          OGsmith can count how often a card was rendered, but a render is a
+          crawler fetch — not a person, and not a click. Nothing about what a
+          human does with your post ever reaches us. So outcomes have to come
+          from the side that can see them: your analytics.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Ask which variant a page is in, tag your own analytics with it, and
+          report back what happened:
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`GET ${base}/api/experiments/assign?key=og_yourkey&exp=headline-test&k=post-123
+
+{ "experiment": "headline-test", "variant": "b",
+  "label": "B — terminal", "params": { "template": "terminal" } }`}</CodeBlock>
+        </div>
+        <div className="mt-4">
+          <CodeBlock>{`POST ${base}/api/experiments/convert
+Authorization: Bearer og_yourkey
+
+{ "exp": "headline-test", "k": "post-123" }`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Asking for an assignment doesn&apos;t count as a render, and neither
+          call costs quota. Results appear under{" "}
+          <Link href="/dashboard/experiments" className="text-indigo-400 hover:underline">
+            Dashboard → Experiments
+          </Link>
+          , which reports a rate per page and a two-proportion test — and
+          refuses to call anything a winner until each variant has at least 20
+          pages and 5 reported outcomes. Stopping at the first good-looking
+          number is the way most split tests go wrong.
         </p>
 
         <h2 id="cache-refresh" className="mt-12 text-2xl font-semibold">
