@@ -154,6 +154,66 @@ CREATE TABLE `experiments` (
 );
 CREATE UNIQUE INDEX `experiments_user_slug_unique` ON `experiments` (`user_id`,`slug`);
 
+-- ---------- 0009_add_batches_and_webhooks ----------
+CREATE TABLE `batch_rows` (
+	`batch_id` text NOT NULL,
+	`idx` integer NOT NULL,
+	`key` text,
+	`params` text NOT NULL,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`error` text,
+	`filename` text,
+	`data` text,
+	`byte_size` integer,
+	`rendered_at` integer,
+	PRIMARY KEY(`batch_id`, `idx`),
+	FOREIGN KEY (`batch_id`) REFERENCES `batches`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE TABLE `batches` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`name` text DEFAULT 'Batch' NOT NULL,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`total` integer DEFAULT 0 NOT NULL,
+	`done` integer DEFAULT 0 NOT NULL,
+	`failed` integer DEFAULT 0 NOT NULL,
+	`store_images` integer DEFAULT true NOT NULL,
+	`retain_until` integer,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`completed_at` integer,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE INDEX `batches_user_id_idx` ON `batches` (`user_id`);
+CREATE TABLE `webhook_deliveries` (
+	`id` text PRIMARY KEY NOT NULL,
+	`webhook_id` text NOT NULL,
+	`event` text NOT NULL,
+	`payload` text NOT NULL,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`attempts` integer DEFAULT 0 NOT NULL,
+	`response_status` integer,
+	`error` text,
+	`next_attempt_at` integer,
+	`created_at` integer NOT NULL,
+	`delivered_at` integer,
+	FOREIGN KEY (`webhook_id`) REFERENCES `webhooks`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE INDEX `webhook_deliveries_webhook_id_idx` ON `webhook_deliveries` (`webhook_id`);
+CREATE TABLE `webhooks` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`url` text NOT NULL,
+	`secret` text NOT NULL,
+	`events` text NOT NULL,
+	`active` integer DEFAULT true NOT NULL,
+	`created_at` integer NOT NULL,
+	`last_status` text,
+	`last_delivered_at` integer,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE INDEX `webhooks_user_id_idx` ON `webhooks` (`user_id`);
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -169,3 +229,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d74e9d38e0dc433c
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('54f0517fedc4c04f7ac2c841828184d70988c94fcee953abdbedd904ea4719ba', 1787824103514);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d8a30cf4a41abfefde773e6d3b9a1714b0dd56270ed323be6bde7a8d8e8d341a', 1787826700054);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('7bc5a3806a067a227abf9138b30e7800442d8a3db1c7f0c0676a9f2f6b75b66e', 1787838555238);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('196288e33bcf1992db79f6aa44234e86f455a67b7acfb19c0e006bfdca1101c1', 1787845461443);

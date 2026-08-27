@@ -38,6 +38,10 @@ const FEATURES: Array<{ title: string; body: string }> = [
     body: "Run one design against another across your pages and read the result with a proper significance test — not a bigger number and a hunch.",
   },
   {
+    title: "Bulk when you need files",
+    body: "Render a whole back catalogue from a CSV and download it as a zip, and get a signed webhook when it's done.",
+  },
+  {
     title: "Usage you can predict",
     body: "Simple monthly render quotas. No overage surprises — when you're near the limit you'll see it on your dashboard.",
   },

@@ -22,6 +22,10 @@ export interface Plan {
   assets: number;
   /** Split tests that can run at once. */
   experiments: number;
+  /** Cards in a single batch. */
+  batchRows: number;
+  /** Endpoints notified of events. */
+  webhooks: number;
 }
 
 export const PLANS: Record<PlanId, Plan> = {
@@ -35,6 +39,8 @@ export const PLANS: Record<PlanId, Plan> = {
     templates: 1,
     assets: 3,
     experiments: 1,
+    batchRows: 25,
+    webhooks: 1,
   },
   pro: {
     id: "pro",
@@ -46,6 +52,8 @@ export const PLANS: Record<PlanId, Plan> = {
     templates: 15,
     assets: 60,
     experiments: 5,
+    batchRows: 200,
+    webhooks: 5,
   },
   scale: {
     id: "scale",
@@ -57,6 +65,8 @@ export const PLANS: Record<PlanId, Plan> = {
     templates: 100,
     assets: 400,
     experiments: 50,
+    batchRows: 500,
+    webhooks: 20,
   },
 };
 
