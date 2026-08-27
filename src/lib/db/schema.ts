@@ -3,6 +3,8 @@ import {
   text,
   integer,
   primaryKey,
+  unique,
+  index,
 } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -95,6 +97,67 @@ export const usage = sqliteTable(
   (t) => [primaryKey({ columns: [t.userId, t.month] })]
 );
 
+/**
+ * Images and font files uploaded for use in custom templates. Stored as
+ * base64 in the row, the way brand logos already are: these are small,
+ * capped, and read on the render path, so keeping them in the database
+ * avoids a second service and a second failure mode.
+ *
+ * Rows are immutable — replacing an asset means uploading a new one — which
+ * is what makes them safe to cache in-process by id.
+ */
+export const assets = sqliteTable(
+  "assets",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // "image" | "font"
+    name: text("name").notNull(),
+    // Sniffed from the file's own bytes, never taken from the upload.
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    data: text("data").notNull(), // base64, without the data: prefix
+    // Fonts only: how the family is addressed from a template spec.
+    fontFamily: text("font_family"),
+    fontWeight: integer("font_weight"),
+    fontStyle: text("font_style"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [index("assets_user_id_idx").on(t.userId)]
+);
+
+/**
+ * A card design built in the visual editor. `spec` is the JSON layer
+ * document; it is validated on write and again on read, since a row can
+ * outlive the schema version that wrote it.
+ */
+export const templates = sqliteTable(
+  "templates",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // How the template is addressed in a URL: ?tpl=<slug>.
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    spec: text("spec").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [unique("templates_user_slug_unique").on(t.userId, t.slug)]
+);
+
 export type User = typeof users.$inferSelect;
+export type Asset = typeof assets.$inferSelect;
+export type TemplateRow = typeof templates.$inferSelect;
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;

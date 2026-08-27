@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -15,6 +16,7 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { listActiveKeys } from "@/lib/keys";
+import { countTemplates } from "@/lib/templates";
 import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
 import { PLANS, VAT_NOTE } from "@/lib/plans";
 import { refreshStatus } from "@/lib/cachebust";
@@ -28,11 +30,12 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const db = getDb();
-  const [plan, used, keys, history] = await Promise.all([
+  const [plan, used, keys, history, templateCount] = await Promise.all([
     getUserPlan(db, user.id),
     getMonthlyUsage(db, user.id),
     listActiveKeys(db, user.id),
     getUsageHistory(db, user.id, 6),
+    countTemplates(db, user.id),
   ]);
   const historyMax = Math.max(1, ...history.map((h) => h.count));
   const planInfo = PLANS[plan];
@@ -137,6 +140,32 @@ export default async function DashboardPage() {
             needsRepublish={refresh.needsRepublish}
             baseUrl={appUrl()}
           />
+
+          {/* Custom templates */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
+            <h2 className="mb-1 font-semibold">Templates</h2>
+            <p className="mb-4 text-sm text-zinc-400">
+              Design your own card in the visual editor — your fonts, your
+              images, your layout — then render it with{" "}
+              <code className="rounded bg-zinc-950 px-1.5 py-0.5 text-emerald-400">
+                &amp;tpl=your-design
+              </code>{" "}
+              and fill it in from the URL.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/dashboard/templates"
+                className="rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500"
+              >
+                {templateCount > 0
+                  ? `Open templates (${templateCount})`
+                  : "Design a template"}
+              </Link>
+              <span className="text-xs text-zinc-500">
+                {templateCount} of {planInfo.templates} on the {planInfo.name} plan
+              </span>
+            </div>
+          </div>
 
           <SigningPanel accountId={user.id} />
 

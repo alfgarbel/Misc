@@ -89,6 +89,34 @@ CREATE UNIQUE INDEX `users_google_id_unique` ON `users` (`google_id`);
 ALTER TABLE `users` ADD `cache_version` integer DEFAULT 1 NOT NULL;
 ALTER TABLE `users` ADD `brand_updated_at` integer;
 
+-- ---------- 0006_add_templates_and_assets ----------
+CREATE TABLE `assets` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`kind` text NOT NULL,
+	`name` text NOT NULL,
+	`mime_type` text NOT NULL,
+	`byte_size` integer NOT NULL,
+	`data` text NOT NULL,
+	`font_family` text,
+	`font_weight` integer,
+	`font_style` text,
+	`created_at` integer NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE INDEX `assets_user_id_idx` ON `assets` (`user_id`);
+CREATE TABLE `templates` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`slug` text NOT NULL,
+	`name` text NOT NULL,
+	`spec` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE UNIQUE INDEX `templates_user_slug_unique` ON `templates` (`user_id`,`slug`);
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -101,3 +129,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('410b9d112bf6f488
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('9eb462ee4510c7bc739edd27af8399109f25631d904322695be7b8c12b61e04c', 1787506065273);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('f9837ce82da1990a8d3c6505f49ccb3b1ac802dd1533e06745c491158459cd79', 1787754917007);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d74e9d38e0dc433c486a49567b6d5fb39e55b220e04d440d1776668e5a7bc536', 1787761634209);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('54f0517fedc4c04f7ac2c841828184d70988c94fcee953abdbedd904ea4719ba', 1787824103514);
