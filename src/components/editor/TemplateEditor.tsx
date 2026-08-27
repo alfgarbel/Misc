@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
+  canvasOfSpec,
   MAX_LAYERS,
   specPlaceholders,
   templateSpecSchema,
   type Layer,
   type TemplateSpec,
 } from "@/lib/og/spec";
+import { SIZES, SIZE_IDS } from "@/lib/og/sizes";
 import EditorCanvas from "./EditorCanvas";
 import LayerInspector, { BackgroundInspector } from "./LayerInspector";
 import AssetManager from "./AssetManager";
@@ -291,7 +291,34 @@ export default function TemplateEditor({
               }}
               className="rounded border border-zinc-800 bg-zinc-950 px-2 py-0.5 font-mono text-xs text-emerald-400 outline-none focus:border-indigo-500"
             />
+            <select
+              value={spec.size}
+              onChange={(e) => {
+                // Layers hold absolute coordinates, so changing the canvas
+                // moves nothing — it just reveals or crops space. The
+                // warning below says so rather than silently rearranging.
+                setSpec((prev) => ({
+                  ...prev,
+                  size: e.target.value as (typeof SIZE_IDS)[number],
+                }));
+                setDirty(true);
+              }}
+              className="rounded border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-xs text-zinc-300 outline-none focus:border-indigo-500"
+            >
+              {SIZE_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {SIZES[id].label} · {SIZES[id].width}×{SIZES[id].height}
+                </option>
+              ))}
+            </select>
           </p>
+          {spec.size !== initialSpec.size ? (
+            <p className="mt-2 max-w-xl text-xs text-amber-300">
+              Changing the canvas doesn&apos;t move your layers — they keep the
+              coordinates you gave them, so check nothing has fallen outside
+              the new shape before saving.
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
           {status ? (
@@ -373,8 +400,8 @@ export default function TemplateEditor({
               <img
                 src={preview}
                 alt="Rendered preview"
-                width={CANVAS_WIDTH}
-                height={CANVAS_HEIGHT}
+                width={canvasOfSpec(spec).width}
+                height={canvasOfSpec(spec).height}
                 className="w-full rounded-lg border border-zinc-800"
               />
             </div>

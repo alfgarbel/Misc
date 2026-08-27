@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SIZE_IDS, DEFAULT_SIZE } from "./sizes";
 
 export const TEMPLATES = [
   "gradient",
@@ -23,6 +24,7 @@ export const ogParamsSchema = z.object({
     .string()
     .regex(hexColor, "accent must be a hex color like %23f43f5e")
     .default("#6366f1"),
+  size: z.enum(SIZE_IDS).default(DEFAULT_SIZE),
 });
 
 export type OgParams = z.infer<typeof ogParamsSchema>;
@@ -52,7 +54,7 @@ export function applyBrandDefaults(
 
 export function parseOgParams(searchParams: URLSearchParams) {
   const raw: Record<string, string> = {};
-  for (const k of ["template", "title", "subtitle", "site", "theme", "accent"]) {
+  for (const k of ["template", "title", "subtitle", "site", "theme", "accent", "size"]) {
     const v = searchParams.get(k);
     if (v !== null && v !== "") raw[k] = v;
   }

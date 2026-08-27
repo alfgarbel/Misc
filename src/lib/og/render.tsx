@@ -5,6 +5,7 @@ import type { OgParams } from "./params";
 import { fittedFontSize } from "./spec";
 import { fitWithin } from "../urlcard/dimensions";
 import type { HeroImage } from "../urlcard/image";
+import { designCanvasOf, scaleFor, sizeOf, type CardSize } from "./sizes";
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
@@ -56,6 +57,17 @@ interface TplProps {
   logo?: string | null;
   /** The source page's own image, when rendering from ?url=. */
   hero?: HeroImage | null;
+  /**
+   * True on canvases much taller than the Open Graph card. Templates that
+   * anchor their content to one edge gather it into the middle instead —
+   * bottom-anchored copy on a square leaves the top two thirds empty.
+   */
+  tall?: boolean;
+  /**
+   * The canvas the template is laid out on before scaling. Only templates
+   * with fixed internal geometry need it; the rest use percentages.
+   */
+  design?: { width: number; height: number };
 }
 
 function Logo({ src, size = 40 }: { src: string; size?: number }) {
@@ -93,7 +105,7 @@ function Watermark({ theme }: { theme: "dark" | "light" }) {
   );
 }
 
-function GradientTemplate({ p, watermark, logo }: TplProps) {
+function GradientTemplate({ p, watermark, logo, tall }: TplProps) {
   const c = palette(p.theme);
   return (
     <div
@@ -102,7 +114,7 @@ function GradientTemplate({ p, watermark, logo }: TplProps) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-end",
+        justifyContent: tall ? "center" : "flex-end",
         padding: 80,
         backgroundColor: c.bg,
         backgroundImage: `radial-gradient(circle at 20% 0%, ${withAlpha(
@@ -170,7 +182,7 @@ function GradientTemplate({ p, watermark, logo }: TplProps) {
   );
 }
 
-function MinimalTemplate({ p, watermark, logo }: TplProps) {
+function MinimalTemplate({ p, watermark, logo, tall }: TplProps) {
   const c = palette(p.theme);
   return (
     <div
@@ -179,6 +191,7 @@ function MinimalTemplate({ p, watermark, logo }: TplProps) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
+        ...(tall ? { justifyContent: "center" } : {}),
         padding: 80,
         backgroundColor: c.bg,
         color: c.fg,
@@ -212,7 +225,11 @@ function MinimalTemplate({ p, watermark, logo }: TplProps) {
           {p.subtitle}
         </div>
       ) : null}
-      <div style={{ display: "flex", flexGrow: 1 }} />
+      {tall ? (
+        <div style={{ display: "flex", height: 56 }} />
+      ) : (
+        <div style={{ display: "flex", flexGrow: 1 }} />
+      )}
       {p.site || logo ? (
         <div
           style={{
@@ -231,8 +248,11 @@ function MinimalTemplate({ p, watermark, logo }: TplProps) {
   );
 }
 
-function SplitTemplate({ p, watermark, logo }: TplProps) {
+function SplitTemplate({ p, watermark, logo, design }: TplProps) {
   const c = palette(p.theme);
+  // Proportional, so the accent panel keeps its share of a narrower design
+  // canvas instead of collapsing to a stripe.
+  const textColumn = Math.round((design?.width ?? 1200) * 0.6333);
   return (
     <div
       style={{
@@ -249,7 +269,7 @@ function SplitTemplate({ p, watermark, logo }: TplProps) {
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px 60px 80px 80px",
-          width: 760,
+          width: textColumn,
         }}
       >
         <div
@@ -587,16 +607,19 @@ function AnnounceTemplate({ p, watermark, logo }: TplProps) {
  * description on the other. Falls back to a tinted panel when the page has
  * no usable image, so the layout never collapses.
  */
-function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
+function LinkTemplate({ p, watermark, logo, hero, design }: TplProps) {
   const c = palette(p.theme);
+  const DW = design?.width ?? 1200;
+  const DH = design?.height ?? 630;
   // Scraped artwork is never cropped. Real og:images range from wide
   // banners to square logos, and a layout that assumes one shape mangles
   // the other — a square logo forced into a letterbox loses its top and
   // bottom. So the image is measured and placed whole, at its own aspect
   // ratio, inside a panel that stays the same size whatever arrives.
-  const PANEL = 470;
-  const TEXT_COLUMN = 1200 - PANEL - 72 - 48;
-  const BOX = { width: PANEL - 88, height: 630 - 120 };
+  // Proportional so the panel keeps its share of any canvas shape.
+  const PANEL = Math.round(DW * 0.3917);
+  const TEXT_COLUMN = DW - PANEL - 72 - 48;
+  const BOX = { width: PANEL - 88, height: Math.max(120, DH - 120) };
   const fitted =
     hero && hero.width && hero.height
       ? fitWithin({ width: hero.width, height: hero.height }, BOX)
@@ -735,16 +758,60 @@ function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
   );
 }
 
+/**
+ * Fits a template authored at DESIGN_WIDTH onto a canvas of another width.
+ *
+ * Scaling the finished design, rather than making every template
+ * responsive, keeps one set of layouts to reason about and means type and
+ * spacing stay in the proportions they were designed in. A canvas of the
+ * design width needs no wrapper at all, so the Open Graph card renders
+ * through exactly the path it always did.
+ */
+function fitToCanvas(element: React.ReactElement, size: CardSize) {
+  const scale = scaleFor(size);
+  if (scale === 1) return element;
+  const design = designCanvasOf(size);
+  return (
+    <div
+      style={{
+        display: "flex",
+        width: size.width,
+        height: size.height,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          // The design gets as much virtual height as the real canvas has
+          // once scaled, so vertical layouts fill the shape rather than
+          // being letterboxed.
+          width: design.width,
+          height: design.height,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      >
+        {element}
+      </div>
+    </div>
+  );
+}
+
 export async function renderOgImage(
   p: OgParams,
   opts: { watermark: boolean; logo?: string | null; hero?: HeroImage | null }
 ): Promise<ImageResponse> {
   const fonts = await loadFonts();
+  const size = sizeOf(p.size);
   const props = {
     p,
     watermark: opts.watermark,
     logo: opts.logo ?? null,
     hero: opts.hero ?? null,
+    // Measured on the real canvas: the virtual one keeps the same shape.
+    tall: size.height / size.width > 0.75,
+    design: designCanvasOf(size),
   };
   let element: React.ReactElement;
   switch (p.template) {
@@ -769,9 +836,9 @@ export async function renderOgImage(
     default:
       element = <GradientTemplate {...props} />;
   }
-  return new ImageResponse(element, {
-    width: OG_WIDTH,
-    height: OG_HEIGHT,
+  return new ImageResponse(fitToCanvas(element, size), {
+    width: size.width,
+    height: size.height,
     fonts: [
       { name: "Inter", data: fonts.regular, weight: 400, style: "normal" },
       { name: "Inter", data: fonts.bold, weight: 700, style: "normal" },

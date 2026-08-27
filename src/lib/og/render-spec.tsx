@@ -5,8 +5,7 @@ import { inArray } from "drizzle-orm";
 import type { Database } from "../db";
 import { assets } from "../db/schema";
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
+  canvasOfSpec,
   fittedFontSize,
   resolvePlaceholders,
   specAssetIds,
@@ -272,6 +271,7 @@ export async function renderSpecImage(
     });
   }
 
+  const canvas = canvasOfSpec(spec);
   const bgImage =
     spec.background.type === "image"
       ? loaded.get(spec.background.assetId)
@@ -292,8 +292,8 @@ export async function renderSpecImage(
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={dataUrl(bgImage)}
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
+          width={canvas.width}
+          height={canvas.height}
           alt=""
           style={{
             position: "absolute",
@@ -317,8 +317,8 @@ export async function renderSpecImage(
   );
 
   return new ImageResponse(element, {
-    width: CANVAS_WIDTH,
-    height: CANVAS_HEIGHT,
+    width: canvas.width,
+    height: canvas.height,
     fonts,
   });
 }

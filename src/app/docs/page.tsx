@@ -3,6 +3,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { appUrl } from "@/lib/stripe";
+import { SIZES, SIZE_IDS } from "@/lib/og/sizes";
 
 export const metadata: Metadata = { title: "Docs" };
 
@@ -53,6 +54,12 @@ const PARAMS: Array<{
     type: "hex color",
     def: "#6366f1",
     desc: "Accent color. URL-encode the hash: %236366f1.",
+  },
+  {
+    name: "size",
+    type: "og | square | story | youtube | wide",
+    def: "og",
+    desc: "Canvas the card is rendered at. See Sizes. Ignored with tpl, where the size belongs to the design.",
   },
   {
     name: "exp",
@@ -222,6 +229,61 @@ function signedOgUrl(params, accountId, secret) {
 
 signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</CodeBlock>
         </div>
+
+        <h2 id="sizes" className="mt-12 text-2xl font-semibold">
+          Sizes
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Cards render at 1200×630 by default — the shape every link unfurler
+          expects. <code className="text-zinc-300">size</code> renders the same
+          template at another platform&apos;s shape instead, so one design
+          covers your link previews, your feed posts and your stories.
+        </p>
+        <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-800">
+          <table className="w-full min-w-[520px] text-left text-sm">
+            <thead className="bg-zinc-900 text-zinc-400">
+              <tr>
+                <th className="px-4 py-3">size</th>
+                <th className="px-4 py-3">Pixels</th>
+                <th className="px-4 py-3">Where it&apos;s used</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SIZE_IDS.map((id) => (
+                <tr key={id} className="border-t border-zinc-800">
+                  <td className="px-4 py-3 font-mono text-indigo-300">{id}</td>
+                  <td className="px-4 py-3 text-zinc-400">
+                    {SIZES[id].width}×{SIZES[id].height}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-400">{SIZES[id].blurb}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-4">
+          <CodeBlock>{`${base}/api/og?key=og_yourkey&size=square&title=Also%20on%20Instagram`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Built-in templates are laid out once and scaled to whichever canvas
+          you ask for, so type and spacing keep their proportions and the
+          shorter shapes don&apos;t simply leave gaps. Templates that anchor
+          copy to one edge gather it into the middle on the taller canvases.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Your own templates work differently: their layers hold absolute
+          coordinates, so the canvas is part of the design and is chosen in
+          the editor. Passing <code className="text-zinc-300">size</code>{" "}
+          alongside <code className="text-zinc-300">tpl</code> has no effect —
+          the design&apos;s own canvas is used.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Changing size changes the image, so bump your{" "}
+          <a href="#cache-refresh" className="text-indigo-400 hover:underline">
+            cache version
+          </a>{" "}
+          if you are switching an already-published card to a new shape.
+        </p>
 
         <h2 id="url-to-card" className="mt-12 text-2xl font-semibold">
           Cards from a URL
