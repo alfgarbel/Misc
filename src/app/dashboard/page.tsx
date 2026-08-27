@@ -18,6 +18,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { listActiveKeys } from "@/lib/keys";
 import { countTemplates } from "@/lib/templates";
+import { countExperiments } from "@/lib/experiments";
 import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
 import { PLANS, VAT_NOTE } from "@/lib/plans";
 import { refreshStatus } from "@/lib/cachebust";
@@ -31,12 +32,13 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const db = getDb();
-  const [plan, used, keys, history, templateCount] = await Promise.all([
+  const [plan, used, keys, history, templateCount, experimentCount] = await Promise.all([
     getUserPlan(db, user.id),
     getMonthlyUsage(db, user.id),
     listActiveKeys(db, user.id),
     getUsageHistory(db, user.id, 6),
     countTemplates(db, user.id),
+    countExperiments(db, user.id),
   ]);
   const historyMax = Math.max(1, ...history.map((h) => h.count));
   const planInfo = PLANS[plan];
@@ -169,6 +171,29 @@ export default async function DashboardPage() {
               </Link>
               <span className="text-xs text-zinc-500">
                 {templateCount} of {planInfo.templates} on the {planInfo.name} plan
+              </span>
+            </div>
+          </div>
+
+          {/* Experiments */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
+            <h2 className="mb-1 font-semibold">Experiments</h2>
+            <p className="mb-4 text-sm text-zinc-400">
+              Test one card design against another. Half your pages get A, half
+              get B — a platform caches one image per link, so the split is
+              across pages rather than across viewers.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/dashboard/experiments"
+                className="rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500"
+              >
+                {experimentCount > 0
+                  ? `Open experiments (${experimentCount})`
+                  : "Start an experiment"}
+              </Link>
+              <span className="text-xs text-zinc-500">
+                {experimentCount} of {planInfo.experiments} on the {planInfo.name} plan
               </span>
             </div>
           </div>

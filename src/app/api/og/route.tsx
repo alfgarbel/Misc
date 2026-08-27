@@ -14,6 +14,11 @@ import { PLANS } from "@/lib/plans";
 import { CACHE_VERSION_PARAM, isValidCacheVersion } from "@/lib/cachebust";
 import type { PageMetadata } from "@/lib/urlcard";
 import { renderResolvedCard, resolveUrlParams } from "@/lib/urlcard/card";
+import {
+  applyVariant,
+  assignmentFor,
+  getExperimentBySlug,
+} from "@/lib/experiments";
 
 export const runtime = "nodejs";
 
@@ -82,6 +87,41 @@ export async function GET(req: NextRequest) {
     }
     params = resolved.params;
     pageMeta = resolved.meta;
+  }
+
+  // ?exp= picks a design variant for this page. It runs after ?url= so the
+  // scraped URL can serve as the key, and before brand defaults so a
+  // variant's choices win over an account-wide default — the variant is the
+  // thing being tested.
+  const expSlug = params.get("exp");
+  if (expSlug) {
+    if (!userId) {
+      return jsonError(401, "Experiments require an API key or a signed URL");
+    }
+    if (!isValidSlug(expSlug)) {
+      return jsonError(400, "Invalid parameters", {
+        details: ["exp: must be an experiment slug like headline-test"],
+      });
+    }
+    const db = getDb();
+    const experiment = await getExperimentBySlug(db, userId, expSlug);
+    if (!experiment) {
+      return jsonError(404, `No experiment named "${expSlug}" on this account`);
+    }
+    // The page under test: an explicit key, else the URL being read, else
+    // the headline. Whatever it is, it has to be stable for that page.
+    const key = params.get("k") ?? sourceUrl ?? params.get("title");
+    if (!key) {
+      return jsonError(400, "Invalid parameters", {
+        details: ["exp: needs k, url or title to identify the page under test"],
+      });
+    }
+    if (experiment.status === "running") {
+      const assigned = await assignmentFor(db, experiment, key.slice(0, 500), {
+        countExposure: true,
+      });
+      if (assigned) params = applyVariant(params, assigned.variant);
+    }
   }
 
   // Account defaults fill in unspecified template/theme/accent/site,

@@ -129,6 +129,31 @@ CREATE TABLE `url_cache` (
 	`fetched_at` integer NOT NULL
 );
 
+-- ---------- 0008_add_experiments ----------
+CREATE TABLE `experiment_assignments` (
+	`experiment_id` text NOT NULL,
+	`key` text NOT NULL,
+	`variant_id` text NOT NULL,
+	`exposures` integer DEFAULT 0 NOT NULL,
+	`conversions` integer DEFAULT 0 NOT NULL,
+	`assigned_at` integer NOT NULL,
+	`last_seen_at` integer NOT NULL,
+	PRIMARY KEY(`experiment_id`, `key`),
+	FOREIGN KEY (`experiment_id`) REFERENCES `experiments`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE TABLE `experiments` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`slug` text NOT NULL,
+	`name` text NOT NULL,
+	`status` text DEFAULT 'running' NOT NULL,
+	`variants` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE UNIQUE INDEX `experiments_user_slug_unique` ON `experiments` (`user_id`,`slug`);
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -143,3 +168,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('f9837ce82da1990a
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d74e9d38e0dc433c486a49567b6d5fb39e55b220e04d440d1776668e5a7bc536', 1787761634209);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('54f0517fedc4c04f7ac2c841828184d70988c94fcee953abdbedd904ea4719ba', 1787824103514);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d8a30cf4a41abfefde773e6d3b9a1714b0dd56270ed323be6bde7a8d8e8d341a', 1787826700054);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('7bc5a3806a067a227abf9138b30e7800442d8a3db1c7f0c0676a9f2f6b75b66e', 1787838555238);
