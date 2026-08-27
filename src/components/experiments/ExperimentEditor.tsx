@@ -42,8 +42,15 @@ export default function ExperimentEditor({
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   const started = totals.some((t) => t.keys > 0);
+  const measured = totals.some((t) => t.exposures > 0 || t.conversions > 0);
+  // Changing what a variant looks like is a different hazard from changing
+  // its weight: the numbers already collected describe the old design.
+  const designChanged =
+    JSON.stringify(variants.map((v) => v.params)) !==
+    JSON.stringify(initialVariants.map((v) => v.params));
 
   function patchVariant(index: number, patch: Partial<Variant>) {
     setVariants((prev) =>
@@ -64,6 +71,25 @@ export default function ExperimentEditor({
       )
     );
     setDirty(true);
+  }
+
+  async function reset() {
+    if (
+      !window.confirm(
+        "Clear the numbers and start measuring again? Every page keeps the variant it already has, so nothing already shared changes appearance."
+      )
+    ) {
+      return;
+    }
+    setResetting(true);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/experiments/${id}/reset`, { method: "POST" });
+      if (res.ok) router.refresh();
+      else setMsg("Could not reset results");
+    } finally {
+      setResetting(false);
+    }
   }
 
   async function save() {
@@ -183,6 +209,21 @@ export default function ExperimentEditor({
           </table>
         </div>
 
+        {measured ? (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={reset}
+              disabled={resetting}
+              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-zinc-500 disabled:opacity-50"
+            >
+              {resetting ? "Resetting…" : "Reset results"}
+            </button>
+            <span className="text-xs text-zinc-500">
+              Clears the numbers, keeps every page on its current variant.
+            </span>
+          </div>
+        ) : null}
+
         <div className="mt-4 space-y-2">
           {comparisons.map((c) => (
             <div
@@ -229,6 +270,16 @@ export default function ExperimentEditor({
             </>
           ) : null}
         </p>
+
+        {designChanged && measured ? (
+          <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+            You&apos;ve changed what a variant looks like. The numbers above were
+            collected under the old design, so once you save, one rate will be
+            pooling two different cards. Reset the results after saving to start
+            a clean measurement — assignments are kept, so nothing already
+            shared changes.
+          </div>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
           {variants.map((v, i) => (
             <div

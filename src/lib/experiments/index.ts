@@ -251,6 +251,30 @@ export async function recordConversion(
   return true;
 }
 
+/**
+ * Zeroes the counters while leaving assignments in place.
+ *
+ * The two halves are deliberately separate. Editing what a variant looks
+ * like invalidates the numbers gathered under the old design — they now
+ * pool two different cards into one rate — but it must not re-randomise
+ * anything, because pages already shared would change artwork. So results
+ * restart and assignments stand.
+ */
+export async function resetResults(
+  db: Database,
+  experimentId: string
+): Promise<number> {
+  const rows = await db
+    .select({ key: experimentAssignments.key })
+    .from(experimentAssignments)
+    .where(eq(experimentAssignments.experimentId, experimentId));
+  await db
+    .update(experimentAssignments)
+    .set({ exposures: 0, conversions: 0 })
+    .where(eq(experimentAssignments.experimentId, experimentId));
+  return rows.length;
+}
+
 /** Per-variant totals, including variants that have seen nothing yet. */
 export async function experimentTotals(
   db: Database,

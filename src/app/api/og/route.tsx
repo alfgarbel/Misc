@@ -108,12 +108,20 @@ export async function GET(req: NextRequest) {
     if (!experiment) {
       return jsonError(404, `No experiment named "${expSlug}" on this account`);
     }
-    // The page under test: an explicit key, else the URL being read, else
-    // the headline. Whatever it is, it has to be stable for that page.
-    const key = params.get("k") ?? sourceUrl ?? params.get("title");
+    // The page under test: an explicit key, or the URL being read.
+    //
+    // Deliberately not the title. A title is content, and content gets
+    // edited — fixing a typo would change the key, which re-randomises the
+    // page onto a new row: the same page then counts twice in the
+    // denominator, and about half the time lands in the other variant with
+    // its history split across both arms. A key has to be an identifier
+    // that outlives edits to the page.
+    const key = params.get("k") ?? sourceUrl;
     if (!key) {
       return jsonError(400, "Invalid parameters", {
-        details: ["exp: needs k, url or title to identify the page under test"],
+        details: [
+          "exp: needs k or url to identify the page under test. Use a stable id (a post slug or database id) — not the title, which changes when you edit it.",
+        ],
       });
     }
     if (experiment.status === "running") {

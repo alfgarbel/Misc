@@ -9,6 +9,7 @@ import {
   bucketOf,
   createExperiment,
   deleteExperiment,
+  resetResults,
   experimentTotals,
   getOwnedExperiment,
   parseVariants,
@@ -225,6 +226,35 @@ describe("assignmentFor", () => {
     const totals = await experimentTotals(db, exp);
     expect(totals).toHaveLength(2);
     expect(totals.every((t) => t.keys === 0)).toBe(true);
+  });
+});
+
+describe("editing a variant's design mid-experiment", () => {
+  it("resets the counters without moving any page to another variant", async () => {
+    // Changing what a variant looks like invalidates numbers gathered under
+    // the old design, but must not re-randomise: pages already shared would
+    // change artwork under their readers.
+    const { db, ownerId } = await seed();
+    const exp = await createExperiment(db, ownerId, { name: "E", variants: twoWay });
+    const assignments: Record<string, string> = {};
+    for (let i = 0; i < 12; i++) {
+      const a = await assignmentFor(db, exp, `post-${i}`, { countExposure: true });
+      assignments[`post-${i}`] = a!.variant.id;
+      await recordConversion(db, exp.id, `post-${i}`);
+    }
+
+    const kept = await resetResults(db, exp.id);
+    expect(kept).toBe(12);
+
+    const totals = await experimentTotals(db, exp);
+    expect(totals.reduce((n, t) => n + t.exposures, 0)).toBe(0);
+    expect(totals.reduce((n, t) => n + t.conversions, 0)).toBe(0);
+    // Pages are still known, and still on the same variant.
+    expect(totals.reduce((n, t) => n + t.keys, 0)).toBe(12);
+    for (const [key, variantId] of Object.entries(assignments)) {
+      const again = await assignmentFor(db, exp, key);
+      expect(again!.variant.id).toBe(variantId);
+    }
   });
 });
 

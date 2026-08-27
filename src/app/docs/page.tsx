@@ -64,7 +64,7 @@ const PARAMS: Array<{
     name: "k",
     type: "string (≤ 500 chars)",
     def: "—",
-    desc: "Identifies the page under test, for exp. Must stay the same for that page forever. Defaults to the url value when you pass one.",
+    desc: "Identifies the page under test, for exp. Must be a stable id — a post slug or database id, never the title. Defaults to the url value when you pass one.",
   },
   {
     name: "url",
@@ -394,6 +394,33 @@ signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</Cod
           <code className="text-zinc-300">&amp;url=</code> it defaults to that
           URL. A page&apos;s variant is decided once and stored, so editing an
           experiment later never changes the artwork on posts already shared.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          <strong className="text-zinc-200">Never key on the headline.</strong>{" "}
+          It is content, and content gets edited. Fixing one typo would change
+          the key, and a changed key is a new page: it would be counted twice
+          in the denominator and land in the other variant about half the time,
+          with its history split across both arms. The API refuses the title
+          for exactly this reason and asks for an id instead.
+        </p>
+
+        <h3 className="mt-8 text-lg font-semibold">Editing during a test</h3>
+        <p className="mt-4 text-sm text-zinc-400">
+          Fixing a typo in a card is fine. Change the text, bump your{" "}
+          <a href="#cache-refresh" className="text-indigo-400 hover:underline">
+            cache version
+          </a>{" "}
+          so platforms refetch, and the experiment is untouched — the key
+          didn&apos;t change, so the page keeps its variant and its numbers.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Changing what a <em>variant</em> looks like is different. The numbers
+          you have already describe the old design, so leaving them in place
+          pools two different cards into one rate. The dashboard warns when you
+          do this and offers <em>Reset results</em>, which clears the counters
+          while keeping every page on the variant it already has — so
+          measurement restarts cleanly and nothing already shared changes
+          appearance.
         </p>
 
         <h3 className="mt-8 text-lg font-semibold">Measuring the outcome</h3>
