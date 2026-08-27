@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getUserPlan } from "@/lib/usage";
 import { PLANS } from "@/lib/plans";
 import { TEMPLATES, applyBrandDefaults } from "@/lib/og/params";
+import { SIZE_IDS } from "@/lib/og/sizes";
 import { renderResolvedCard, resolveUrlParams } from "@/lib/urlcard/card";
 import { makeRateLimiter } from "@/lib/ratelimit";
 
@@ -23,6 +24,7 @@ const bodySchema = z.object({
     .string()
     .regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/)
     .optional(),
+  size: z.enum(SIZE_IDS).optional(),
 });
 
 /**
@@ -52,6 +54,7 @@ export async function POST(req: NextRequest) {
   if (parsed.data.template) params.set("template", parsed.data.template);
   if (parsed.data.theme) params.set("theme", parsed.data.theme);
   if (parsed.data.accent) params.set("accent", parsed.data.accent);
+  if (parsed.data.size) params.set("size", parsed.data.size);
 
   const resolved = await resolveUrlParams(db, params, parsed.data.url);
   if (!resolved.ok) {

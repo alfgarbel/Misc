@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TEMPLATES } from "@/lib/og/params";
+import { SIZES, SIZE_IDS } from "@/lib/og/sizes";
 
 interface Meta {
   title: string | null;
@@ -20,6 +21,7 @@ export default function UrlCardPanel({
 }) {
   const [url, setUrl] = useState("");
   const [template, setTemplate] = useState("link");
+  const [size, setSize] = useState<(typeof SIZE_IDS)[number]>("og");
   const [meta, setMeta] = useState<Meta | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -47,7 +49,7 @@ export default function UrlCardPanel({
   }, []);
 
   const render = useCallback(
-    async (target: string, tpl: string) => {
+    async (target: string, tpl: string, sz: string) => {
       setBusy(true);
       setError(null);
       try {
@@ -60,7 +62,7 @@ export default function UrlCardPanel({
           fetch("/api/url-preview/render", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: target, template: tpl }),
+            body: JSON.stringify({ url: target, template: tpl, size: sz }),
           }),
         ]);
 
@@ -88,19 +90,24 @@ export default function UrlCardPanel({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (url.trim()) void render(url.trim(), template);
+    if (url.trim()) void render(url.trim(), template, size);
   }
 
   function onTemplateChange(next: string) {
     setTemplate(next);
     // Re-render immediately if there's already a card on screen; the page
     // itself is cached, so this costs nothing outbound.
-    if (previewedUrl.current) void render(previewedUrl.current, next);
+    if (previewedUrl.current) void render(previewedUrl.current, next, size);
   }
 
-  const snippet = `${baseUrl}/api/og?key=${apiKeyHint}&template=${template}&url=${
-    url ? encodeURIComponent(url) : "https://example.com/post"
-  }`;
+  function onSizeChange(next: (typeof SIZE_IDS)[number]) {
+    setSize(next);
+    if (previewedUrl.current) void render(previewedUrl.current, template, next);
+  }
+
+  const snippet = `${baseUrl}/api/og?key=${apiKeyHint}&template=${template}${
+    size === "og" ? "" : `&size=${size}`
+  }&url=${url ? encodeURIComponent(url) : "https://example.com/post"}`;
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
@@ -129,6 +136,17 @@ export default function UrlCardPanel({
             </option>
           ))}
         </select>
+        <select
+          value={size}
+          onChange={(e) => onSizeChange(e.target.value as (typeof SIZE_IDS)[number])}
+          className="min-w-0 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+        >
+          {SIZE_IDS.map((id) => (
+            <option key={id} value={id}>
+              {SIZES[id].label}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           disabled={busy || !url.trim()}
@@ -146,9 +164,9 @@ export default function UrlCardPanel({
           <img
             src={preview}
             alt="Preview of the card this URL produces"
-            width={1200}
-            height={630}
-            className={`w-full rounded-lg border border-zinc-800 transition-opacity ${
+            width={SIZES[size].width}
+            height={SIZES[size].height}
+            className={`mx-auto max-h-[70vh] w-auto max-w-full rounded-lg border border-zinc-800 object-contain transition-opacity ${
               busy ? "opacity-50" : "opacity-100"
             }`}
           />

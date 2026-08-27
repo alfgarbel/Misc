@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
+  canvasOfSpec,
   fittedFontSize,
   resolvePlaceholders,
   type Layer,
@@ -46,7 +45,8 @@ export default function EditorCanvas({
   onChangeLayer: (id: string, patch: Partial<Layer>) => void;
   width: number;
 }) {
-  const scale = width / CANVAS_WIDTH;
+  const canvas = canvasOfSpec(spec);
+  const scale = width / canvas.width;
   const drag = useRef<DragState | null>(null);
   const [, force] = useState(0);
 
@@ -96,7 +96,7 @@ export default function EditorCanvas({
       className="relative select-none overflow-hidden rounded-lg border border-zinc-800"
       style={{
         width,
-        height: width * (CANVAS_HEIGHT / CANVAS_WIDTH),
+        height: width * (canvas.height / canvas.width),
         ...backgroundCss(spec),
       }}
       onPointerDown={(e) => {

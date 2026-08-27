@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SIZE_IDS, DEFAULT_SIZE, sizeOf } from "./sizes";
 
 /**
  * A card design produced by the visual editor.
@@ -13,6 +14,7 @@ import { z } from "zod";
  * every template into a server-side request forgery primitive.
  */
 
+/** The default canvas. A spec records its own size; these are the fallback. */
 export const CANVAS_WIDTH = 1200;
 export const CANVAS_HEIGHT = 630;
 
@@ -110,6 +112,12 @@ export const backgroundSchema = z.discriminatedUnion("type", [
 
 export const templateSpecSchema = z.object({
   version: z.literal(1).default(1),
+  /**
+   * Which canvas this design was laid out on. Layers carry absolute
+   * coordinates, so the size belongs to the design — a request cannot ask
+   * for a different one without moving every layer.
+   */
+  size: z.enum(SIZE_IDS).default(DEFAULT_SIZE),
   background: backgroundSchema,
   layers: z.array(layerSchema).max(MAX_LAYERS),
 });
@@ -206,6 +214,15 @@ export function fittedFontSize(
   if (lines <= maxLines) return layer.fontSize;
   const scale = Math.sqrt(maxLines / lines);
   return Math.max(12, Math.round(layer.fontSize * scale));
+}
+
+/** The pixel canvas a spec is drawn on. */
+export function canvasOfSpec(spec: Pick<TemplateSpec, "size">): {
+  width: number;
+  height: number;
+} {
+  const size = sizeOf(spec.size);
+  return { width: size.width, height: size.height };
 }
 
 /** A blank card, used when creating a template from scratch. */
