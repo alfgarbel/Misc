@@ -7,6 +7,7 @@ export const TEMPLATES = [
   "terminal",
   "quote",
   "announce",
+  "link",
 ] as const;
 export type TemplateId = (typeof TEMPLATES)[number];
 

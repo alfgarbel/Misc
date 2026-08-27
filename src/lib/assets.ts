@@ -47,14 +47,18 @@ export type SniffResult =
  * Identifies a file from its own bytes. The browser-supplied MIME type and
  * file extension are both trivially forged, and the renderer will act on
  * whatever we store, so neither is consulted.
+ *
+ * `maxBytes` defaults to the upload limit. Callers with a different budget
+ * — a scraped og:image is allowed to be larger than something a user
+ * stores — pass their own; the format checks are the same either way.
  */
-export function sniffAsset(buf: Buffer): SniffResult {
+export function sniffAsset(buf: Buffer, maxBytes = MAX_ASSET_BYTES): SniffResult {
   if (buf.length === 0) return { ok: false, reason: "File is empty." };
-  if (buf.length > MAX_ASSET_BYTES) {
+  if (buf.length > maxBytes) {
     return {
       ok: false,
       reason: `File is ${Math.round(buf.length / 1024)}KB. The limit is ${
-        MAX_ASSET_BYTES / 1024
+        maxBytes / 1024
       }KB.`,
     };
   }

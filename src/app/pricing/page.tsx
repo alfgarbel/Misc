@@ -14,6 +14,7 @@ function PlanFeatures({ plan }: { plan: Plan }) {
     `${plan.monthlyRenders.toLocaleString()} renders / month`,
     plan.watermark ? "OGsmith watermark" : "No watermark",
     "All templates & themes",
+    "Cards straight from a URL",
     `${plan.templates} custom ${plan.templates === 1 ? "design" : "designs"} in the editor`,
     `${plan.assets} uploaded fonts & images`,
     ...(plan.watermark ? [] : ["Custom logo on cards"]),

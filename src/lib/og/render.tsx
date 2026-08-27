@@ -2,6 +2,9 @@ import { ImageResponse } from "next/og";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import type { OgParams } from "./params";
+import { fittedFontSize } from "./spec";
+import { fitWithin } from "../urlcard/dimensions";
+import type { HeroImage } from "../urlcard/image";
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
@@ -51,6 +54,8 @@ interface TplProps {
   p: OgParams;
   watermark: boolean;
   logo?: string | null;
+  /** The source page's own image, when rendering from ?url=. */
+  hero?: HeroImage | null;
 }
 
 function Logo({ src, size = 40 }: { src: string; size?: number }) {
@@ -577,12 +582,170 @@ function AnnounceTemplate({ p, watermark, logo }: TplProps) {
   );
 }
 
+/**
+ * Built for ?url= cards: the page's own artwork on one side, its title and
+ * description on the other. Falls back to a tinted panel when the page has
+ * no usable image, so the layout never collapses.
+ */
+function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
+  const c = palette(p.theme);
+  // Scraped artwork is never cropped. Real og:images range from wide
+  // banners to square logos, and a layout that assumes one shape mangles
+  // the other — a square logo forced into a letterbox loses its top and
+  // bottom. So the image is measured and placed whole, at its own aspect
+  // ratio, inside a panel that stays the same size whatever arrives.
+  const PANEL = 470;
+  const TEXT_COLUMN = 1200 - PANEL - 72 - 48;
+  const BOX = { width: PANEL - 88, height: 630 - 120 };
+  const fitted =
+    hero && hero.width && hero.height
+      ? fitWithin({ width: hero.width, height: hero.height }, BOX)
+      : null;
+
+  // satori does not clip overflow, so the text column's height is budgeted
+  // explicitly: an over-long description would otherwise draw straight
+  // over the line beneath it.
+  const titleSize = fittedFontSize(
+    { fontSize: 50, w: TEXT_COLUMN, lineHeight: 1.15, autoFit: true },
+    p.title,
+    3
+  );
+  const titleLines = Math.min(
+    3,
+    Math.max(
+      1,
+      Math.ceil(p.title.length / Math.floor(TEXT_COLUMN / (titleSize * 0.52)))
+    )
+  );
+  const subtitle = p.subtitle ?? "";
+  const descSize = fittedFontSize(
+    { fontSize: 26, w: TEXT_COLUMN, lineHeight: 1.4, autoFit: true },
+    subtitle,
+    Math.max(2, 6 - titleLines)
+  );
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        backgroundColor: c.bg,
+        color: c.fg,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          width: TEXT_COLUMN + 72 + 48,
+          padding: "0 48px 0 72px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            fontSize: titleSize,
+            fontWeight: 700,
+            lineHeight: 1.15,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {p.title}
+        </div>
+        {subtitle ? (
+          <div
+            style={{
+              marginTop: 18,
+              fontSize: descSize,
+              color: c.muted,
+              lineHeight: 1.4,
+            }}
+          >
+            {subtitle}
+          </div>
+        ) : null}
+        {p.site ? (
+          <div
+            style={{
+              marginTop: 28,
+              display: "flex",
+              alignItems: "center",
+              fontSize: 23,
+              color: c.muted,
+            }}
+          >
+            {logo ? (
+              <Logo src={logo} size={30} />
+            ) : (
+              <div
+                style={{
+                  width: 13,
+                  height: 13,
+                  borderRadius: 999,
+                  backgroundColor: p.accent,
+                  marginRight: 13,
+                }}
+              />
+            )}
+            {p.site}
+          </div>
+        ) : null}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          width: PANEL,
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor:
+            p.theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+          backgroundImage: `linear-gradient(135deg, ${withAlpha(
+            p.accent,
+            hero ? 0.1 : 0.6
+          )} 0%, ${withAlpha(p.accent, hero ? 0.04 : 0.15)} 100%)`,
+        }}
+      >
+        {hero && fitted ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={hero.dataUrl}
+            width={fitted.width}
+            height={fitted.height}
+            alt=""
+            style={{ borderRadius: 10 }}
+          />
+        ) : hero ? (
+          // Dimensions unreadable: contain it rather than guess a crop.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={hero.dataUrl}
+            width={BOX.width}
+            height={BOX.height}
+            alt=""
+            style={{ objectFit: "contain", borderRadius: 10 }}
+          />
+        ) : null}
+      </div>
+      {watermark ? <Watermark theme={p.theme} /> : null}
+    </div>
+  );
+}
+
 export async function renderOgImage(
   p: OgParams,
-  opts: { watermark: boolean; logo?: string | null }
+  opts: { watermark: boolean; logo?: string | null; hero?: HeroImage | null }
 ): Promise<ImageResponse> {
   const fonts = await loadFonts();
-  const props = { p, watermark: opts.watermark, logo: opts.logo ?? null };
+  const props = {
+    p,
+    watermark: opts.watermark,
+    logo: opts.logo ?? null,
+    hero: opts.hero ?? null,
+  };
   let element: React.ReactElement;
   switch (p.template) {
     case "minimal":
@@ -599,6 +762,9 @@ export async function renderOgImage(
       break;
     case "announce":
       element = <AnnounceTemplate {...props} />;
+      break;
+    case "link":
+      element = <LinkTemplate {...props} />;
       break;
     default:
       element = <GradientTemplate {...props} />;

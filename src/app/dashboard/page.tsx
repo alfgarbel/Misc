@@ -7,6 +7,7 @@ import KeysManager from "@/components/KeysManager";
 import BrandPanel from "@/components/BrandPanel";
 import SigningPanel from "@/components/SigningPanel";
 import RefreshPanel from "@/components/RefreshPanel";
+import UrlCardPanel from "@/components/UrlCardPanel";
 import VerifyBanner from "@/components/VerifyBanner";
 import {
   UpgradeButton,
@@ -132,6 +133,11 @@ export default async function DashboardPage() {
             }}
             logo={user.brandLogo ?? null}
             paidPlan={plan !== "free"}
+          />
+
+          <UrlCardPanel
+            baseUrl={appUrl()}
+            apiKeyHint={keys[0]?.keyPrefix ? `${keys[0].keyPrefix}…` : "YOUR_KEY"}
           />
 
           <RefreshPanel
