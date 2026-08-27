@@ -6,13 +6,15 @@ import { UpgradeButton } from "@/components/BillingButtons";
 import { getCurrentUser } from "@/lib/auth";
 import { PLANS, VAT_NOTE, VAT_SHORT, type Plan } from "@/lib/plans";
 
+import { TRIAL_DAYS } from "@/lib/trial";
+
 export const metadata: Metadata = { title: "Pricing" };
 export const dynamic = "force-dynamic";
 
 function PlanFeatures({ plan }: { plan: Plan }) {
   const items = [
     `${plan.monthlyRenders.toLocaleString()} renders / month`,
-    plan.watermark ? "OGsmith watermark" : "No watermark",
+    plan.watermark ? `No watermark for ${TRIAL_DAYS} days, then a small one` : "No watermark",
     "All templates & themes",
     "Cards straight from a URL",
     `${plan.experiments} split ${plan.experiments === 1 ? "test" : "tests"}`,

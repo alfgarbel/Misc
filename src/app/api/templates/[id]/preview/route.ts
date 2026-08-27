@@ -3,10 +3,10 @@ import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserPlan } from "@/lib/usage";
-import { PLANS } from "@/lib/plans";
 import { templateSpecSchema } from "@/lib/og/spec";
 import { loadSpecAssets, renderSpecImage } from "@/lib/og/render-spec";
 import { makeRateLimiter } from "@/lib/ratelimit";
+import { effectiveWatermark } from "@/lib/trial";
 
 export const runtime = "nodejs";
 
@@ -53,7 +53,7 @@ export async function POST(
   try {
     const assets = await loadSpecAssets(db, parsed.data.spec, user.id);
     const image = await renderSpecImage(parsed.data.spec, {
-      watermark: PLANS[plan].watermark,
+      watermark: effectiveWatermark(plan, user),
       values: new URLSearchParams(parsed.data.values),
       assets,
     });

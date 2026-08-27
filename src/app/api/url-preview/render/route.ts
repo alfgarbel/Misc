@@ -3,11 +3,11 @@ import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserPlan } from "@/lib/usage";
-import { PLANS } from "@/lib/plans";
 import { TEMPLATES, applyBrandDefaults } from "@/lib/og/params";
 import { SIZE_IDS } from "@/lib/og/sizes";
 import { renderResolvedCard, resolveUrlParams } from "@/lib/urlcard/card";
 import { makeRateLimiter } from "@/lib/ratelimit";
+import { effectiveWatermark } from "@/lib/trial";
 
 export const runtime = "nodejs";
 
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   });
 
   const plan = await getUserPlan(db, user.id);
-  const watermark = PLANS[plan].watermark;
+  const watermark = effectiveWatermark(plan, user);
   const rendered = await renderResolvedCard(params, {
     watermark,
     logo: watermark ? null : user.brandLogo,

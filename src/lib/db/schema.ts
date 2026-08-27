@@ -26,6 +26,12 @@ export const users = sqliteTable("users", {
   // invalidates social and CDN caches — those key on the URL alone.
   cacheVersion: integer("cache_version").notNull().default(1),
   brandUpdatedAt: integer("brand_updated_at", { mode: "timestamp" }),
+  /**
+   * While this is in the future the account renders without a watermark,
+   * whatever its plan. Null means no trial — existing accounts and anyone
+   * whose trial has been cleared.
+   */
+  trialEndsAt: integer("trial_ends_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

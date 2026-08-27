@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { subscriptions } from "@/lib/db/schema";
 import { getStripe, planForPriceId } from "@/lib/stripe";
+import { applySubscriptionChange } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
@@ -26,10 +26,7 @@ async function updateByCustomerId(
   customerId: string,
   set: Partial<typeof subscriptions.$inferInsert>
 ) {
-  await getDb()
-    .update(subscriptions)
-    .set(set)
-    .where(eq(subscriptions.stripeCustomerId, customerId));
+  await applySubscriptionChange(getDb(), customerId, set);
 }
 
 export async function POST(req: NextRequest) {

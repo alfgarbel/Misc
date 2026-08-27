@@ -214,6 +214,9 @@ CREATE TABLE `webhooks` (
 );
 CREATE INDEX `webhooks_user_id_idx` ON `webhooks` (`user_id`);
 
+-- ---------- 0010_add_trial ----------
+ALTER TABLE `users` ADD `trial_ends_at` integer;
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -230,3 +233,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('54f0517fedc4c04f
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d8a30cf4a41abfefde773e6d3b9a1714b0dd56270ed323be6bde7a8d8e8d341a', 1787826700054);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('7bc5a3806a067a227abf9138b30e7800442d8a3db1c7f0c0676a9f2f6b75b66e', 1787838555238);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('196288e33bcf1992db79f6aa44234e86f455a67b7acfb19c0e006bfdca1101c1', 1787845461443);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('86138e2ccae7024a2820b5a40503be93d43f75401b5d0bbe05ae030992ddad45', 1787847110829);
