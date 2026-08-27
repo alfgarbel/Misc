@@ -6,6 +6,8 @@ import { resolveApiKey } from "@/lib/keys";
 import { verifySignature } from "@/lib/signing";
 import { applyBrandDefaults, parseOgParams } from "@/lib/og/params";
 import { renderOgImage } from "@/lib/og/render";
+import { renderSpecImage, loadSpecAssets } from "@/lib/og/render-spec";
+import { getTemplateBySlug, isValidSlug, specOf } from "@/lib/templates";
 import { checkAndRecordRender, recordKeyRender } from "@/lib/usage";
 import { maybeSendQuotaAlert } from "@/lib/alerts";
 import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
@@ -73,6 +75,59 @@ export async function GET(req: NextRequest) {
       accent: account.brandAccent,
       site: account.brandSite,
     });
+  }
+
+  // A custom design from the visual editor replaces the built-in templates
+  // entirely: its own layers decide what the card looks like, and the other
+  // parameters become {{placeholder}} values.
+  const tpl = params.get("tpl");
+  if (tpl) {
+    if (!userId || !account) {
+      return jsonError(401, "Custom templates require an API key or a signed URL");
+    }
+    if (!isValidSlug(tpl)) {
+      return jsonError(400, "Invalid parameters", {
+        details: ["tpl: must be a template slug like my-design"],
+      });
+    }
+    const db = getDb();
+    const row = await getTemplateBySlug(db, userId, tpl);
+    if (!row) {
+      return jsonError(404, `No template named "${tpl}" on this account`);
+    }
+    const spec = specOf(row);
+    if (!spec.success) return jsonError(500, spec.error);
+
+    const quota = await checkAndRecordRender(db, userId);
+    await maybeSendQuotaAlert(db, userId, quota.plan, quota.used);
+    if (!quota.allowed) {
+      return jsonError(
+        429,
+        `Monthly render quota exceeded (${PLANS[quota.plan].monthlyRenders.toLocaleString()} on the ${PLANS[quota.plan].name} plan). Upgrade at /pricing.`,
+        { plan: quota.plan, used: quota.used }
+      );
+    }
+    if (keyId) await recordKeyRender(db, keyId);
+
+    try {
+      const specAssets = await loadSpecAssets(db, spec.data, userId);
+      const image = await renderSpecImage(spec.data, {
+        watermark: PLANS[quota.plan].watermark,
+        values: params,
+        assets: specAssets,
+      });
+      return new NextResponse(image.body, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/png",
+          "Cache-Control":
+            "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+        },
+      });
+    } catch (err) {
+      console.error("Custom template render failed:", err);
+      return jsonError(500, "Image rendering failed");
+    }
   }
 
   const parsed = parseOgParams(params);

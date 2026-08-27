@@ -26,6 +26,10 @@ const FEATURES: Array<{ title: string; body: string }> = [
     body: "Six hand-tuned templates with themes and accent colors. Legible typography at any title length, tuned for social feeds.",
   },
   {
+    title: "Or design your own",
+    body: "A visual editor for your own layouts — drag text, images and shapes onto the card, upload your brand font, and render it by name with values from the URL.",
+  },
+  {
     title: "Usage you can predict",
     body: "Simple monthly render quotas. No overage surprises — when you're near the limit you'll see it on your dashboard.",
   },

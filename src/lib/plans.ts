@@ -16,6 +16,10 @@ export interface Plan {
   monthlyRenders: number;
   watermark: boolean;
   description: string;
+  /** Custom designs saved from the visual editor. */
+  templates: number;
+  /** Uploaded images and font files, counted together. */
+  assets: number;
 }
 
 export const PLANS: Record<PlanId, Plan> = {
@@ -26,6 +30,8 @@ export const PLANS: Record<PlanId, Plan> = {
     monthlyRenders: 500,
     watermark: true,
     description: "For side projects and trying things out.",
+    templates: 1,
+    assets: 3,
   },
   pro: {
     id: "pro",
@@ -34,6 +40,8 @@ export const PLANS: Record<PlanId, Plan> = {
     monthlyRenders: 20_000,
     watermark: false,
     description: "For production sites and small businesses.",
+    templates: 15,
+    assets: 60,
   },
   scale: {
     id: "scale",
@@ -42,6 +50,8 @@ export const PLANS: Record<PlanId, Plan> = {
     monthlyRenders: 150_000,
     watermark: false,
     description: "For high-traffic sites and platforms.",
+    templates: 100,
+    assets: 400,
   },
 };
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { appUrl } from "@/lib/stripe";
@@ -52,6 +53,12 @@ const PARAMS: Array<{
     type: "hex color",
     def: "#6366f1",
     desc: "Accent color. URL-encode the hash: %236366f1.",
+  },
+  {
+    name: "tpl",
+    type: "string",
+    def: "—",
+    desc: "Slug of one of your own templates from the visual editor. Replaces template; every other parameter becomes a {{placeholder}} value.",
   },
   {
     name: "v",
@@ -197,6 +204,66 @@ function signedOgUrl(params, accountId, secret) {
 
 signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</CodeBlock>
         </div>
+
+        <h2 id="templates" className="mt-12 text-2xl font-semibold">
+          Your own templates
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          The built-in templates cover the common cases. When you need your own
+          layout, brand typeface or logo placement, design one in the visual
+          editor at{" "}
+          <Link
+            href="/dashboard/templates"
+            className="text-indigo-400 hover:underline"
+          >
+            Dashboard → Templates
+          </Link>
+          : drag text, images and shapes onto a 1200×630 canvas, upload the
+          fonts and images you want, and save. Each design gets a slug you
+          render by name.
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`${base}/api/og?key=og_yourkey&tpl=launch-card&title=Shipping%20today&author=Ada`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Text layers hold <code className="text-zinc-300">{"{{placeholders}}"}</code>{" "}
+          rather than fixed words, and any query parameter fills one in — the
+          names are yours, so{" "}
+          <code className="text-zinc-300">{"{{author}}"}</code> or{" "}
+          <code className="text-zinc-300">{"{{readingTime}}"}</code> work just
+          as well as <code className="text-zinc-300">{"{{title}}"}</code>. A
+          placeholder with no matching parameter renders as nothing, so optional
+          fields leave no gap. Long values shrink to fit their box unless you
+          turn that off.
+        </p>
+
+        <h3 className="mt-8 text-lg font-semibold">Fonts and images</h3>
+        <p className="mt-4 text-sm text-zinc-400">
+          Upload fonts as <code className="text-zinc-300">TTF</code>,{" "}
+          <code className="text-zinc-300">OTF</code> or{" "}
+          <code className="text-zinc-300">WOFF</code>, and images as{" "}
+          <code className="text-zinc-300">PNG</code>,{" "}
+          <code className="text-zinc-300">JPEG</code> or{" "}
+          <code className="text-zinc-300">GIF</code>, up to 512KB each.{" "}
+          <strong className="text-zinc-300">WOFF2 is not supported</strong> —
+          the renderer cannot parse it — so upload the TTF or WOFF build of the
+          same family. SVG and WebP aren&apos;t supported either; export a PNG.
+          Google Fonts all publish TTF files on their GitHub repositories.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Images and fonts can only come from files you have uploaded. There is
+          deliberately no way to point a template at an arbitrary URL: the
+          renderer runs on our servers, and fetching URLs on your behalf is a
+          class of problem we would rather not have.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Editing a template bumps your{" "}
+          <a href="#cache-refresh" className="text-indigo-400 hover:underline">
+            cache version
+          </a>{" "}
+          automatically, because a design change leaves every card you have
+          already shared showing the old artwork.
+        </p>
 
         <h2 id="cache-refresh" className="mt-12 text-2xl font-semibold">
           Refreshing cached cards
