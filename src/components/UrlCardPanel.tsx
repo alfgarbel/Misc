@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TEMPLATES } from "@/lib/og/params";
 
 interface Meta {
@@ -21,28 +21,81 @@ export default function UrlCardPanel({
   const [url, setUrl] = useState("");
   const [template, setTemplate] = useState("link");
   const [meta, setMeta] = useState<Meta | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  // The URL the current preview belongs to, so switching template can
+  // re-render without needing the field to be resubmitted.
+  const previewedUrl = useRef<string | null>(null);
 
-  async function lookup(e: React.FormEvent) {
+  // Object URLs are revoked as they're replaced, and on unmount, so a long
+  // session doesn't leak a blob per preview.
+  const objectUrl = useRef<string | null>(null);
+  useEffect(
+    () => () => {
+      if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    },
+    []
+  );
+
+  const showImage = useCallback((blob: Blob) => {
+    const next = URL.createObjectURL(blob);
+    if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    objectUrl.current = next;
+    setPreview(next);
+  }, []);
+
+  const render = useCallback(
+    async (target: string, tpl: string) => {
+      setBusy(true);
+      setError(null);
+      try {
+        const [metaRes, imgRes] = await Promise.all([
+          fetch("/api/url-preview", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: target }),
+          }),
+          fetch("/api/url-preview/render", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: target, template: tpl }),
+          }),
+        ]);
+
+        if (!imgRes.ok) {
+          const data = await imgRes.json().catch(() => ({}));
+          setError(data.error ?? "Couldn't build a card from that page");
+          setMeta(null);
+          setPreview(null);
+          previewedUrl.current = null;
+          return;
+        }
+        showImage(await imgRes.blob());
+        previewedUrl.current = target;
+
+        const data = await metaRes.json().catch(() => ({}));
+        setMeta(metaRes.ok ? data.meta : null);
+      } catch {
+        setError("Couldn't build a card from that page");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [showImage]
+  );
+
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
-    setError(null);
-    setMeta(null);
-    try {
-      const res = await fetch("/api/url-preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) setError(data.error ?? "Couldn't read that page");
-      else setMeta(data.meta);
-    } catch {
-      setError("Couldn't read that page");
-    } finally {
-      setBusy(false);
-    }
+    if (url.trim()) void render(url.trim(), template);
+  }
+
+  function onTemplateChange(next: string) {
+    setTemplate(next);
+    // Re-render immediately if there's already a card on screen; the page
+    // itself is cached, so this costs nothing outbound.
+    if (previewedUrl.current) void render(previewedUrl.current, next);
   }
 
   const snippet = `${baseUrl}/api/og?key=${apiKeyHint}&template=${template}&url=${
@@ -58,7 +111,7 @@ export default function UrlCardPanel({
         for you — no per-post parameters to wire up.
       </p>
 
-      <form onSubmit={lookup} className="flex flex-wrap gap-2">
+      <form onSubmit={onSubmit} className="flex flex-wrap gap-2">
         <input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
@@ -67,7 +120,7 @@ export default function UrlCardPanel({
         />
         <select
           value={template}
-          onChange={(e) => setTemplate(e.target.value)}
+          onChange={(e) => onTemplateChange(e.target.value)}
           className="min-w-0 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
         >
           {TEMPLATES.map((t) => (
@@ -78,14 +131,33 @@ export default function UrlCardPanel({
         </select>
         <button
           type="submit"
-          disabled={busy || !url}
+          disabled={busy || !url.trim()}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
         >
-          {busy ? "Reading…" : "Read page"}
+          {busy ? "Rendering…" : "Preview card"}
         </button>
       </form>
 
       {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
+
+      {preview ? (
+        <div className="mt-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={preview}
+            alt="Preview of the card this URL produces"
+            width={1200}
+            height={630}
+            className={`w-full rounded-lg border border-zinc-800 transition-opacity ${
+              busy ? "opacity-50" : "opacity-100"
+            }`}
+          />
+          <p className="mt-2 text-xs text-zinc-500">
+            This is the image itself — the same bytes a crawler receives, your
+            brand defaults and plan included.
+          </p>
+        </div>
+      ) : null}
 
       {meta ? (
         <dl className="mt-4 space-y-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-sm">
@@ -108,9 +180,23 @@ export default function UrlCardPanel({
       <p className="mt-4 mb-2 text-xs text-zinc-500">
         Then use it as your image URL:
       </p>
-      <code className="block overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-emerald-400">
-        {snippet}
-      </code>
+      <div className="flex items-center gap-2">
+        <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-emerald-400">
+          {snippet}
+        </code>
+        <button
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(snippet);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            } catch {}
+          }}
+          className="shrink-0 rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:border-zinc-500"
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -250,6 +250,16 @@ signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</Cod
           <code className="text-zinc-300">{"{{domain}}"}</code>.
         </p>
 
+        <p className="mt-4 text-sm text-zinc-400">
+          To see what a link produces before you ship it, paste it into{" "}
+          <Link href="/dashboard" className="text-indigo-400 hover:underline">
+            Dashboard → Card from a URL
+          </Link>
+          . That renders the real image through the same code path as the API,
+          brand defaults and plan included, so what you see is the card — not
+          an approximation of it.
+        </p>
+
         <h3 className="mt-8 text-lg font-semibold">What to expect</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-zinc-400">
           <li>
