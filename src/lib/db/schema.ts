@@ -235,7 +235,124 @@ export const experimentAssignments = sqliteTable(
   (t) => [primaryKey({ columns: [t.experimentId, t.key] })]
 );
 
+/**
+ * A set of cards rendered in one go.
+ *
+ * Cards are normally rendered on demand at a URL, so a batch is not about
+ * pre-generating them — it is for the two things a URL cannot give you:
+ * actual files to upload somewhere else, and a validated list of URLs to
+ * import into a CMS without discovering the broken ones later.
+ */
+export const batches = sqliteTable(
+  "batches",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull().default("Batch"),
+    // "pending" | "running" | "completed"
+    status: text("status").notNull().default("pending"),
+    total: integer("total").notNull().default(0),
+    done: integer("done").notNull().default(0),
+    failed: integer("failed").notNull().default(0),
+    /** Whether rendered bytes are kept for download, or only validated. */
+    storeImages: integer("store_images", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    /** Stored images are dropped after this, so a batch is not a file host. */
+    retainUntil: integer("retain_until", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+  },
+  (t) => [index("batches_user_id_idx").on(t.userId)]
+);
+
+export const batchRows = sqliteTable(
+  "batch_rows",
+  {
+    batchId: text("batch_id")
+      .notNull()
+      .references(() => batches.id, { onDelete: "cascade" }),
+    idx: integer("idx").notNull(),
+    /** The caller's own identifier for this row, echoed back in results. */
+    key: text("key"),
+    /** Query parameters for this card, exactly as /api/og would take them. */
+    params: text("params").notNull(),
+    // "pending" | "ok" | "error"
+    status: text("status").notNull().default("pending"),
+    error: text("error"),
+    /** Filename used inside the zip. */
+    filename: text("filename"),
+    /** base64 PNG, present only while the batch is retained. */
+    data: text("data"),
+    byteSize: integer("byte_size"),
+    renderedAt: integer("rendered_at", { mode: "timestamp" }),
+  },
+  (t) => [primaryKey({ columns: [t.batchId, t.idx] })]
+);
+
+/**
+ * An endpoint to notify. The URL is caller-supplied and fetched by us, so
+ * every delivery goes through the same guard as ?url= — a webhook is an
+ * SSRF primitive wearing a friendlier name.
+ */
+export const webhooks = sqliteTable(
+  "webhooks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    /** Signs the payload so the receiver can verify it came from us. */
+    secret: text("secret").notNull(),
+    /** JSON array of event names, or ["*"]. */
+    events: text("events").notNull(),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    lastStatus: text("last_status"),
+    lastDeliveredAt: integer("last_delivered_at", { mode: "timestamp" }),
+  },
+  (t) => [index("webhooks_user_id_idx").on(t.userId)]
+);
+
+export const webhookDeliveries = sqliteTable(
+  "webhook_deliveries",
+  {
+    id: text("id").primaryKey(),
+    webhookId: text("webhook_id")
+      .notNull()
+      .references(() => webhooks.id, { onDelete: "cascade" }),
+    event: text("event").notNull(),
+    payload: text("payload").notNull(),
+    // "pending" | "delivered" | "failed"
+    status: text("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    responseStatus: integer("response_status"),
+    error: text("error"),
+    /** When a failed delivery may be retried; null once it is finished. */
+    nextAttemptAt: integer("next_attempt_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    deliveredAt: integer("delivered_at", { mode: "timestamp" }),
+  },
+  (t) => [index("webhook_deliveries_webhook_id_idx").on(t.webhookId)]
+);
+
 export type User = typeof users.$inferSelect;
+export type BatchRow = typeof batches.$inferSelect;
+export type BatchItemRow = typeof batchRows.$inferSelect;
+export type WebhookRow = typeof webhooks.$inferSelect;
+export type WebhookDeliveryRow = typeof webhookDeliveries.$inferSelect;
 export type ExperimentRow = typeof experiments.$inferSelect;
 export type ExperimentAssignmentRow = typeof experimentAssignments.$inferSelect;
 export type Asset = typeof assets.$inferSelect;

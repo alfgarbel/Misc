@@ -565,6 +565,109 @@ og.searchParams.set("v", process.env.OGSMITH_CACHE_VERSION);`}</CodeBlock>
           re-sign after changing it.
         </p>
 
+        <h2 id="batches" className="mt-12 text-2xl font-semibold">
+          Batches
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Cards render on demand at a URL, so you never need to generate them
+          ahead of time. A batch is for the case a URL can&apos;t serve: when
+          you need the <em>files</em> — to upload into a CMS media library, to
+          embed in an email tool that won&apos;t fetch a dynamic image, or to
+          keep as an archive.
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`POST ${base}/api/batches
+Authorization: Bearer og_yourkey
+
+{ "name": "Back catalogue",
+  "rows": [
+    { "key": "launch-post", "params": { "title": "Introducing our API" } },
+    { "key": "pricing", "params": { "title": "Simpler pricing", "template": "minimal" } }
+  ] }`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Each row&apos;s <code className="text-zinc-300">params</code> are
+          exactly the parameters{" "}
+          <code className="text-zinc-300">/api/og</code> takes, so anything you
+          can render one at a time you can render in bulk — templates, sizes,{" "}
+          <code className="text-zinc-300">url</code> and all. Rows count
+          against your monthly quota, because they are real renders. A row that
+          fails is recorded with its error and the rest carry on.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          <strong className="text-zinc-200">
+            Batches are worked through a slice at a time.
+          </strong>{" "}
+          There is no background queue: the submit call renders the first ten
+          cards, and the response tells you whether it finished. If it
+          didn&apos;t, call{" "}
+          <code className="text-zinc-300">POST /api/batches/:id/run</code> until{" "}
+          <code className="text-zinc-300">finished</code> is true. The dashboard
+          does this for you.
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`GET  ${base}/api/batches/:id            # status and per-row results
+POST ${base}/api/batches/:id/run        # render the next slice
+GET  ${base}/api/batches/:id/download   # zip of the rendered cards`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Rendered images are kept for 24 hours and then dropped — a batch is a
+          handoff, not file hosting. Pass{" "}
+          <code className="text-zinc-300">&quot;storeImages&quot;: false</code>{" "}
+          to validate a set of rows without keeping anything, which is a cheap
+          way to find the broken ones before a migration.
+        </p>
+
+        <h2 id="webhooks" className="mt-12 text-2xl font-semibold">
+          Webhooks
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Add an endpoint under{" "}
+          <Link href="/dashboard/batches" className="text-indigo-400 hover:underline">
+            Dashboard → Batches &amp; webhooks
+          </Link>{" "}
+          and we POST JSON to it when something happens:{" "}
+          <code className="text-zinc-300">batch.completed</code> and{" "}
+          <code className="text-zinc-300">quota.threshold</code>.
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`POST https://your-app.example.com/hooks/ogsmith
+X-OGsmith-Event: batch.completed
+X-OGsmith-Delivery: 6f1c…
+X-OGsmith-Signature: t=1787840000,v1=9a3f…
+
+{ "id": "6f1c…", "event": "batch.completed",
+  "createdAt": "2026-08-27T15:51:02.000Z",
+  "data": { "batchId": "…", "total": 14, "done": 14, "failed": 0 } }`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          The signing secret is shown once when you add the endpoint. Verify a
+          delivery by recomputing the HMAC over{" "}
+          <code className="text-zinc-300">timestamp + &quot;.&quot; + body</code>{" "}
+          — the timestamp is signed with the body, not merely sent beside it,
+          so a captured request can&apos;t be replayed with a fresh one:
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`import { createHmac, timingSafeEqual } from "crypto";
+
+function verify(header, body, secret) {
+  const parts = Object.fromEntries(header.split(",").map(p => p.split("=")));
+  const age = Math.abs(Date.now() / 1000 - Number(parts.t));
+  if (!(age < 300)) return false;                 // reject replays
+  const expected = createHmac("sha256", secret)
+    .update(\`\${parts.t}.\${body}\`)
+    .digest("hex");
+  return timingSafeEqual(Buffer.from(parts.v1, "hex"), Buffer.from(expected, "hex"));
+}`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Reply with any 2xx. A delivery that fails is retried with a growing
+          delay, up to five attempts, and every attempt is recorded so you can
+          see what happened. Endpoints must be public addresses —{" "}
+          private, loopback and cloud metadata addresses are refused when you
+          add them, and redirects are not followed.
+        </p>
+
         <h2 className="mt-12 text-2xl font-semibold">Check your usage</h2>
         <p className="mt-4 text-sm text-zinc-400">
           Poll your quota programmatically — useful for alerting before you hit

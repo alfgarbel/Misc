@@ -68,6 +68,16 @@ export interface CheckVerdict {
 
 interface FetchOptions {
   maxBytes: number;
+  /** Defaults to GET. POST is used for outgoing webhooks. */
+  method?: "GET" | "POST";
+  body?: string;
+  extraHeaders?: Record<string, string>;
+  /**
+   * Whether a 3xx is followed. Webhooks set this false: a redirected POST
+   * is ambiguous, and refusing to follow removes a bypass route into
+   * somewhere the guard already rejected.
+   */
+  followRedirects?: boolean;
   /** Whether the response's content-type is one we asked for. */
   expect?: (contentType: string) => boolean;
   /**
@@ -122,9 +132,16 @@ interface RawResponse {
   stream: IncomingMessage;
 }
 
+interface RequestInit {
+  method: "GET" | "POST";
+  body?: string;
+  extraHeaders?: Record<string, string>;
+}
+
 function requestOnce(
   url: string,
-  addresses: string[] | undefined
+  addresses: string[] | undefined,
+  init: RequestInit = { method: "GET" }
 ): Promise<
   | { ok: true; res: RawResponse }
   | { ok: false; reason: "timeout" | "network" | "too_large" }
@@ -152,7 +169,7 @@ function requestOnce(
     const req = send(
       target,
       {
-        method: "GET",
+        method: init.method,
         // No connection pooling. A pooled socket is keyed by host:port and
         // outlives the validation that opened it, so reuse would quietly
         // skip the lookup hook on later requests. Each guarded fetch gets
@@ -169,6 +186,13 @@ function requestOnce(
           // could otherwise expand far past it after decoding.
           "Accept-Encoding": "identity",
           Host: target.host,
+          ...(init.body
+            ? {
+                "Content-Type": "application/json",
+                "Content-Length": String(Buffer.byteLength(init.body)),
+              }
+            : {}),
+          ...init.extraHeaders,
         },
       },
       (res) => finish({ ok: true, res: { status: res.statusCode ?? 0, headers: res.headers, stream: res } })
@@ -179,7 +203,7 @@ function requestOnce(
       finish({ ok: false, reason: "timeout" });
     });
     req.on("error", () => finish({ ok: false, reason: "network" }));
-    req.end();
+    req.end(init.body);
   });
 }
 
@@ -257,9 +281,19 @@ export async function safeFetch(
       return { ok: false, reason: verdict.reason ?? "blocked_address" };
     }
 
-    const attempt = await requestOnce(url, verdict.addresses);
+    const attempt = await requestOnce(url, verdict.addresses, {
+      method: options.method ?? "GET",
+      body: options.body,
+      extraHeaders: options.extraHeaders,
+    });
     if (!attempt.ok) return { ok: false, reason: attempt.reason };
     const { status, headers, stream } = attempt.res;
+
+    if (status >= 300 && status < 400 && options.followRedirects === false) {
+      stream.resume();
+      stream.destroy();
+      return { ok: false, reason: "http_error" };
+    }
 
     if (status >= 300 && status < 400) {
       const location = headers.location;

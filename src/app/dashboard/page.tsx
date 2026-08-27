@@ -198,6 +198,22 @@ export default async function DashboardPage() {
             </div>
           </div>
 
+          {/* Batches & webhooks */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
+            <h2 className="mb-1 font-semibold">Batches &amp; webhooks</h2>
+            <p className="mb-4 text-sm text-zinc-400">
+              Render a whole back catalogue from a CSV and download the files,
+              and get a signed POST when a batch finishes or your usage crosses
+              a threshold.
+            </p>
+            <Link
+              href="/dashboard/batches"
+              className="inline-block rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500"
+            >
+              Open batches
+            </Link>
+          </div>
+
           <SigningPanel accountId={user.id} />
 
           {/* Billing */}
