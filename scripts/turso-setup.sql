@@ -117,6 +117,18 @@ CREATE TABLE `templates` (
 );
 CREATE UNIQUE INDEX `templates_user_slug_unique` ON `templates` (`user_id`,`slug`);
 
+-- ---------- 0007_add_url_cache ----------
+CREATE TABLE `url_cache` (
+	`url_hash` text PRIMARY KEY NOT NULL,
+	`url` text NOT NULL,
+	`title` text,
+	`description` text,
+	`site_name` text,
+	`image_url` text,
+	`domain` text NOT NULL,
+	`fetched_at` integer NOT NULL
+);
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -130,3 +142,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('9eb462ee4510c7bc
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('f9837ce82da1990a8d3c6505f49ccb3b1ac802dd1533e06745c491158459cd79', 1787754917007);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d74e9d38e0dc433c486a49567b6d5fb39e55b220e04d440d1776668e5a7bc536', 1787761634209);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('54f0517fedc4c04f7ac2c841828184d70988c94fcee953abdbedd904ea4719ba', 1787824103514);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d8a30cf4a41abfefde773e6d3b9a1714b0dd56270ed323be6bde7a8d8e8d341a', 1787826700054);

@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import type { OgParams } from "./params";
+import { fittedFontSize } from "./spec";
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
@@ -51,6 +52,8 @@ interface TplProps {
   p: OgParams;
   watermark: boolean;
   logo?: string | null;
+  /** The source page's own image, when rendering from ?url=. */
+  hero?: string | null;
 }
 
 function Logo({ src, size = 40 }: { src: string; size?: number }) {
@@ -577,12 +580,150 @@ function AnnounceTemplate({ p, watermark, logo }: TplProps) {
   );
 }
 
+/**
+ * Built for ?url= cards: the page's own artwork on one side, its title and
+ * description on the other. Falls back to a tinted panel when the page has
+ * no usable image, so the layout never collapses.
+ */
+function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
+  const c = palette(p.theme);
+  // og:images are overwhelmingly 1.91:1, so the artwork spans the top
+  // rather than sitting in a side panel: cropping a wide image into a
+  // portrait column throws most of it away, as any repository card shows.
+  const HERO_HEIGHT = 270;
+  const COLUMN = 1200 - 144;
+  // Scraped metadata is whatever the page happens to say, and satori does
+  // not clip overflow — an over-long description would draw straight over
+  // the line beneath it. So the remaining height is budgeted explicitly.
+  const titleSize = fittedFontSize(
+    { fontSize: 52, w: COLUMN, lineHeight: 1.15, autoFit: true },
+    p.title,
+    2
+  );
+  const subtitle = p.subtitle ?? "";
+  const descSize = fittedFontSize(
+    { fontSize: 26, w: COLUMN, lineHeight: 1.4, autoFit: true },
+    subtitle,
+    2
+  );
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: c.bg,
+        color: c.fg,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: HERO_HEIGHT,
+          overflow: "hidden",
+          backgroundColor: withAlpha(p.accent, 0.18),
+          // Spread rather than set-to-undefined: satori reads the property
+          // if it is present at all, and trips over an undefined value.
+          ...(hero
+            ? {}
+            : {
+                backgroundImage: `linear-gradient(120deg, ${withAlpha(
+                  p.accent,
+                  0.75
+                )} 0%, ${withAlpha(p.accent, 0.2)} 100%)`,
+              }),
+        }}
+      >
+        {hero ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={hero}
+            width={1200}
+            height={HERO_HEIGHT}
+            alt=""
+            style={{ objectFit: "cover" }}
+          />
+        ) : null}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          flexGrow: 1,
+          padding: "0 72px",
+          // Belt and braces: nothing escapes even if the budget above is
+          // beaten by an unusual string.
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            fontSize: titleSize,
+            fontWeight: 700,
+            lineHeight: 1.15,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {p.title}
+        </div>
+        {subtitle ? (
+          <div
+            style={{
+              marginTop: 18,
+              fontSize: descSize,
+              color: c.muted,
+              lineHeight: 1.4,
+            }}
+          >
+            {subtitle}
+          </div>
+        ) : null}
+        {p.site ? (
+          <div
+            style={{
+              marginTop: 26,
+              display: "flex",
+              alignItems: "center",
+              fontSize: 23,
+              color: c.muted,
+            }}
+          >
+            {logo ? (
+              <Logo src={logo} size={30} />
+            ) : (
+              <div
+                style={{
+                  width: 13,
+                  height: 13,
+                  borderRadius: 999,
+                  backgroundColor: p.accent,
+                  marginRight: 13,
+                }}
+              />
+            )}
+            {p.site}
+          </div>
+        ) : null}
+      </div>
+      {watermark ? <Watermark theme={p.theme} /> : null}
+    </div>
+  );
+}
+
 export async function renderOgImage(
   p: OgParams,
-  opts: { watermark: boolean; logo?: string | null }
+  opts: { watermark: boolean; logo?: string | null; hero?: string | null }
 ): Promise<ImageResponse> {
   const fonts = await loadFonts();
-  const props = { p, watermark: opts.watermark, logo: opts.logo ?? null };
+  const props = {
+    p,
+    watermark: opts.watermark,
+    logo: opts.logo ?? null,
+    hero: opts.hero ?? null,
+  };
   let element: React.ReactElement;
   switch (p.template) {
     case "minimal":
@@ -599,6 +740,9 @@ export async function renderOgImage(
       break;
     case "announce":
       element = <AnnounceTemplate {...props} />;
+      break;
+    case "link":
+      element = <LinkTemplate {...props} />;
       break;
     default:
       element = <GradientTemplate {...props} />;

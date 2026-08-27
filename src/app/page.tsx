@@ -26,6 +26,10 @@ const FEATURES: Array<{ title: string; body: string }> = [
     body: "Six hand-tuned templates with themes and accent colors. Legible typography at any title length, tuned for social feeds.",
   },
   {
+    title: "Point it at a URL",
+    body: "Skip the parameters entirely: give OGsmith a link and it reads the page's own title, description and image to build the card.",
+  },
+  {
     title: "Or design your own",
     body: "A visual editor for your own layouts — drag text, images and shapes onto the card, upload your brand font, and render it by name with values from the URL.",
   },

@@ -7,7 +7,7 @@ import { TEMPLATES } from "@/lib/og/params";
 export const metadata: Metadata = {
   title: "Templates",
   description:
-    "Every OGsmith card template, rendered live by the API: gradient, minimal, split, terminal, quote, and announce.",
+    "Every OGsmith card template, rendered live by the API: gradient, minimal, split, terminal, quote, announce, and link.",
 };
 
 const SAMPLES: Record<
@@ -61,6 +61,14 @@ const SAMPLES: Record<
     accent: "#f59e0b",
     theme: "dark",
     blurb: "Centered announcement card with a badge pill.",
+  },
+  link: {
+    title: "Point it at a URL, get a card",
+    subtitle: "Reads the page's own title, description and image",
+    site: "example.com",
+    accent: "#a855f7",
+    theme: "dark",
+    blurb: "Built for ?url= — pairs the page's own image with its title.",
   },
 };
 

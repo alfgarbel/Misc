@@ -13,6 +13,9 @@ import { maybeSendQuotaAlert } from "@/lib/alerts";
 import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
 import { PLANS } from "@/lib/plans";
 import { CACHE_VERSION_PARAM, isValidCacheVersion } from "@/lib/cachebust";
+import { applyUrlMetadata, getUrlMetadata } from "@/lib/urlcard";
+import type { PageMetadata } from "@/lib/urlcard";
+import { loadHeroImage } from "@/lib/urlcard/image";
 
 export const runtime = "nodejs";
 
@@ -64,6 +67,28 @@ export async function GET(req: NextRequest) {
     }
     userId = user.id;
     account = user;
+  }
+
+  // ?url= reads the page and fills in what the caller didn't state. Doing
+  // it after authentication matters: fetching arbitrary URLs is not
+  // something an anonymous caller gets to make the server do.
+  let pageMeta: PageMetadata | null = null;
+  const sourceUrl = params.get("url");
+  if (sourceUrl) {
+    if (!userId) {
+      return jsonError(401, "Rendering from a URL requires an API key or a signed URL");
+    }
+    const result = await getUrlMetadata(getDb(), sourceUrl);
+    if (!result.ok) {
+      // Explicit parameters can still carry the card on their own, so a
+      // failed scrape is only fatal when nothing was supplied.
+      if (!params.get("title")) {
+        return jsonError(422, result.message, { url: sourceUrl });
+      }
+    } else {
+      pageMeta = result.meta;
+      params = applyUrlMetadata(params, result.meta);
+    }
   }
 
   // Account defaults fill in unspecified template/theme/accent/site,
@@ -163,8 +188,15 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // The link template is the one that shows the source page's artwork, so
+  // that image is only fetched when it will actually be drawn.
+  const hero =
+    parsed.data.template === "link" && pageMeta
+      ? await loadHeroImage(pageMeta.imageUrl)
+      : null;
+
   try {
-    const image = await renderOgImage(parsed.data, { watermark, logo });
+    const image = await renderOgImage(parsed.data, { watermark, logo, hero });
     return new NextResponse(image.body, {
       status: 200,
       headers: {

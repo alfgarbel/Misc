@@ -156,6 +156,25 @@ export const templates = sqliteTable(
   (t) => [unique("templates_user_slug_unique").on(t.userId, t.slug)]
 );
 
+/**
+ * Metadata scraped from public pages for ?url= cards.
+ *
+ * Shared across accounts rather than scoped to one: the content is whatever
+ * a page serves anonymously, it is identical for every caller, and caching
+ * it once means a popular URL is fetched once rather than once per account.
+ */
+export const urlCache = sqliteTable("url_cache", {
+  // sha256 of the normalised URL, so the key length is bounded.
+  urlHash: text("url_hash").primaryKey(),
+  url: text("url").notNull(),
+  title: text("title"),
+  description: text("description"),
+  siteName: text("site_name"),
+  imageUrl: text("image_url"),
+  domain: text("domain").notNull(),
+  fetchedAt: integer("fetched_at", { mode: "timestamp" }).notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
 export type TemplateRow = typeof templates.$inferSelect;

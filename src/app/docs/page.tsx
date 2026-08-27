@@ -55,6 +55,12 @@ const PARAMS: Array<{
     desc: "Accent color. URL-encode the hash: %236366f1.",
   },
   {
+    name: "url",
+    type: "https URL",
+    def: "—",
+    desc: "Read this page and use its title, description, site name and image. Anything you pass explicitly wins. See Cards from a URL.",
+  },
+  {
     name: "tpl",
     type: "string",
     def: "—",
@@ -204,6 +210,77 @@ function signedOgUrl(params, accountId, secret) {
 
 signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</CodeBlock>
         </div>
+
+        <h2 id="url-to-card" className="mt-12 text-2xl font-semibold">
+          Cards from a URL
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          Instead of describing the card, point at the page and let OGsmith
+          read it. It takes the title, description, site name and image from
+          the page&apos;s own OpenGraph tags — the same ones social crawlers
+          use — falling back to Twitter card tags and then to the ordinary{" "}
+          <code className="text-zinc-300">&lt;title&gt;</code> and meta
+          description.
+        </p>
+        <div className="mt-4">
+          <CodeBlock>{`${base}/api/og?key=og_yourkey&template=link&url=https%3A%2F%2Fexample.com%2Fblog%2Fpost`}</CodeBlock>
+        </div>
+        <p className="mt-4 text-sm text-zinc-400">
+          Remember to URL-encode the address you pass. The{" "}
+          <code className="text-zinc-300">link</code> template is built for
+          this: it puts the page&apos;s own image across the top and the title,
+          description and site beneath. Every other template works too — they
+          just use the text.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
+          Anything you state explicitly wins, so you can let the page supply
+          most of the card and override one field:{" "}
+          <code className="text-zinc-300">
+            &amp;url=…&amp;title=My%20own%20headline
+          </code>
+          . With a{" "}
+          <a href="#templates" className="text-indigo-400 hover:underline">
+            custom template
+          </a>
+          , the scraped values fill{" "}
+          <code className="text-zinc-300">{"{{title}}"}</code>,{" "}
+          <code className="text-zinc-300">{"{{subtitle}}"}</code>,{" "}
+          <code className="text-zinc-300">{"{{description}}"}</code>,{" "}
+          <code className="text-zinc-300">{"{{site}}"}</code> and{" "}
+          <code className="text-zinc-300">{"{{domain}}"}</code>.
+        </p>
+
+        <h3 className="mt-8 text-lg font-semibold">What to expect</h3>
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-zinc-400">
+          <li>
+            Pages are read once and cached for 24 hours, so a card that renders
+            a thousand times reads the page once. If a site is briefly down we
+            keep serving the last copy rather than breaking your card.
+          </li>
+          <li>
+            Requires an API key or a signed URL — this is not available to
+            unauthenticated demo renders.
+          </li>
+          <li>
+            Only <code className="text-zinc-300">http</code> and{" "}
+            <code className="text-zinc-300">https</code> public addresses are
+            fetched. Private networks, loopback and cloud metadata addresses
+            are refused, whether named directly, reached by redirect, or
+            arrived at through DNS.
+          </li>
+          <li>
+            We identify ourselves as{" "}
+            <code className="text-zinc-300">OGsmithBot/1.0</code>, follow up to
+            4 redirects, give up after 5 seconds, and read at most 512KB of
+            HTML.
+          </li>
+          <li>
+            If the page can&apos;t be read and you passed no{" "}
+            <code className="text-zinc-300">title</code>, you get a{" "}
+            <code className="text-zinc-300">422</code> saying why, rather than
+            a card that quietly says nothing.
+          </li>
+        </ul>
 
         <h2 id="templates" className="mt-12 text-2xl font-semibold">
           Your own templates
