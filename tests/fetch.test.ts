@@ -48,6 +48,20 @@ beforeAll(async () => {
         else res.once("drain", pump);
       };
       pump();
+    } else if (path === "/big-page") {
+      // A head with the metadata, then a body far past any cap.
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.write("<html><head><title>Findable</title></head><body>");
+      res.write("p".repeat(3 * 1024 * 1024));
+      res.end("</body></html>");
+    } else if (path === "/head-split") {
+      // The closing tag straddles a chunk boundary.
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.write("<html><head><title>Split</title></he");
+      setTimeout(() => res.end("ad><body>rest</body></html>"), 10);
+    } else if (path === "/no-head-close") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end("<html><title>Unclosed head</title><body>x</body></html>");
     } else if (path === "/json") {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end("{}");
@@ -202,6 +216,59 @@ describe("address pinning", () => {
     });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toBe("network");
+  });
+});
+
+describe("fetchHtml on pages bigger than the cap", () => {
+  const htmlOpts = {
+    maxBytes: 512 * 1024,
+    expect: (ct: string) => ct.includes("text/html") || ct === "",
+    stopAfter: "</head",
+    truncate: true,
+    check: testCheck,
+  };
+
+  it("reads a huge page successfully, stopping at the end of the head", async () => {
+    // Real sites ship megabyte-plus documents; failing on them would fail
+    // on a good share of the web, when everything we want is in <head>.
+    const r = await safeFetch(`${origin}/big-page`, htmlOpts);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.body.toString()).toContain("<title>Findable</title>");
+      // Stopped early rather than reading three megabytes of body.
+      expect(r.body.length).toBeLessThan(64 * 1024);
+    }
+  });
+
+  it("finds the marker even when it straddles a chunk boundary", async () => {
+    const r = await safeFetch(`${origin}/head-split`, htmlOpts);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.body.toString()).toContain("<title>Split</title>");
+  });
+
+  it("still returns a page that never closes its head", async () => {
+    const r = await safeFetch(`${origin}/no-head-close`, htmlOpts);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.body.toString()).toContain("Unclosed head");
+  });
+
+  it("truncates rather than failing when there is no marker and no end", async () => {
+    const r = await safeFetch(`${origin}/chunked-forever`, {
+      ...htmlOpts,
+      maxBytes: 32 * 1024,
+      stopAfter: undefined,
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.body.length).toBeLessThanOrEqual(32 * 1024);
+  });
+
+  it("still refuses a truncated image, where half a file is no file", async () => {
+    const r = await safeFetch(`${origin}/chunked-forever`, {
+      maxBytes: 32 * 1024,
+      check: testCheck,
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe("too_large");
   });
 });
 

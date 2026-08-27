@@ -71,6 +71,19 @@ interface FetchOptions {
   /** Whether the response's content-type is one we asked for. */
   expect?: (contentType: string) => boolean;
   /**
+   * Whether a body that exceeds the cap is still usable. True for HTML,
+   * where everything we want is in <head> and big pages are common —
+   * nodejs.org and stripe.com both ship over 512KB, and failing on them
+   * would mean failing on a good share of the web. False for images,
+   * where half a file is no file.
+   */
+  truncate?: boolean;
+  /**
+   * ASCII marker that ends the interesting part of the body. Reading stops
+   * as soon as it appears, so a huge page costs only its <head>.
+   */
+  stopAfter?: string;
+  /**
    * Seam for tests, which need a reachable origin to exercise redirect,
    * size and content-type handling. Production callers never pass this, so
    * the real guard is what runs.
@@ -170,33 +183,57 @@ function requestOnce(
   });
 }
 
+interface ReadResult {
+  body: Buffer;
+  /** True when the cap cut the body short. */
+  truncated: boolean;
+}
+
 /**
  * Reads at most `limit` bytes, counting as they arrive. Content-Length is a
  * claim by the server, not a promise, and a chunked response makes no claim
  * at all, so the cap is enforced on the stream itself.
+ *
+ * Stops early once `stopAfter` appears, which for HTML means a multi-megabyte
+ * page costs only the bytes up to </head>.
  */
 function readCapped(
   stream: IncomingMessage,
-  limit: number
-): Promise<Buffer | null> {
+  limit: number,
+  stopAfter?: string
+): Promise<ReadResult | null> {
   return new Promise((resolve) => {
     const chunks: Buffer[] = [];
     let total = 0;
     let done = false;
-    const stop = (value: Buffer | null) => {
+    // Carried between chunks so a marker split across a boundary is still
+    // found.
+    let tail = "";
+    const overlap = stopAfter ? stopAfter.length : 0;
+    const stop = (value: ReadResult | null) => {
       if (done) return;
       done = true;
+      stream.destroy();
       resolve(value);
     };
     stream.on("data", (chunk: Buffer) => {
       total += chunk.length;
       if (total > limit) {
-        stream.destroy();
-        return stop(null);
+        // Keep the part that fits; the caller decides whether that is usable.
+        const keep = chunk.subarray(0, Math.max(0, chunk.length - (total - limit)));
+        chunks.push(keep);
+        return stop({ body: Buffer.concat(chunks), truncated: true });
       }
       chunks.push(chunk);
+      if (stopAfter) {
+        const text = tail + chunk.toString("latin1");
+        if (text.includes(stopAfter)) {
+          return stop({ body: Buffer.concat(chunks), truncated: false });
+        }
+        tail = text.slice(-overlap);
+      }
     });
-    stream.on("end", () => stop(Buffer.concat(chunks)));
+    stream.on("end", () => stop({ body: Buffer.concat(chunks), truncated: false }));
     stream.on("error", () => stop(null));
     stream.on("aborted", () => stop(null));
   });
@@ -252,9 +289,12 @@ export async function safeFetch(
       return { ok: false, reason: "wrong_type" };
     }
 
-    const body = await readCapped(stream, options.maxBytes);
-    if (body === null) return { ok: false, reason: "too_large" };
-    return { ok: true, finalUrl: url, contentType, body };
+    const read = await readCapped(stream, options.maxBytes, options.stopAfter);
+    if (read === null) return { ok: false, reason: "network" };
+    if (read.truncated && !options.truncate) {
+      return { ok: false, reason: "too_large" };
+    }
+    return { ok: true, finalUrl: url, contentType, body: read.body };
   }
   return { ok: false, reason: "too_many_redirects" };
 }
@@ -263,6 +303,10 @@ export function fetchHtml(url: string): Promise<FetchResult> {
   return safeFetch(url, {
     maxBytes: MAX_HTML_BYTES,
     expect: (ct) => ct.includes("text/html") || ct.includes("xhtml") || ct === "",
+    // Card metadata lives in <head>; the rest of a page is not worth
+    // reading, and a page bigger than the cap is still perfectly usable.
+    stopAfter: "</head",
+    truncate: true,
   });
 }
 

@@ -3,6 +3,8 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import type { OgParams } from "./params";
 import { fittedFontSize } from "./spec";
+import { fitWithin } from "../urlcard/dimensions";
+import type { HeroImage } from "../urlcard/image";
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
@@ -53,7 +55,7 @@ interface TplProps {
   watermark: boolean;
   logo?: string | null;
   /** The source page's own image, when rendering from ?url=. */
-  hero?: string | null;
+  hero?: HeroImage | null;
 }
 
 function Logo({ src, size = 40 }: { src: string; size?: number }) {
@@ -587,32 +589,47 @@ function AnnounceTemplate({ p, watermark, logo }: TplProps) {
  */
 function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
   const c = palette(p.theme);
-  // og:images are overwhelmingly 1.91:1, so the artwork spans the top
-  // rather than sitting in a side panel: cropping a wide image into a
-  // portrait column throws most of it away, as any repository card shows.
-  const HERO_HEIGHT = 270;
-  const COLUMN = 1200 - 144;
-  // Scraped metadata is whatever the page happens to say, and satori does
-  // not clip overflow — an over-long description would draw straight over
-  // the line beneath it. So the remaining height is budgeted explicitly.
+  // Scraped artwork is never cropped. Real og:images range from wide
+  // banners to square logos, and a layout that assumes one shape mangles
+  // the other — a square logo forced into a letterbox loses its top and
+  // bottom. So the image is measured and placed whole, at its own aspect
+  // ratio, inside a panel that stays the same size whatever arrives.
+  const PANEL = 470;
+  const TEXT_COLUMN = 1200 - PANEL - 72 - 48;
+  const BOX = { width: PANEL - 88, height: 630 - 120 };
+  const fitted =
+    hero && hero.width && hero.height
+      ? fitWithin({ width: hero.width, height: hero.height }, BOX)
+      : null;
+
+  // satori does not clip overflow, so the text column's height is budgeted
+  // explicitly: an over-long description would otherwise draw straight
+  // over the line beneath it.
   const titleSize = fittedFontSize(
-    { fontSize: 52, w: COLUMN, lineHeight: 1.15, autoFit: true },
+    { fontSize: 50, w: TEXT_COLUMN, lineHeight: 1.15, autoFit: true },
     p.title,
-    2
+    3
+  );
+  const titleLines = Math.min(
+    3,
+    Math.max(
+      1,
+      Math.ceil(p.title.length / Math.floor(TEXT_COLUMN / (titleSize * 0.52)))
+    )
   );
   const subtitle = p.subtitle ?? "";
   const descSize = fittedFontSize(
-    { fontSize: 26, w: COLUMN, lineHeight: 1.4, autoFit: true },
+    { fontSize: 26, w: TEXT_COLUMN, lineHeight: 1.4, autoFit: true },
     subtitle,
-    2
+    Math.max(2, 6 - titleLines)
   );
+
   return (
     <div
       style={{
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
         backgroundColor: c.bg,
         color: c.fg,
       }}
@@ -620,42 +637,10 @@ function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
       <div
         style={{
           display: "flex",
-          width: "100%",
-          height: HERO_HEIGHT,
-          overflow: "hidden",
-          backgroundColor: withAlpha(p.accent, 0.18),
-          // Spread rather than set-to-undefined: satori reads the property
-          // if it is present at all, and trips over an undefined value.
-          ...(hero
-            ? {}
-            : {
-                backgroundImage: `linear-gradient(120deg, ${withAlpha(
-                  p.accent,
-                  0.75
-                )} 0%, ${withAlpha(p.accent, 0.2)} 100%)`,
-              }),
-        }}
-      >
-        {hero ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={hero}
-            width={1200}
-            height={HERO_HEIGHT}
-            alt=""
-            style={{ objectFit: "cover" }}
-          />
-        ) : null}
-      </div>
-      <div
-        style={{
-          display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          flexGrow: 1,
-          padding: "0 72px",
-          // Belt and braces: nothing escapes even if the budget above is
-          // beaten by an unusual string.
+          width: TEXT_COLUMN + 72 + 48,
+          padding: "0 48px 0 72px",
           overflow: "hidden",
         }}
       >
@@ -684,7 +669,7 @@ function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
         {p.site ? (
           <div
             style={{
-              marginTop: 26,
+              marginTop: 28,
               display: "flex",
               alignItems: "center",
               fontSize: 23,
@@ -708,6 +693,43 @@ function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
           </div>
         ) : null}
       </div>
+
+      <div
+        style={{
+          display: "flex",
+          width: PANEL,
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor:
+            p.theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+          backgroundImage: `linear-gradient(135deg, ${withAlpha(
+            p.accent,
+            hero ? 0.1 : 0.6
+          )} 0%, ${withAlpha(p.accent, hero ? 0.04 : 0.15)} 100%)`,
+        }}
+      >
+        {hero && fitted ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={hero.dataUrl}
+            width={fitted.width}
+            height={fitted.height}
+            alt=""
+            style={{ borderRadius: 10 }}
+          />
+        ) : hero ? (
+          // Dimensions unreadable: contain it rather than guess a crop.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={hero.dataUrl}
+            width={BOX.width}
+            height={BOX.height}
+            alt=""
+            style={{ objectFit: "contain", borderRadius: 10 }}
+          />
+        ) : null}
+      </div>
       {watermark ? <Watermark theme={p.theme} /> : null}
     </div>
   );
@@ -715,7 +737,7 @@ function LinkTemplate({ p, watermark, logo, hero }: TplProps) {
 
 export async function renderOgImage(
   p: OgParams,
-  opts: { watermark: boolean; logo?: string | null; hero?: string | null }
+  opts: { watermark: boolean; logo?: string | null; hero?: HeroImage | null }
 ): Promise<ImageResponse> {
   const fonts = await loadFonts();
   const props = {
