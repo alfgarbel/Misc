@@ -20,6 +20,8 @@ export interface Plan {
   templates: number;
   /** Uploaded images and font files, counted together. */
   assets: number;
+  /** Split tests that can run at once. */
+  experiments: number;
 }
 
 export const PLANS: Record<PlanId, Plan> = {
@@ -32,6 +34,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: "For side projects and trying things out.",
     templates: 1,
     assets: 3,
+    experiments: 1,
   },
   pro: {
     id: "pro",
@@ -42,6 +45,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: "For production sites and small businesses.",
     templates: 15,
     assets: 60,
+    experiments: 5,
   },
   scale: {
     id: "scale",
@@ -52,6 +56,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: "For high-traffic sites and platforms.",
     templates: 100,
     assets: 400,
+    experiments: 50,
   },
 };
 

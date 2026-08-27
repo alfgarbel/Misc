@@ -34,6 +34,10 @@ const FEATURES: Array<{ title: string; body: string }> = [
     body: "A visual editor for your own layouts — drag text, images and shapes onto the card, upload your brand font, and render it by name with values from the URL.",
   },
   {
+    title: "Test which design wins",
+    body: "Run one design against another across your pages and read the result with a proper significance test — not a bigger number and a hunch.",
+  },
+  {
     title: "Usage you can predict",
     body: "Simple monthly render quotas. No overage surprises — when you're near the limit you'll see it on your dashboard.",
   },

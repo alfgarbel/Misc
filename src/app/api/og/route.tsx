@@ -14,6 +14,11 @@ import { PLANS } from "@/lib/plans";
 import { CACHE_VERSION_PARAM, isValidCacheVersion } from "@/lib/cachebust";
 import type { PageMetadata } from "@/lib/urlcard";
 import { renderResolvedCard, resolveUrlParams } from "@/lib/urlcard/card";
+import {
+  applyVariant,
+  assignmentFor,
+  getExperimentBySlug,
+} from "@/lib/experiments";
 
 export const runtime = "nodejs";
 
@@ -82,6 +87,49 @@ export async function GET(req: NextRequest) {
     }
     params = resolved.params;
     pageMeta = resolved.meta;
+  }
+
+  // ?exp= picks a design variant for this page. It runs after ?url= so the
+  // scraped URL can serve as the key, and before brand defaults so a
+  // variant's choices win over an account-wide default — the variant is the
+  // thing being tested.
+  const expSlug = params.get("exp");
+  if (expSlug) {
+    if (!userId) {
+      return jsonError(401, "Experiments require an API key or a signed URL");
+    }
+    if (!isValidSlug(expSlug)) {
+      return jsonError(400, "Invalid parameters", {
+        details: ["exp: must be an experiment slug like headline-test"],
+      });
+    }
+    const db = getDb();
+    const experiment = await getExperimentBySlug(db, userId, expSlug);
+    if (!experiment) {
+      return jsonError(404, `No experiment named "${expSlug}" on this account`);
+    }
+    // The page under test: an explicit key, or the URL being read.
+    //
+    // Deliberately not the title. A title is content, and content gets
+    // edited — fixing a typo would change the key, which re-randomises the
+    // page onto a new row: the same page then counts twice in the
+    // denominator, and about half the time lands in the other variant with
+    // its history split across both arms. A key has to be an identifier
+    // that outlives edits to the page.
+    const key = params.get("k") ?? sourceUrl;
+    if (!key) {
+      return jsonError(400, "Invalid parameters", {
+        details: [
+          "exp: needs k or url to identify the page under test. Use a stable id (a post slug or database id) — not the title, which changes when you edit it.",
+        ],
+      });
+    }
+    if (experiment.status === "running") {
+      const assigned = await assignmentFor(db, experiment, key.slice(0, 500), {
+        countExposure: true,
+      });
+      if (assigned) params = applyVariant(params, assigned.variant);
+    }
   }
 
   // Account defaults fill in unspecified template/theme/accent/site,

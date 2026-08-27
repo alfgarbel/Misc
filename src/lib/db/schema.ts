@@ -175,7 +175,69 @@ export const urlCache = sqliteTable("url_cache", {
   fetchedAt: integer("fetched_at", { mode: "timestamp" }).notNull(),
 });
 
+/**
+ * A split test over card designs.
+ *
+ * The unit of randomisation is a page, not a viewer, and it cannot be
+ * anything else: a social platform fetches a card's image once and shows
+ * that one copy to everyone who sees the post. So a variant is assigned per
+ * content key, and half of an account's pages get design A while half get
+ * design B.
+ */
+export const experiments = sqliteTable(
+  "experiments",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    // "running" | "stopped"
+    status: text("status").notNull().default("running"),
+    // JSON array of { id, label, weight, params }.
+    variants: text("variants").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [unique("experiments_user_slug_unique").on(t.userId, t.slug)]
+);
+
+/**
+ * Which variant a given page was given, recorded the first time it was
+ * rendered and never recomputed.
+ *
+ * This table is the correctness of the whole feature. If assignment were
+ * derived on each request, editing an experiment's weights would silently
+ * reshuffle pages that had already been shared — their cards would change
+ * under them, and the results would mix exposures from both designs.
+ */
+export const experimentAssignments = sqliteTable(
+  "experiment_assignments",
+  {
+    experimentId: text("experiment_id")
+      .notNull()
+      .references(() => experiments.id, { onDelete: "cascade" }),
+    // The page being tested: the ?url= value, or a key the caller supplies.
+    key: text("key").notNull(),
+    variantId: text("variant_id").notNull(),
+    // Renders served for this page — crawler fetches, not human impressions.
+    exposures: integer("exposures").notNull().default(0),
+    // Outcomes the caller reported back; we cannot observe these ourselves.
+    conversions: integer("conversions").notNull().default(0),
+    assignedAt: integer("assigned_at", { mode: "timestamp" }).notNull(),
+    lastSeenAt: integer("last_seen_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.experimentId, t.key] })]
+);
+
 export type User = typeof users.$inferSelect;
+export type ExperimentRow = typeof experiments.$inferSelect;
+export type ExperimentAssignmentRow = typeof experimentAssignments.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
 export type TemplateRow = typeof templates.$inferSelect;
 export type ApiKey = typeof apiKeys.$inferSelect;
