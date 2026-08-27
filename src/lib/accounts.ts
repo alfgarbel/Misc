@@ -4,6 +4,7 @@ import type { Database } from "./db";
 import { users, subscriptions } from "./db/schema";
 import { createApiKey } from "./keys";
 import { generateSigningSecret } from "./signing";
+import { trialEndFor } from "./trial";
 import type { GoogleProfile } from "./oauth";
 
 export interface NewAccount {
@@ -36,6 +37,8 @@ export async function provisionAccount(
     name: fields.name ?? null,
     signingSecret: generateSigningSecret(),
     emailVerifiedAt: fields.emailVerified ? new Date() : null,
+    // Every new account can put real cards on a real site before deciding.
+    trialEndsAt: trialEndFor(),
   });
   await db.insert(subscriptions).values({ userId, plan: "free" });
   const created = await createApiKey(db, userId, "Default");

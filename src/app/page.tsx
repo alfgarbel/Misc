@@ -152,7 +152,7 @@ export default function Home() {
                   </p>
                   <p className="mt-3 text-sm text-zinc-400">
                     {plan.monthlyRenders.toLocaleString()} renders / month
-                    {plan.watermark ? " · watermarked" : " · no watermark"}
+                    {plan.watermark ? " · free trial, then watermarked" : " · no watermark"}
                   </p>
                 </div>
               ))}

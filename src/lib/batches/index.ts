@@ -6,9 +6,10 @@ import type { BatchRow, BatchItemRow, User } from "../db/schema";
 import { applyBrandDefaults } from "../og/params";
 import { renderResolvedCard, resolveUrlParams } from "../urlcard/card";
 import { checkAndRecordRender } from "../usage";
-import { PLANS, type PlanId } from "../plans";
+import type { PlanId } from "../plans";
 import { dispatchEvent } from "../webhooks";
 import { buildZip, safeEntryName } from "./zip";
+import { effectiveWatermark } from "../trial";
 
 export * from "./zip";
 
@@ -201,7 +202,7 @@ export async function processSlice(
       site: user.brandSite,
     });
 
-    const watermark = PLANS[plan].watermark;
+    const watermark = effectiveWatermark(plan, user);
     const rendered = await renderResolvedCard(params, {
       watermark,
       logo: watermark ? null : user.brandLogo,

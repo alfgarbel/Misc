@@ -19,6 +19,7 @@ import {
   assignmentFor,
   getExperimentBySlug,
 } from "@/lib/experiments";
+import { effectiveWatermark } from "@/lib/trial";
 
 export const runtime = "nodejs";
 
@@ -178,7 +179,7 @@ export async function GET(req: NextRequest) {
     try {
       const specAssets = await loadSpecAssets(db, spec.data, userId);
       const image = await renderSpecImage(spec.data, {
-        watermark: PLANS[quota.plan].watermark,
+        watermark: effectiveWatermark(quota.plan, account),
         values: params,
         assets: specAssets,
       });
@@ -212,7 +213,7 @@ export async function GET(req: NextRequest) {
       );
     }
     if (keyId) await recordKeyRender(db, keyId);
-    watermark = PLANS[quota.plan].watermark;
+    watermark = effectiveWatermark(quota.plan, account ?? { trialEndsAt: null });
     // Custom logo is a paid-plan feature.
     if (!watermark) logo = account?.brandLogo ?? null;
     cacheable = true;

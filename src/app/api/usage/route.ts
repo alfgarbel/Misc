@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { resolveApiKey } from "@/lib/keys";
 import { getMonthlyUsage, getUserPlan } from "@/lib/usage";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { PLANS, currentMonth } from "@/lib/plans";
+import { effectiveWatermark } from "@/lib/trial";
 
 export const runtime = "nodejs";
 
@@ -24,16 +27,21 @@ export async function GET(req: NextRequest) {
       { status: 401 }
     );
   }
-  const [plan, used] = await Promise.all([
+  const [plan, used, account] = await Promise.all([
     getUserPlan(db, resolved.userId),
     getMonthlyUsage(db, resolved.userId),
+    db.query.users.findFirst({ where: eq(users.id, resolved.userId) }),
   ]);
+  const trialBearer = { trialEndsAt: account?.trialEndsAt ?? null };
   return NextResponse.json({
     month: currentMonth(),
     plan,
     used,
     limit: PLANS[plan].monthlyRenders,
     remaining: Math.max(0, PLANS[plan].monthlyRenders - used),
-    watermark: PLANS[plan].watermark,
+    // Reported so a caller can tell what their cards actually look like,
+    // not merely what their plan says.
+    watermark: effectiveWatermark(plan, trialBearer),
+    trialEndsAt: account?.trialEndsAt?.toISOString() ?? null,
   });
 }

@@ -22,6 +22,7 @@ import { countExperiments } from "@/lib/experiments";
 import { getMonthlyUsage, getUserPlan, getUsageHistory } from "@/lib/usage";
 import { PLANS, VAT_NOTE } from "@/lib/plans";
 import { refreshStatus } from "@/lib/cachebust";
+import { effectiveWatermark, trialActive, trialDaysLeft, TRIAL_DAYS } from "@/lib/trial";
 import { appUrl } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -43,6 +44,9 @@ export default async function DashboardPage() {
   const historyMax = Math.max(1, ...history.map((h) => h.count));
   const planInfo = PLANS[plan];
   const refresh = refreshStatus(user);
+  const inTrial = trialActive(user);
+  const daysLeft = trialDaysLeft(user);
+  const watermarked = effectiveWatermark(plan, user);
   const pct = Math.min(100, Math.round((used / planInfo.monthlyRenders) * 100));
 
   return (
@@ -59,6 +63,21 @@ export default async function DashboardPage() {
 
         <div className="grid gap-6 [&>*]:min-w-0">
           {!user.emailVerifiedAt ? <VerifyBanner /> : null}
+
+          {inTrial ? (
+            <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 sm:p-6">
+              <h2 className="mb-1 font-semibold text-emerald-200">
+                Free trial — {daysLeft} {daysLeft === 1 ? "day" : "days"} left
+              </h2>
+              <p className="text-sm text-emerald-100/80">
+                Your cards render without a watermark for the whole {TRIAL_DAYS}{" "}
+                days, so you can put real ones on your real site and see how
+                they do before deciding. When the trial ends, cards already
+                shared keep the version platforms have cached — only new
+                renders pick the watermark back up.
+              </p>
+            </div>
+          ) : null}
           {/* Usage */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
             <div className="mb-2 flex items-baseline justify-between">
@@ -82,7 +101,7 @@ export default async function DashboardPage() {
                 style={{ width: `${pct}%` }}
               />
             </div>
-            {planInfo.watermark ? (
+            {watermarked ? (
               <p className="mt-3 text-xs text-zinc-500">
                 Free-plan images include a small watermark. Upgrade to remove it.
               </p>

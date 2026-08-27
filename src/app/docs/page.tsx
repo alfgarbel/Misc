@@ -4,6 +4,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { appUrl } from "@/lib/stripe";
 import { SIZES, SIZE_IDS } from "@/lib/og/sizes";
+import { TRIAL_DAYS } from "@/lib/trial";
 
 export const metadata: Metadata = { title: "Docs" };
 
@@ -701,6 +702,20 @@ Authorization: Bearer og_yourkey
             never more than one of each per month.
           </li>
           <li>Demo requests (no key) are watermarked and limited to ~20/minute.</li>
+          <li>
+            New accounts render without a watermark for {TRIAL_DAYS} days, so
+            you can put real cards on a real site before deciding. After that
+            the free plan carries a small watermark — but cards already fetched
+            keep the clean copy platforms cached, so nothing changes overnight.
+          </li>
+          <li>
+            Upgrading bumps your{" "}
+            <a href="#cache-refresh" className="text-indigo-400 hover:underline">
+              cache version
+            </a>{" "}
+            automatically, so the watermark actually disappears from links
+            you&apos;ve already shared rather than only from new ones.
+          </li>
         </ul>
 
         <h2 className="mt-12 text-2xl font-semibold">Keep your key secret-ish</h2>
