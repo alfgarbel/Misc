@@ -78,6 +78,13 @@
       "when": 1787847110829,
       "tag": "0010_add_trial",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1788039121315,
+      "tag": "0011_add_prospect_scans",
+      "breakpoints": true
     }
   ]
 }

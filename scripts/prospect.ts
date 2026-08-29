@@ -187,11 +187,11 @@ async function main() {
     const bytes = Buffer.from(await new Response(image.body).arrayBuffer());
     await writeFile(pngPath, bytes);
 
-    const { subject, body } = draftEmail(report, q, {
-      signature: opts.signature,
-      checkerBase: opts.base,
-      attachmentName: pngName,
-    });
+    const { subject, body } = draftEmail(
+      { pageUrl: report.pageUrl, domain: report.meta.domain },
+      { claim: q.claim, findingId: q.finding.id },
+      { signature: opts.signature, checkerBase: opts.base, attachmentName: pngName }
+    );
     await writeFile(
       emailPath,
       [`To:      <find a real address — do not guess>`, `Subject: ${subject}`, `Attach:  ${pngName}`, ``, body, ``].join("\n")

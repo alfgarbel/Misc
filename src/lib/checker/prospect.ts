@@ -95,9 +95,8 @@ export function qualify(
 }
 
 /** A subject that matches the actual finding, rather than assuming the worst. */
-export function subjectFor(report: CardReport, prospect: Prospect): string {
-  const domain = report.meta.domain;
-  switch (prospect.finding.id) {
+export function subjectFor(domain: string, findingId: string): string {
+  switch (findingId) {
     case "no-image":
       return `${domain} — your links show no preview image when shared`;
     case "twitter-image-only":
@@ -118,17 +117,27 @@ export interface EmailDraft {
   body: string;
 }
 
+/** The two facts about the page an email needs. */
+export interface EmailPage {
+  pageUrl: string;
+  domain: string;
+}
+
 /**
  * The email. Short, one claim, and it names the free tool rather than the
  * paid one — the attachment is already the argument, and a pitch on top of
  * it reads as a pitch.
+ *
+ * Takes the few fields it uses rather than a whole report, so a draft can
+ * be rebuilt from a stored row weeks later without inventing a report that
+ * no longer exists.
  */
 export function draftEmail(
-  report: CardReport,
-  prospect: Prospect,
+  page: EmailPage,
+  prospect: { claim: string; findingId: string },
   opts: { signature: string; checkerBase: string; attachmentName: string }
 ): EmailDraft {
-  const url = report.pageUrl;
+  const url = page.pageUrl;
   const checkUrl = `${opts.checkerBase.replace(/\/$/, "")}/check?url=${encodeURIComponent(url)}`;
 
   const body = [
@@ -146,5 +155,5 @@ export function draftEmail(
     opts.signature,
   ].join("\n");
 
-  return { subject: subjectFor(report, prospect), body };
+  return { subject: subjectFor(page.domain, prospect.findingId), body };
 }
