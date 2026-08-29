@@ -51,3 +51,7 @@ local.db
 
 # env
 .env
+
+# Prospecting output: drafts addressed to real people, plus rendered cards
+# of their pages. Review locally, never commit.
+/outbound/

@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "prospect": "tsx scripts/prospect.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
@@ -32,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5",
     "vitest": "^4.1.11"
   }

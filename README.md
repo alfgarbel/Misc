@@ -121,6 +121,41 @@ Run tests with `npm test`. Build with `npm run build`.
    the server console.
 5. **Domain:** point one at the deployment and update `NEXT_PUBLIC_APP_URL`.
 
+## Finding people to write to
+
+`npm run prospect` reads a list of domains, checks each one's link preview,
+and builds a review queue of the sites whose cards are genuinely broken —
+with a card rendered from that page's own title and description, and a draft
+email to go with it.
+
+```bash
+npm run prospect -- --input domains.txt --out ./outbound --signature "— Your Name"
+```
+
+The input is one URL or domain per line; `#` comments and blank lines are
+ignored. Output is `outbound/results.csv` (every row, including the ones that
+didn't qualify and why) and `outbound/qualified/` (a PNG and a `.txt` draft
+per prospect).
+
+It runs against the library directly — no server, no API key, no render quota.
+
+Two things it deliberately does:
+
+- **The bar for qualifying is high.** Only a missing, unreachable, non-image
+  or too-small-to-display card counts. A missing `og:description`, a long
+  title or an absent `twitter:card` never qualifies, because the email only
+  works if its claim is undeniable — and a missing `twitter:card` is true of
+  a large share of the web. `--tier wide` adds badly degraded cards.
+- **It honours `robots.txt`.** One person checking one page is a visit; the
+  same code across five hundred domains is a crawl. `--ignore-robots` exists
+  but think before using it.
+
+Nothing is sent, and nothing looks up an email address. The drafts say
+`<find a real address — do not guess>` at the top and are unsigned unless you
+pass `--signature`, so an unfinished one looks unfinished. Before you send:
+confirm each claim yourself, and check what GDPR and CAN-SPAM require of you
+— an identifiable sender and a working opt-out at minimum.
+
 ## Security notes
 
 - API keys and auth tokens are stored only as SHA-256 hashes; passwords as
