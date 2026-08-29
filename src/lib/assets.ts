@@ -191,7 +191,12 @@ export async function listAssets(
     })
     .from(assets)
     .where(eq(assets.userId, userId))
-    .orderBy(desc(assets.createdAt));
+    // createdAt has one-second granularity, so two uploads in the same
+    // second tie and the order becomes whatever the database felt like —
+    // observed returning oldest-first once and newest-first the next time,
+    // for the same upload order. rowid breaks the tie by true insertion
+    // order, so "newest first" actually holds.
+    .orderBy(desc(assets.createdAt), desc(sql`rowid`));
   return rows as AssetSummary[];
 }
 
@@ -216,6 +221,28 @@ export async function deleteAsset(
   if (!existing) return false;
   await db
     .delete(assets)
+    .where(and(eq(assets.id, assetId), eq(assets.userId, userId)));
+  return true;
+}
+
+/**
+ * Renames an asset. Files arrive called things like IMG_0042.png or two
+ * different logos both called logo.png, and until now that name was
+ * permanent and was the only thing identifying them in a picker.
+ */
+export async function renameAsset(
+  db: Database,
+  userId: string,
+  assetId: string,
+  name: string
+): Promise<boolean> {
+  const trimmed = name.trim().slice(0, 120);
+  if (!trimmed) return false;
+  const existing = await getOwnedAsset(db, userId, assetId);
+  if (!existing) return false;
+  await db
+    .update(assets)
+    .set({ name: trimmed })
     .where(and(eq(assets.id, assetId), eq(assets.userId, userId)));
   return true;
 }

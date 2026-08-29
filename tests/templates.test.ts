@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createTestDb } from "./helpers";
 import { provisionAccount } from "@/lib/accounts";
 import {
+  assetUsage,
   countTemplates,
   createTemplate,
   deleteTemplate,
@@ -156,5 +157,110 @@ describe("starterSpec", () => {
     const spec = starterSpec();
     expect(templateSpecSchema.safeParse(spec).success).toBe(true);
     expect(spec.layers.map((l) => l.id)).toEqual(["title", "subtitle"]);
+  });
+});
+
+describe("asset usage", () => {
+  /** A spec that points at the given ids, in each of the three ways it can. */
+  function specUsing(opts: {
+    background?: string;
+    image?: string;
+    font?: string;
+  }) {
+    const spec = starterSpec();
+    if (opts.background !== undefined) {
+      spec.background = { type: "image", assetId: opts.background, fit: "cover" };
+    }
+    spec.layers = [];
+    if (opts.image !== undefined) {
+      spec.layers.push({
+        id: "img-1",
+        type: "image",
+        assetId: opts.image,
+        x: 0,
+        y: 0,
+        w: 100,
+        h: 100,
+        fit: "contain",
+        radius: 0,
+        opacity: 1,
+        rotate: 0,
+      });
+    }
+    if (opts.font !== undefined) {
+      spec.layers.push({
+        id: "txt-1",
+        type: "text",
+        text: "Hi",
+        x: 0,
+        y: 0,
+        w: 400,
+        fontFamily: "Custom",
+        fontAssetId: opts.font,
+        fontSize: 40,
+        fontWeight: 700,
+        color: "#fff",
+        align: "left",
+        lineHeight: 1.2,
+        letterSpacing: 0,
+        autoFit: true,
+        opacity: 1,
+        rotate: 0,
+      });
+    }
+    return templateSpecSchema.parse(spec);
+  }
+
+  it("finds an asset through every place a spec can reference one", async () => {
+    const { db, ownerId } = await seed();
+    await createTemplate(db, ownerId, {
+      name: "All three",
+      spec: specUsing({ background: "bg-1", image: "img-1", font: "font-1" }),
+    });
+    const usage = await assetUsage(db, ownerId);
+    expect(Object.keys(usage).sort()).toEqual(["bg-1", "font-1", "img-1"]);
+  });
+
+  it("names every template using the same asset", async () => {
+    const { db, ownerId } = await seed();
+    await createTemplate(db, ownerId, {
+      name: "Launch",
+      spec: specUsing({ image: "shared" }),
+    });
+    await createTemplate(db, ownerId, {
+      name: "Blog",
+      spec: specUsing({ background: "shared" }),
+    });
+    const usage = await assetUsage(db, ownerId);
+    expect(usage["shared"].map((t) => t.name).sort()).toEqual(["Blog", "Launch"]);
+  });
+
+  it("does not count an asset the spec leaves empty", async () => {
+    const { db, ownerId } = await seed();
+    await createTemplate(db, ownerId, {
+      name: "Half built",
+      spec: specUsing({ image: "", background: "" }),
+    });
+    expect(await assetUsage(db, ownerId)).toEqual({});
+  });
+
+  it("never reports one account's templates to another", async () => {
+    const { db, ownerId, otherId } = await seed();
+    await createTemplate(db, ownerId, {
+      name: "Mine",
+      spec: specUsing({ image: "asset-1" }),
+    });
+    expect(await assetUsage(db, otherId)).toEqual({});
+  });
+
+  it("stops reporting a template that no longer uses the asset", async () => {
+    const { db, ownerId } = await seed();
+    const row = await createTemplate(db, ownerId, {
+      name: "Launch",
+      spec: specUsing({ image: "asset-1" }),
+    });
+    expect(await assetUsage(db, ownerId)).toHaveProperty("asset-1");
+    await updateTemplate(db, ownerId, row.id, { spec: specUsing({}) });
+    expect(await assetUsage(db, ownerId)).toEqual({});
   });
 });

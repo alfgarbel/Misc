@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { EditorAsset } from "./types";
+import { uploadAsset } from "./upload";
 
 /**
  * Uploads are validated server-side from the file's own bytes; the accept
@@ -10,10 +11,15 @@ import type { EditorAsset } from "./types";
 export default function AssetManager({
   assets,
   limit,
+  usedHere,
+  currentTemplateId,
   onChange,
 }: {
   assets: EditorAsset[];
   limit: number;
+  /** Assets the open design points at right now, saved or not. */
+  usedHere: Set<string>;
+  currentTemplateId: string;
   onChange: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -24,11 +30,8 @@ export default function AssetManager({
     setBusy(true);
     setError(null);
     try {
-      const body = new FormData();
-      body.set("file", file);
-      const res = await fetch("/api/assets", { method: "POST", body });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) setError(data.error ?? "Upload failed");
+      const res = await uploadAsset(file);
+      if (!res.ok) setError(res.error);
       else onChange();
     } finally {
       setBusy(false);
@@ -44,6 +47,41 @@ export default function AssetManager({
   }
 
   const atLimit = assets.length >= limit;
+
+  /**
+   * Where a file is used, in words.
+   *
+   * Two sources, because neither alone is right: the open design knows its
+   * own unsaved edits, and the server knows every other template. Combining
+   * them is what makes "Delete" honest before it is pressed.
+   */
+  function usage(a: EditorAsset) {
+    const here = usedHere.has(a.id);
+    const elsewhere = a.usedBy.filter((t) => t.id !== currentTemplateId);
+    const names = elsewhere.map((t) => `“${t.name}”`).join(", ");
+    if (here && elsewhere.length > 0) {
+      return {
+        locked: true,
+        text: `On this card · also in ${names}`,
+        tip: `Take it off this card and out of ${names} first`,
+      };
+    }
+    if (here) {
+      return {
+        locked: true,
+        text: "On this card",
+        tip: "Take it off this card first",
+      };
+    }
+    if (elsewhere.length > 0) {
+      return {
+        locked: true,
+        text: `In ${names}`,
+        tip: `Take it out of ${names} first`,
+      };
+    }
+    return { locked: false, text: "Not used yet", tip: null };
+  }
 
   return (
     <div>
@@ -78,7 +116,9 @@ export default function AssetManager({
       {error ? <p className="mt-2 text-xs text-red-400">{error}</p> : null}
 
       <ul className="mt-4 space-y-2">
-        {assets.map((a) => (
+        {assets.map((a) => {
+          const use = usage(a);
+          return (
           <li
             key={a.id}
             className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950 p-2"
@@ -103,15 +143,28 @@ export default function AssetManager({
                 {Math.round(a.byteSize / 1024)}KB
                 {a.kind === "font" ? ` · ${a.fontWeight}` : ""}
               </span>
+              <span
+                className={`block truncate text-xs ${
+                  use.locked ? "text-indigo-300" : "text-zinc-600"
+                }`}
+                title={use.text}
+              >
+                {use.text}
+              </span>
             </span>
             <button
               onClick={() => remove(a.id)}
-              className="shrink-0 text-xs text-zinc-500 hover:text-red-400"
+              disabled={use.locked}
+              title={
+                use.tip ?? `Delete ${a.kind === "font" ? a.fontFamily : a.name}`
+              }
+              className="shrink-0 text-xs text-zinc-500 enabled:hover:text-red-400 disabled:cursor-not-allowed disabled:text-zinc-700"
             >
               Delete
             </button>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </div>
   );

@@ -1,7 +1,10 @@
 "use client";
 
+import { useRef, useState } from "react";
 import type { Background, Layer, TemplateSpec } from "@/lib/og/spec";
 import type { EditorAsset } from "./types";
+import AssetPicker from "./AssetPicker";
+import { uploadAsset } from "./upload";
 
 const field =
   "w-full min-w-0 rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-1.5 text-sm text-white outline-none focus:border-indigo-500";
@@ -71,14 +74,101 @@ function ColorField({
   );
 }
 
+/**
+ * The font control, with its own upload.
+ *
+ * Fonts used to be uploadable only from the Assets tab, which meant leaving
+ * the text layer you were styling, uploading, coming back, and finding the
+ * layer again. The file you want is wanted right here.
+ */
+function FontField({
+  fonts,
+  value,
+  onPick,
+  onUploaded,
+}: {
+  fonts: EditorAsset[];
+  value: string | null;
+  onPick: (asset: EditorAsset | null) => void;
+  onUploaded: () => void | Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function upload(file: File) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await uploadAsset(file);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      if (res.asset.kind !== "font") {
+        // Sniffed from the bytes, so a .ttf that is really a PNG lands here.
+        setError("That's an image, not a font. Drop it on the card instead.");
+        await onUploaded();
+        return;
+      }
+      await onUploaded();
+      onPick(res.asset);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className={label}>
+      <span>Font</span>
+      <select
+        value={value ?? ""}
+        onChange={(e) => onPick(fonts.find((f) => f.id === e.target.value) ?? null)}
+        className={field}
+      >
+        <option value="">Inter (built in)</option>
+        {fonts.map((f) => (
+          <option key={f.id} value={f.id}>
+            {f.fontFamily} {f.fontWeight}
+          </option>
+        ))}
+      </select>
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        disabled={busy}
+        className="self-start rounded-lg border border-zinc-700 px-2.5 py-1 text-xs hover:border-zinc-500 disabled:opacity-50"
+      >
+        {busy ? "Uploading…" : "Upload a font"}
+      </button>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".ttf,.otf,.woff,font/ttf,font/otf,font/woff"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void upload(f);
+          e.target.value = "";
+        }}
+      />
+      {error ? <p className="text-xs text-red-400">{error}</p> : null}
+    </div>
+  );
+}
+
 export function BackgroundInspector({
   background,
   images,
+  usedIds,
   onChange,
+  onAssetsChanged,
 }: {
   background: Background;
   images: EditorAsset[];
+  usedIds?: Set<string>;
   onChange: (bg: Background) => void;
+  onAssetsChanged: () => void | Promise<void>;
 }) {
   return (
     <div className="space-y-3">
@@ -92,9 +182,11 @@ export function BackgroundInspector({
             else if (type === "gradient")
               onChange({ type: "gradient", from: "#0b1020", to: "#4c1d95", angle: 135 });
             else
+              // Same rule as "+ Image": pre-pick only when there is exactly
+              // one image, so it can't quietly mean a file you didn't choose.
               onChange({
                 type: "image",
-                assetId: images[0]?.id ?? "",
+                assetId: images.length === 1 ? images[0].id : "",
                 fit: "cover",
               });
           }}
@@ -102,9 +194,9 @@ export function BackgroundInspector({
         >
           <option value="solid">Solid colour</option>
           <option value="gradient">Gradient</option>
-          <option value="image" disabled={images.length === 0}>
-            Image{images.length === 0 ? " (upload one first)" : ""}
-          </option>
+          {/* Not disabled when there are no images: the picker below has an
+              Upload button, so choosing this is how you get there. */}
+          <option value="image">Image</option>
         </select>
       </label>
 
@@ -139,21 +231,17 @@ export function BackgroundInspector({
       ) : null}
 
       {background.type === "image" ? (
-        <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
-          <label className={label}>
-            Image
-            <select
-              value={background.assetId}
-              onChange={(e) => onChange({ ...background, assetId: e.target.value })}
-              className={field}
-            >
-              {images.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="space-y-3">
+          <AssetPicker
+            images={images}
+            selectedId={background.assetId || null}
+            usedIds={usedIds}
+            onSelect={(assetId) => onChange({ ...background, assetId })}
+            onUploaded={onAssetsChanged}
+            onRenamed={onAssetsChanged}
+            label="Background image"
+            emptyHint="Upload an image to use as the background."
+          />
           <label className={label}>
             Fit
             <select
@@ -180,13 +268,17 @@ export function BackgroundInspector({
 export default function LayerInspector({
   layer,
   assets,
+  usedIds,
   onChange,
   onDelete,
+  onAssetsChanged,
 }: {
   layer: Layer;
   assets: EditorAsset[];
+  usedIds?: Set<string>;
   onChange: (patch: Partial<Layer>) => void;
   onDelete: () => void;
+  onAssetsChanged: () => void | Promise<void>;
 }) {
   const fonts = assets.filter((a) => a.kind === "font");
   const images = assets.filter((a) => a.kind === "image");
@@ -220,29 +312,18 @@ export default function LayerInspector({
             you pass in the URL. Any name works.
           </p>
           <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
-            <label className={label}>
-              Font
-              <select
-                value={layer.fontAssetId ?? ""}
-                onChange={(e) => {
-                  const id = e.target.value;
-                  const asset = fonts.find((f) => f.id === id);
-                  patch({
-                    fontAssetId: id || null,
-                    fontFamily: asset?.fontFamily ?? "Inter",
-                    ...(asset?.fontWeight ? { fontWeight: asset.fontWeight } : {}),
-                  });
-                }}
-                className={field}
-              >
-                <option value="">Inter (built in)</option>
-                {fonts.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.fontFamily} {f.fontWeight}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <FontField
+              fonts={fonts}
+              value={layer.fontAssetId}
+              onUploaded={onAssetsChanged}
+              onPick={(asset) =>
+                patch({
+                  fontAssetId: asset?.id ?? null,
+                  fontFamily: asset?.fontFamily ?? "Inter",
+                  ...(asset?.fontWeight ? { fontWeight: asset.fontWeight } : {}),
+                })
+              }
+            />
             <NumberField
               name="Size"
               value={layer.fontSize}
@@ -309,22 +390,16 @@ export default function LayerInspector({
       ) : null}
 
       {layer.type === "image" ? (
-        <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
-          <label className={label}>
-            Image
-            <select
-              value={layer.assetId}
-              onChange={(e) => patch({ assetId: e.target.value })}
-              className={field}
-            >
-              {images.length === 0 ? <option value="">No images yet</option> : null}
-              {images.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="space-y-3">
+          <AssetPicker
+            images={images}
+            selectedId={layer.assetId}
+            usedIds={usedIds}
+            onSelect={(assetId) => patch({ assetId })}
+            onUploaded={onAssetsChanged}
+            onRenamed={onAssetsChanged}
+          />
+          <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
           <label className={label}>
             Fit
             <select
@@ -345,6 +420,7 @@ export default function LayerInspector({
             min={0}
             onChange={(radius) => patch({ radius })}
           />
+          </div>
         </div>
       ) : null}
 

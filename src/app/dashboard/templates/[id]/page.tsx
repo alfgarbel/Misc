@@ -8,7 +8,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { getUserPlan } from "@/lib/usage";
 import { PLANS } from "@/lib/plans";
-import { getOwnedTemplate, specOf } from "@/lib/templates";
+import { assetUsage, getOwnedTemplate, specOf } from "@/lib/templates";
 import { listAssets } from "@/lib/assets";
 import { appUrl } from "@/lib/stripe";
 
@@ -48,9 +48,10 @@ export default async function TemplateEditorPage({
     );
   }
 
-  const [assets, plan] = await Promise.all([
+  const [assets, plan, usage] = await Promise.all([
     listAssets(db, user.id),
     getUserPlan(db, user.id),
+    assetUsage(db, user.id),
   ]);
 
   return (
@@ -72,6 +73,7 @@ export default async function TemplateEditorPage({
             initialAssets={assets.map((a) => ({
               ...a,
               createdAt: a.createdAt.toISOString(),
+              usedBy: usage[a.id] ?? [],
             }))}
             assetLimit={PLANS[plan].assets}
             baseUrl={appUrl()}

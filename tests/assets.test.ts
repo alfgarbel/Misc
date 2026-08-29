@@ -4,6 +4,7 @@ import { provisionAccount } from "@/lib/accounts";
 import {
   createAsset,
   deleteAsset,
+  renameAsset,
   fontFamilyFromName,
   getOwnedAsset,
   listAssets,
@@ -104,6 +105,52 @@ describe("asset storage", () => {
     const third = await createAsset(db, { userId: ownerId, filename: "c.png", data: PNG }, 2);
     expect(third.ok).toBe(false);
     if (!third.ok) expect(third.reason).toMatch(/limit of 2/);
+  });
+
+  it("orders newest first, deterministically, when timestamps tie", async () => {
+    // createdAt has one-second granularity, so two uploads in the same
+    // second tie. Without a tiebreaker the order was whatever the database
+    // felt like — observed returning oldest-first once and newest-first the
+    // next time for the same upload order, which is what made a picker of
+    // filenames impossible to reason about.
+    const { db, ownerId } = await seed();
+    for (const name of ["first.png", "second.png", "third.png"]) {
+      const created = await createAsset(db, { userId: ownerId, filename: name, data: PNG }, 10);
+      expect(created.ok, name).toBe(true);
+    }
+    const first = (await listAssets(db, ownerId)).map((a) => a.name);
+    expect(first).toEqual(["third.png", "second.png", "first.png"]);
+
+    // Same answer every time, not just once.
+    for (let i = 0; i < 5; i++) {
+      expect((await listAssets(db, ownerId)).map((a) => a.name)).toEqual(first);
+    }
+  });
+
+  it("renames an asset, so duplicate filenames stop being permanent", async () => {
+    const { db, ownerId } = await seed();
+    const created = await createAsset(db, { userId: ownerId, filename: "logo.png", data: PNG }, 10);
+    if (!created.ok) throw new Error("setup failed");
+
+    expect(await renameAsset(db, ownerId, created.asset.id, "  Blue badge  ")).toBe(true);
+    const [asset] = await listAssets(db, ownerId);
+    expect(asset.name).toBe("Blue badge");
+  });
+
+  it("refuses a blank rename rather than leaving something unnameable", async () => {
+    const { db, ownerId } = await seed();
+    const created = await createAsset(db, { userId: ownerId, filename: "logo.png", data: PNG }, 10);
+    if (!created.ok) throw new Error("setup failed");
+    expect(await renameAsset(db, ownerId, created.asset.id, "   ")).toBe(false);
+    expect((await listAssets(db, ownerId))[0].name).toBe("logo.png");
+  });
+
+  it("will not rename another account's asset", async () => {
+    const { db, ownerId, otherId } = await seed();
+    const created = await createAsset(db, { userId: ownerId, filename: "logo.png", data: PNG }, 10);
+    if (!created.ok) throw new Error("setup failed");
+    expect(await renameAsset(db, otherId, created.asset.id, "stolen")).toBe(false);
+    expect((await listAssets(db, ownerId))[0].name).toBe("logo.png");
   });
 
   it("will not read or delete another account's asset", async () => {
