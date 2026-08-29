@@ -82,6 +82,25 @@ describe("templateSpecSchema", () => {
     expect(templateSpecSchema.safeParse(specWith([textLayer({ w: 0 })])).success).toBe(false);
   });
 
+  it("accepts an image layer whose image has not been chosen yet", () => {
+    // A normal intermediate state in an editor. Refusing to save it would
+    // throw away the layer's position and size while the user goes looking
+    // for the right file.
+    const spec = specWith([
+      { id: "i", type: "image", x: 0, y: 0, w: 100, h: 100, assetId: "" },
+    ]);
+    expect(templateSpecSchema.safeParse(spec).success).toBe(true);
+  });
+
+  it("does not count an unchosen image as a dependency", () => {
+    const spec = templateSpecSchema.parse({
+      version: 1,
+      background: { type: "image", assetId: "" },
+      layers: [{ id: "i", type: "image", x: 0, y: 0, w: 10, h: 10, assetId: "" }],
+    });
+    expect(specAssetIds(spec)).toEqual([]);
+  });
+
   it("rejects an unknown layer type", () => {
     expect(
       templateSpecSchema.safeParse(specWith([{ id: "v", type: "video", x: 0, y: 0 }])).success

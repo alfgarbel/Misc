@@ -137,16 +137,14 @@ export default function TemplateEditor({
     } else if (type === "box") {
       layer = { ...base, type: "box", w: 240, h: 12, color: "#6366f1", radius: 999 };
     } else {
-      const first = assets.find((a) => a.kind === "image");
-      if (!first) {
-        setStatus("Upload an image first.");
-        setTab("assets");
-        return;
-      }
+      // Starts empty rather than grabbing whichever image happened to be
+      // first: the picker below is where you choose, and choosing beats
+      // guessing wrong and having to notice.
+      const only = assets.filter((a) => a.kind === "image");
       layer = {
         ...base,
         type: "image",
-        assetId: first.id,
+        assetId: only.length === 1 ? only[0].id : "",
         w: 200,
         h: 200,
         fit: "contain",
@@ -447,6 +445,7 @@ export default function TemplateEditor({
                   setSpec((prev) => ({ ...prev, background }));
                   setDirty(true);
                 }}
+                onAssetsChanged={refreshAssets}
               />
 
               <div className="border-t border-zinc-800 pt-3">
@@ -467,7 +466,11 @@ export default function TemplateEditor({
                             : "text-zinc-400 hover:bg-zinc-800"
                         }`}
                       >
-                        {l.type === "text" ? l.text || "(empty)" : l.type}
+                        {l.type === "text"
+                          ? l.text || "(empty)"
+                          : l.type === "image" && !l.assetId
+                            ? "image — none chosen"
+                            : l.type}
                       </button>
                       <button
                         onClick={() => moveLayer(l.id, -1)}
@@ -497,6 +500,7 @@ export default function TemplateEditor({
                     assets={assets}
                     onChange={(patch) => updateLayer(selected.id, patch)}
                     onDelete={() => deleteLayer(selected.id)}
+                    onAssetsChanged={refreshAssets}
                   />
                 </div>
               ) : (

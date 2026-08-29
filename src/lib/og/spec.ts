@@ -39,6 +39,13 @@ const cssColor = z.union([
 ]);
 
 const assetId = z.string().min(1).max(64);
+/**
+ * An image layer may exist before its image has been chosen — that is a
+ * normal intermediate state in an editor, and refusing to save it would
+ * mean losing the layer's position and size. The renderer draws nothing
+ * for an unset or unknown asset.
+ */
+const optionalAssetId = z.string().max(64);
 
 /** Coordinates may sit slightly off-canvas so layers can bleed off an edge. */
 const coord = z.number().min(-2000).max(4000);
@@ -73,7 +80,7 @@ export const textLayerSchema = z.object({
 export const imageLayerSchema = z.object({
   ...baseLayer,
   type: z.literal("image"),
-  assetId,
+  assetId: optionalAssetId,
   w: size,
   h: size,
   fit: z.enum(["cover", "contain", "fill"]).default("contain"),
@@ -105,7 +112,7 @@ export const backgroundSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("image"),
-    assetId,
+    assetId: optionalAssetId,
     fit: z.enum(["cover", "contain", "fill"]).default("cover"),
   }),
 ]);
@@ -185,9 +192,11 @@ export function specPlaceholders(spec: TemplateSpec): string[] {
 /** Every asset a spec depends on — used to block deleting one still in use. */
 export function specAssetIds(spec: TemplateSpec): string[] {
   const ids = new Set<string>();
-  if (spec.background.type === "image") ids.add(spec.background.assetId);
+  if (spec.background.type === "image" && spec.background.assetId) {
+    ids.add(spec.background.assetId);
+  }
   for (const layer of spec.layers) {
-    if (layer.type === "image") ids.add(layer.assetId);
+    if (layer.type === "image" && layer.assetId) ids.add(layer.assetId);
     if (layer.type === "text" && layer.fontAssetId) ids.add(layer.fontAssetId);
   }
   return [...ids];

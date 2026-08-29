@@ -2,6 +2,7 @@
 
 import type { Background, Layer, TemplateSpec } from "@/lib/og/spec";
 import type { EditorAsset } from "./types";
+import AssetPicker from "./AssetPicker";
 
 const field =
   "w-full min-w-0 rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-1.5 text-sm text-white outline-none focus:border-indigo-500";
@@ -75,10 +76,12 @@ export function BackgroundInspector({
   background,
   images,
   onChange,
+  onAssetsChanged,
 }: {
   background: Background;
   images: EditorAsset[];
   onChange: (bg: Background) => void;
+  onAssetsChanged: () => void | Promise<void>;
 }) {
   return (
     <div className="space-y-3">
@@ -139,21 +142,16 @@ export function BackgroundInspector({
       ) : null}
 
       {background.type === "image" ? (
-        <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
-          <label className={label}>
-            Image
-            <select
-              value={background.assetId}
-              onChange={(e) => onChange({ ...background, assetId: e.target.value })}
-              className={field}
-            >
-              {images.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="space-y-3">
+          <AssetPicker
+            images={images}
+            selectedId={background.assetId || null}
+            onSelect={(assetId) => onChange({ ...background, assetId })}
+            onUploaded={onAssetsChanged}
+            onRenamed={onAssetsChanged}
+            label="Background image"
+            emptyHint="Upload an image to use as the background."
+          />
           <label className={label}>
             Fit
             <select
@@ -182,11 +180,13 @@ export default function LayerInspector({
   assets,
   onChange,
   onDelete,
+  onAssetsChanged,
 }: {
   layer: Layer;
   assets: EditorAsset[];
   onChange: (patch: Partial<Layer>) => void;
   onDelete: () => void;
+  onAssetsChanged: () => void | Promise<void>;
 }) {
   const fonts = assets.filter((a) => a.kind === "font");
   const images = assets.filter((a) => a.kind === "image");
@@ -309,22 +309,15 @@ export default function LayerInspector({
       ) : null}
 
       {layer.type === "image" ? (
-        <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
-          <label className={label}>
-            Image
-            <select
-              value={layer.assetId}
-              onChange={(e) => patch({ assetId: e.target.value })}
-              className={field}
-            >
-              {images.length === 0 ? <option value="">No images yet</option> : null}
-              {images.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="space-y-3">
+          <AssetPicker
+            images={images}
+            selectedId={layer.assetId}
+            onSelect={(assetId) => patch({ assetId })}
+            onUploaded={onAssetsChanged}
+            onRenamed={onAssetsChanged}
+          />
+          <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
           <label className={label}>
             Fit
             <select
@@ -345,6 +338,7 @@ export default function LayerInspector({
             min={0}
             onChange={(radius) => patch({ radius })}
           />
+          </div>
         </div>
       ) : null}
 

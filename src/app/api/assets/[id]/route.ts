@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { deleteAsset, getOwnedAsset } from "@/lib/assets";
+import { deleteAsset, getOwnedAsset, renameAsset } from "@/lib/assets";
+import { z } from "zod";
 import { listTemplates } from "@/lib/templates";
 import { parseSpec, specAssetIds } from "@/lib/og/spec";
 
@@ -29,6 +30,28 @@ export async function GET(
       "Content-Disposition": "inline",
     },
   });
+}
+
+const patchSchema = z.object({ name: z.string().min(1).max(120) });
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+  }
+  const { id } = await params;
+  const parsed = patchSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Enter a name" }, { status: 400 });
+  }
+  const renamed = await renameAsset(getDb(), user.id, id, parsed.data.name);
+  if (!renamed) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(
