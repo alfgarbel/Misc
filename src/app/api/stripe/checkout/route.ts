@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { PLANS } from "@/lib/plans";
 import { subscriptions } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -58,6 +59,30 @@ export async function POST(req: NextRequest) {
         target: subscriptions.userId,
         set: { stripeCustomerId: customerId },
       });
+  }
+
+  // The site advertises a number from PLANS; Stripe charges whatever the
+  // price ID says. Nothing keeps those two in step, so when they drift a
+  // customer is quietly charged something other than what they agreed to.
+  // Checkout still proceeds — Stripe is the authority on what is owed — but
+  // the mismatch is loud in the logs rather than silent.
+  try {
+    const price = await stripe.prices.retrieve(priceId);
+    const advertisedCents = PLANS[parsed.data.plan].priceMonthlyUsd * 100;
+    if (
+      price.unit_amount !== null &&
+      price.unit_amount !== advertisedCents
+    ) {
+      console.error(
+        `Stripe price mismatch for the ${parsed.data.plan} plan: the site advertises ` +
+          `$${PLANS[parsed.data.plan].priceMonthlyUsd} but ${priceId} charges ` +
+          `${(price.unit_amount / 100).toFixed(2)} ${price.currency}. ` +
+          `Update the Stripe price or PLANS so they agree.`
+      );
+    }
+  } catch (err) {
+    // A lookup failure must never block a sale.
+    console.error("Could not verify the Stripe price before checkout:", err);
   }
 
   const session = await stripe.checkout.sessions.create(

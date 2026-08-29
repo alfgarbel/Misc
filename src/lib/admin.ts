@@ -103,6 +103,10 @@ export async function getAdminMetrics(
   }
   planCounts.free = Math.max(0, totalUsers - planCounts.pro - planCounts.scale);
 
+  // At today's list price. Stripe keeps existing subscriptions on the price
+  // they were created with, so after any price rise this over-states real
+  // revenue until everyone has churned or resubscribed. Stripe's own
+  // dashboard is the number to trust; this one is a rough gauge.
   const mrrUsd =
     planCounts.pro * PLANS.pro.priceMonthlyUsd +
     planCounts.scale * PLANS.scale.priceMonthlyUsd;

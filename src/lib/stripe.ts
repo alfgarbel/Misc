@@ -39,6 +39,16 @@ export function appUrl(): string {
  * enabling it before Stripe Tax is switched on in the dashboard makes
  * checkout fail — this way the code can ship ahead of the dashboard work.
  */
+/**
+ * Where "get in touch" points. Returned rather than hard-coded so no page
+ * can advertise an address that doesn't exist — an unset variable hides
+ * the link instead of publishing a mailto that bounces.
+ */
+export function contactEmail(): string | null {
+  const raw = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim();
+  return raw && raw.includes("@") ? raw : null;
+}
+
 export function stripeTaxEnabled(): boolean {
   return process.env.STRIPE_TAX_ENABLED === "true";
 }

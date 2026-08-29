@@ -45,7 +45,7 @@ export const PLANS: Record<PlanId, Plan> = {
   pro: {
     id: "pro",
     name: "Pro",
-    priceMonthlyUsd: 9,
+    priceMonthlyUsd: 19,
     monthlyRenders: 20_000,
     watermark: false,
     description: "For production sites and small businesses.",
@@ -58,7 +58,7 @@ export const PLANS: Record<PlanId, Plan> = {
   scale: {
     id: "scale",
     name: "Scale",
-    priceMonthlyUsd: 29,
+    priceMonthlyUsd: 49,
     monthlyRenders: 150_000,
     watermark: false,
     description: "For high-traffic sites and platforms.",
@@ -68,6 +68,35 @@ export const PLANS: Record<PlanId, Plan> = {
     batchRows: 500,
     webhooks: 20,
   },
+};
+
+/**
+ * A tier we advertise but cannot yet sell.
+ *
+ * Deliberately NOT a PlanId: PlanId is what the database stores and what
+ * quota, watermarking and the Stripe webhook all switch on. A plan nobody
+ * can be assigned to has no business in that type, and adding it would put
+ * an unreachable branch in every one of those switches.
+ */
+export interface ComingSoonPlan {
+  name: string;
+  priceMonthlyUsd: number;
+  description: string;
+  /** Why someone would want it, in the same voice as PlanFeatures. */
+  features: string[];
+}
+
+export const AGENCY_PREVIEW: ComingSoonPlan = {
+  name: "Agency",
+  priceMonthlyUsd: 99,
+  description: "For studios running cards for a roster of clients.",
+  features: [
+    "Everything in Scale",
+    "One workspace per client brand",
+    "Separate templates, fonts and logos per brand",
+    "Team seats with shared API keys",
+    "Client-ready render reports",
+  ],
 };
 
 export function isPaidPlan(plan: string): plan is "pro" | "scale" {
