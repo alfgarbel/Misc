@@ -46,6 +46,9 @@ export default async function Nav() {
           <Link href="/docs" className="shrink-0 hover:text-white">
             Docs
           </Link>
+          <Link href="/blog" className="shrink-0 hover:text-white">
+            Writing
+          </Link>
           <Link href="/pricing" className="shrink-0 hover:text-white">
             Pricing
           </Link>
