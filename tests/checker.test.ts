@@ -7,6 +7,7 @@ import {
   fetchFailureMessage,
 } from "@/lib/checker/report";
 import { extractCardTags } from "@/lib/urlcard/extract";
+import { coerceUrl } from "@/lib/checker/url";
 import type { ImageInspection } from "@/lib/checker/image";
 import { FETCH_MESSAGES, type FetchResult } from "@/lib/urlcard/fetch";
 
@@ -373,5 +374,46 @@ describe("fetch failure messages", () => {
     expect(res.ok).toBe(false);
     if (res.ok) return;
     expect(res.message).toContain("403");
+  });
+});
+
+describe("coerceUrl", () => {
+  it("accepts a bare domain, which is what people actually type", () => {
+    expect(coerceUrl("ogsmith.app")).toBe("https://ogsmith.app/");
+    expect(coerceUrl("www.bbc.co.uk/news")).toBe("https://www.bbc.co.uk/news");
+  });
+
+  it("leaves a URL that already has a scheme alone", () => {
+    expect(coerceUrl("http://ogsmith.app")).toBe("http://ogsmith.app/");
+    expect(coerceUrl("https://ogsmith.app/check?url=x")).toBe(
+      "https://ogsmith.app/check?url=x"
+    );
+  });
+
+  it("handles the wrappers a pasted link arrives in", () => {
+    expect(coerceUrl("  https://a.com/b  ")).toBe("https://a.com/b");
+    expect(coerceUrl("<https://a.com/b>")).toBe("https://a.com/b");
+    expect(coerceUrl('"a.com"')).toBe("https://a.com/");
+    expect(coerceUrl("//a.com/b")).toBe("https://a.com/b");
+  });
+
+  it("refuses to invent a host out of a bare word", () => {
+    // https://banana would resolve to nothing and produce a worse error.
+    expect(coerceUrl("banana")).toBeNull();
+    expect(coerceUrl("hello world")).toBeNull();
+    expect(coerceUrl("")).toBeNull();
+  });
+
+  it("refuses schemes that aren't the web", () => {
+    expect(coerceUrl("file:///etc/passwd")).toBeNull();
+    expect(coerceUrl("javascript:alert(1)")).toBeNull();
+    expect(coerceUrl("mailto:a@b.com")).toBeNull();
+    expect(coerceUrl("ftp://a.com/")).toBeNull();
+  });
+
+  it("passes internal-looking hosts through for the guard to refuse", () => {
+    // Rejecting them here would give a vaguer message than the SSRF guard's.
+    expect(coerceUrl("localhost:3000")).toBe("https://localhost:3000/");
+    expect(coerceUrl("192.168.1.1")).toBe("https://192.168.1.1/");
   });
 });

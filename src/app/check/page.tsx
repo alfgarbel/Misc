@@ -5,7 +5,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import PlatformPreviews from "@/components/checker/PlatformPreviews";
 import CopyBlock from "@/components/checker/CopyBlock";
-import { cachedReport, checkUrl } from "@/lib/checker";
+import { cachedReport, checkUrl, coerceUrl } from "@/lib/checker";
 import type { Finding, Severity } from "@/lib/checker";
 import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
 import { appUrl } from "@/lib/stripe";
@@ -58,15 +58,40 @@ function FindingCard({ finding }: { finding: Finding }) {
   );
 }
 
+/**
+ * "We couldn't look" and "we looked, and it's broken" are different
+ * outcomes, and they used to be the same red panel — so a perfectly valid
+ * report reading "broken when shared" was mistaken for the tool erroring.
+ * This one is deliberately neutral: nothing here is a judgement on the page.
+ */
+function CantCheck({ message, url }: { message: string; url: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
+      <p className="text-base font-semibold text-zinc-100">
+        We couldn&apos;t check that page
+      </p>
+      <p className="mt-2 text-sm text-zinc-400">{message}</p>
+      <p className="mt-3 break-all font-mono text-xs text-zinc-600">{url}</p>
+    </div>
+  );
+}
+
 function UrlForm({ defaultValue }: { defaultValue?: string }) {
   return (
     <form action="/check" method="get" className="flex flex-col gap-3 sm:flex-row">
+      {/* Deliberately not type="url": that refuses "ogsmith.app" in the
+          browser before the server ever sees it, and a bare domain is what
+          people type. coerceUrl works out what was meant. */}
       <input
-        type="url"
+        type="text"
         name="url"
         required
+        inputMode="url"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         defaultValue={defaultValue}
-        placeholder="https://your-site.com/a-page"
+        placeholder="ogsmith.app/pricing"
         aria-label="Page URL to check"
         className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-indigo-500"
       />
@@ -96,6 +121,8 @@ export default async function CheckPage({
 }) {
   const { url } = await searchParams;
   const base = appUrl().replace(/\/$/, "");
+  // What the person typed may be a bare domain; this is what we'll fetch.
+  const target = url ? coerceUrl(url) : null;
 
   let body: React.ReactNode;
 
@@ -109,9 +136,19 @@ export default async function CheckPage({
         </p>
       </div>
     );
+  } else if (!target) {
+    body = (
+      <div className="flex flex-col gap-4">
+        <UrlForm defaultValue={url} />
+        <CantCheck
+          url={url}
+          message="That doesn't look like a web address. A domain on its own is fine — try something like ogsmith.app/pricing."
+        />
+      </div>
+    );
   } else if (
     // A cache hit reads nobody's server, so it doesn't spend the limit.
-    !cachedReport(url) &&
+    !cachedReport(target) &&
     checkLimiter.limited(clientIp(await headers()))
   ) {
     body = (
@@ -125,21 +162,34 @@ export default async function CheckPage({
       </div>
     );
   } else {
-    const report = await checkUrl(url);
+    const report = await checkUrl(target);
 
     if (!report.ok) {
       body = (
         <div className="flex flex-col gap-4">
           <UrlForm defaultValue={url} />
-          <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
-            {report.message}
-          </p>
+          <CantCheck url={target} message={report.message} />
         </div>
       );
     } else {
       const { meta, diagnosis, tags, image } = report;
       const title = meta.title ?? meta.domain;
       const site = meta.siteName ?? meta.domain;
+
+      // Every finding is accounted for, or the tally contradicts the
+      // "What's wrong (n)" heading a few centimetres below it.
+      const count = (s: Severity) =>
+        diagnosis.findings.filter((f) => f.severity === s).length;
+      const tally = (
+        [
+          [count("error"), "broken"],
+          [count("warning"), "costing you clicks"],
+          [count("note"), "worth knowing"],
+        ] as const
+      )
+        .filter(([n]) => n > 0)
+        .map(([n, label]) => `${n} ${label}`)
+        .join(" · ");
 
       const verdict = {
         broken: {
@@ -155,6 +205,11 @@ export default async function CheckPage({
           className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
         },
       }[diagnosis.verdict];
+
+      // http:// and https:// spellings of the same site land on the same
+      // page, so they produce the same report. Saying where we ended up is
+      // the difference between that looking correct and looking stuck.
+      const redirected = report.pageUrl !== target;
 
       const suggested = new URLSearchParams({
         template: "gradient",
@@ -183,7 +238,15 @@ export default async function CheckPage({
 
           <div className={`rounded-xl border p-5 ${verdict.className}`}>
             <p className="text-lg font-semibold">{verdict.text}</p>
-            <p className="mt-1 break-all text-sm opacity-80">{report.pageUrl}</p>
+            {tally ? <p className="mt-1 text-sm opacity-90">{tally}</p> : null}
+            <p className="mt-3 break-all font-mono text-xs opacity-70">
+              {report.pageUrl}
+            </p>
+            {redirected ? (
+              <p className="mt-1 break-all text-xs opacity-60">
+                followed from {target}
+              </p>
+            ) : null}
           </div>
 
           {diagnosis.findings.length > 0 ? (
@@ -274,10 +337,10 @@ export default async function CheckPage({
     <>
       <Nav />
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-3xl font-bold sm:text-4xl">
+        <h1 className="text-balance text-[1.75rem] font-bold leading-tight sm:text-4xl">
           What does your link look like when someone shares it?
         </h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">
+        <p className="mt-3 max-w-2xl text-pretty text-zinc-400">
           Paste a URL. We&apos;ll read its Open Graph tags, fetch the image,
           and show you what each platform does with them.
         </p>
