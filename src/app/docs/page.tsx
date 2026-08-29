@@ -286,6 +286,23 @@ signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</Cod
           if you are switching an already-published card to a new shape.
         </p>
 
+        <h2 id="checker" className="mt-12 text-2xl font-semibold">
+          Check an existing link
+        </h2>
+        <p className="mt-4 text-sm text-zinc-400">
+          The{" "}
+          <a href="/check" className="text-indigo-400 hover:underline">
+            link preview checker
+          </a>{" "}
+          reads any public page&apos;s Open Graph tags, fetches its image, and
+          reports what will go wrong when the link is shared — a missing or
+          unreachable <code className="text-zinc-300">og:image</code>, one too
+          small or the wrong shape, dimensions that disagree with the file, a{" "}
+          <code className="text-zinc-300">twitter:card</code> that throws away
+          a wide image. It needs no account, and results have a shareable URL:{" "}
+          <code className="text-zinc-300">/check?url=…</code>
+        </p>
+
         <h2 id="url-to-card" className="mt-12 text-2xl font-semibold">
           Cards from a URL
         </h2>

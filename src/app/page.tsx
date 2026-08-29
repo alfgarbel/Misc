@@ -75,12 +75,22 @@ export default function Home() {
               Get your free API key
             </Link>
             <Link
+              href="/check"
+              className="rounded-lg border border-zinc-700 px-6 py-3 text-center font-medium text-zinc-300 hover:border-zinc-500"
+            >
+              Check your link — free
+            </Link>
+            <Link
               href="/docs"
               className="rounded-lg border border-zinc-700 px-6 py-3 text-center font-medium text-zinc-300 hover:border-zinc-500"
             >
               Read the docs
             </Link>
           </div>
+          <p className="mt-4 text-sm text-zinc-500">
+            No account needed. See what X, LinkedIn, Slack and WhatsApp show
+            for a page you already have.
+          </p>
           <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-xl border border-zinc-800 shadow-2xl shadow-indigo-500/10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
