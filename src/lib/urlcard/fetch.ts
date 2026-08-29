@@ -57,7 +57,17 @@ export type FetchOk = {
   contentType: string;
   body: Buffer;
 };
-export type FetchErr = { ok: false; reason: FetchFailure };
+export type FetchErr = {
+  ok: false;
+  reason: FetchFailure;
+  /**
+   * Present for http_error. The renderer doesn't care why a page failed,
+   * but the checker does: a 403 aimed at our user agent says nothing about
+   * whether Facebook's crawler can read the page, and telling someone their
+   * card is broken on that basis would be wrong.
+   */
+  status?: number;
+};
 export type FetchResult = FetchOk | FetchErr;
 
 export interface CheckVerdict {
@@ -313,7 +323,7 @@ export async function safeFetch(
     if (status < 200 || status >= 300) {
       stream.resume();
       stream.destroy();
-      return { ok: false, reason: "http_error" };
+      return { ok: false, reason: "http_error", status };
     }
 
     const contentType = (headers["content-type"] ?? "").toString().toLowerCase();

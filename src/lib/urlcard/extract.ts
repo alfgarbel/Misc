@@ -104,6 +104,61 @@ function titleTag(head: string): string | null {
 }
 
 /**
+ * The card-related tags exactly as the page wrote them.
+ *
+ * `extractMetadata` answers "what will the card say", which is what the
+ * renderer needs. A checker needs the question before that: which tags are
+ * actually present, and what is in them literally — an og:image written as
+ * "/card.png" and one written in full both resolve to the same URL, and
+ * only one of them is a problem worth reporting.
+ */
+export interface CardTags {
+  ogTitle: string | null;
+  ogDescription: string | null;
+  ogImage: string | null;
+  ogImageSecureUrl: string | null;
+  ogImageWidth: string | null;
+  ogImageHeight: string | null;
+  ogImageAlt: string | null;
+  ogSiteName: string | null;
+  ogUrl: string | null;
+  ogType: string | null;
+  twitterCard: string | null;
+  twitterImage: string | null;
+  twitterTitle: string | null;
+  twitterDescription: string | null;
+  htmlTitle: string | null;
+  metaDescription: string | null;
+}
+
+export function extractCardTags(html: string): CardTags {
+  const head = headOf(html);
+  const meta = metaMap(head);
+  const get = (key: string): string | null => {
+    const v = meta.get(key);
+    return v !== undefined && v.trim() !== "" ? v.trim() : null;
+  };
+  return {
+    ogTitle: get("og:title"),
+    ogDescription: get("og:description"),
+    ogImage: get("og:image") ?? get("og:image:url"),
+    ogImageSecureUrl: get("og:image:secure_url"),
+    ogImageWidth: get("og:image:width"),
+    ogImageHeight: get("og:image:height"),
+    ogImageAlt: get("og:image:alt"),
+    ogSiteName: get("og:site_name"),
+    ogUrl: get("og:url"),
+    ogType: get("og:type"),
+    twitterCard: get("twitter:card"),
+    twitterImage: get("twitter:image") ?? get("twitter:image:src"),
+    twitterTitle: get("twitter:title"),
+    twitterDescription: get("twitter:description"),
+    htmlTitle: clean(titleTag(head), MAX_TITLE),
+    metaDescription: get("description"),
+  };
+}
+
+/**
  * Extracts card fields, preferring OpenGraph, then Twitter cards, then
  * ordinary head tags — the same order social crawlers use.
  */
