@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   canvasOfSpec,
   MAX_LAYERS,
+  specAssetIds,
   specPlaceholders,
   templateSpecSchema,
   type Layer,
@@ -14,6 +15,7 @@ import { SIZES, SIZE_IDS } from "@/lib/og/sizes";
 import EditorCanvas from "./EditorCanvas";
 import LayerInspector, { BackgroundInspector } from "./LayerInspector";
 import AssetManager from "./AssetManager";
+import { imageSize, uploadAsset } from "./upload";
 import type { EditorAsset } from "./types";
 
 /** Sensible stand-ins so a new design isn't laid out against empty strings. */
@@ -27,6 +29,12 @@ const SAMPLE: Record<string, string> = {
 function newId(type: string): string {
   return `${type}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+const clamp = (n: number, lo: number, hi: number) =>
+  Math.min(Math.max(n, lo), Math.max(lo, hi));
+
+/** A message and whether it reads as progress or as a problem. */
+type Status = { text: string; tone: "ok" | "error" } | null;
 
 export default function TemplateEditor({
   templateId,
@@ -55,7 +63,7 @@ export default function TemplateEditor({
   );
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>(null);
   const [tab, setTab] = useState<"layers" | "assets">("layers");
   const [preview, setPreview] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState(false);
@@ -91,6 +99,10 @@ export default function TemplateEditor({
     [assets]
   );
 
+  // What this design points at right now — including edits that haven't been
+  // saved. For the template being edited, that beats the server's view.
+  const usedHere = useMemo(() => new Set(specAssetIds(spec)), [spec]);
+
   const placeholders = useMemo(() => specPlaceholders(spec), [spec]);
   const values = useMemo(() => {
     const v: Record<string, string> = {};
@@ -112,7 +124,7 @@ export default function TemplateEditor({
 
   function addLayer(type: "text" | "image" | "box") {
     if (spec.layers.length >= MAX_LAYERS) {
-      setStatus(`A template can hold ${MAX_LAYERS} layers.`);
+      setStatus({ text: `A template can hold ${MAX_LAYERS} layers.`, tone: "error" });
       return;
     }
     const id = newId(type);
@@ -174,6 +186,88 @@ export default function TemplateEditor({
     setDirty(true);
   }
 
+  /**
+   * A file dropped on the card: upload it and place it where it landed.
+   *
+   * The size comes from the image's own pixels rather than a fixed 200x200,
+   * so a wide banner arrives wide and a square icon arrives square instead
+   * of both needing to be reshaped by hand afterwards.
+   */
+  async function dropFiles(files: File[], at: { x: number; y: number }) {
+    const canvas = canvasOfSpec(spec);
+    let placed = 0;
+    let last: Status = null;
+
+    for (const file of files) {
+      if (spec.layers.length + placed >= MAX_LAYERS) {
+        last = {
+          text: `A template can hold ${MAX_LAYERS} layers, so the rest weren't added.`,
+          tone: "error",
+        };
+        break;
+      }
+      setStatus({ text: `Uploading ${file.name}…`, tone: "ok" });
+      const res = await uploadAsset(file);
+      if (!res.ok) {
+        // Stop rather than plough on: the usual reason is the plan's file
+        // limit, which the next file would hit too.
+        last = { text: res.error, tone: "error" };
+        break;
+      }
+      const asset = res.asset;
+
+      if (asset.kind === "font") {
+        last = {
+          text: `Added ${asset.fontFamily}. Choose it under a text layer's Font.`,
+          tone: "ok",
+        };
+        continue;
+      }
+
+      const natural = await imageSize(file);
+      const bound = Math.round(canvas.width * 0.35);
+      let w = 200;
+      let h = 200;
+      if (natural) {
+        // Never enlarge: a 40px icon dropped on the card stays 40px.
+        const k = Math.min(bound / natural.w, bound / natural.h, 1);
+        w = Math.max(8, Math.round(natural.w * k));
+        h = Math.max(8, Math.round(natural.h * k));
+      }
+      // Centre it on the drop point, then keep it on the canvas. Several
+      // files at once cascade so they don't land exactly on top of each
+      // other.
+      const cascade = placed * 24;
+      const id = newId("image");
+      setSpec((prev) => ({
+        ...prev,
+        layers: [
+          ...prev.layers,
+          {
+            id,
+            type: "image",
+            assetId: asset.id,
+            x: clamp(at.x - Math.round(w / 2) + cascade, 0, canvas.width - w),
+            y: clamp(at.y - Math.round(h / 2) + cascade, 0, canvas.height - h),
+            w,
+            h,
+            fit: "contain",
+            radius: 0,
+            opacity: 1,
+            rotate: 0,
+          },
+        ],
+      }));
+      setSelectedId(id);
+      setDirty(true);
+      placed++;
+      last = null;
+    }
+
+    setStatus(last);
+    await refreshAssets();
+  }
+
   async function refreshAssets() {
     const res = await fetch("/api/assets");
     if (!res.ok) return;
@@ -187,7 +281,10 @@ export default function TemplateEditor({
     try {
       const parsed = templateSpecSchema.safeParse(spec);
       if (!parsed.success) {
-        setStatus(parsed.error.issues[0]?.message ?? "Design is not valid");
+        setStatus({
+          text: parsed.error.issues[0]?.message ?? "Design is not valid",
+          tone: "error",
+        });
         return;
       }
       const res = await fetch(`/api/templates/${templateId}`, {
@@ -197,14 +294,14 @@ export default function TemplateEditor({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setStatus(data.error ?? "Could not save");
+        setStatus({ text: data.error ?? "Could not save", tone: "error" });
         return;
       }
       if (data.template?.slug && data.template.slug !== slug) {
         setSlug(data.template.slug);
       }
       setDirty(false);
-      setStatus("Saved");
+      setStatus({ text: "Saved", tone: "ok" });
       router.refresh();
     } finally {
       setSaving(false);
@@ -321,9 +418,9 @@ export default function TemplateEditor({
         <div className="flex items-center gap-3">
           {status ? (
             <span
-              className={`text-sm ${status === "Saved" ? "text-emerald-400" : "text-red-400"}`}
+              className={`text-sm ${status.tone === "ok" ? "text-emerald-400" : "text-red-400"}`}
             >
-              {status}
+              {status.text}
             </span>
           ) : null}
           <button
@@ -346,6 +443,7 @@ export default function TemplateEditor({
               selectedId={selectedId}
               onSelect={setSelectedId}
               onChangeLayer={updateLayer}
+              onDropFiles={dropFiles}
               width={canvasWidth}
             />
           </div>
@@ -379,8 +477,9 @@ export default function TemplateEditor({
           </div>
 
           <p className="text-xs text-zinc-500">
-            Drag layers to move them, arrow keys to nudge (hold Shift for 10px,
-            Alt while dragging for exact pixels).
+            Drag an image or font file onto the card to add it. Drag layers to
+            move them, arrow keys to nudge (hold Shift for 10px, Alt while
+            dragging for exact pixels).
           </p>
 
           {previewError ? (
@@ -434,6 +533,8 @@ export default function TemplateEditor({
             <AssetManager
               assets={assets}
               limit={assetLimit}
+              usedHere={usedHere}
+              currentTemplateId={templateId}
               onChange={refreshAssets}
             />
           ) : (
@@ -441,6 +542,7 @@ export default function TemplateEditor({
               <BackgroundInspector
                 background={spec.background}
                 images={assets.filter((a) => a.kind === "image")}
+                usedIds={usedHere}
                 onChange={(background) => {
                   setSpec((prev) => ({ ...prev, background }));
                   setDirty(true);
@@ -498,6 +600,7 @@ export default function TemplateEditor({
                   <LayerInspector
                     layer={selected}
                     assets={assets}
+                    usedIds={usedHere}
                     onChange={(patch) => updateLayer(selected.id, patch)}
                     onDelete={() => deleteLayer(selected.id)}
                     onAssetsChanged={refreshAssets}

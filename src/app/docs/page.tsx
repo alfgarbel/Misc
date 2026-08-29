@@ -401,6 +401,13 @@ signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</Cod
 
         <h3 className="mt-8 text-lg font-semibold">Fonts and images</h3>
         <p className="mt-4 text-sm text-zinc-400">
+          Drag a file straight onto the card to add it: an image lands where
+          you dropped it, at its own proportions, and a font becomes available
+          to your text layers. The image picker and the font control each
+          upload too, and the Assets tab lists everything you have, what each
+          file is used by, and how much of your quota is left.
+        </p>
+        <p className="mt-4 text-sm text-zinc-400">
           Upload fonts as <code className="text-zinc-300">TTF</code>,{" "}
           <code className="text-zinc-300">OTF</code> or{" "}
           <code className="text-zinc-300">WOFF</code>, and images as{" "}

@@ -3,7 +3,12 @@ import { and, eq, sql, desc } from "drizzle-orm";
 import type { Database } from "./db";
 import { templates } from "./db/schema";
 import type { TemplateRow } from "./db/schema";
-import { parseSpec, templateSpecSchema, type TemplateSpec } from "./og/spec";
+import {
+  parseSpec,
+  specAssetIds,
+  templateSpecSchema,
+  type TemplateSpec,
+} from "./og/spec";
 
 /** URL-safe and stable: this is what goes in ?tpl= on every published card. */
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
@@ -60,6 +65,47 @@ export async function listTemplates(
     .from(templates)
     .where(eq(templates.userId, userId))
     .orderBy(desc(templates.updatedAt));
+}
+
+/** A template that points at a given asset. */
+export interface AssetUse {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+/**
+ * Which templates reference each asset, keyed by asset id.
+ *
+ * Deleting an asset a template still points at breaks every card that
+ * template renders, so this is what the editor shows next to each file —
+ * before you try to delete it, rather than as a refusal afterwards.
+ *
+ * This reflects saved templates. The design open in the editor may have
+ * unsaved changes, so the editor treats its own live spec as the truth for
+ * itself and uses this for every other template.
+ */
+export async function assetUsage(
+  db: Database,
+  userId: string
+): Promise<Record<string, AssetUse[]>> {
+  const rows = await listTemplates(db, userId);
+  const usage: Record<string, AssetUse[]> = {};
+  for (const row of rows) {
+    const spec = parseSpec(row.spec);
+    // An unparseable template still renders nothing, but it also cannot be
+    // proven to be free of the asset — skipping it only ever under-reports,
+    // and the delete route runs the same code, so both agree.
+    if (!spec.success) continue;
+    for (const assetId of specAssetIds(spec.data)) {
+      (usage[assetId] ??= []).push({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+      });
+    }
+  }
+  return usage;
 }
 
 /** Always scoped by user: a template id alone must never grant access. */

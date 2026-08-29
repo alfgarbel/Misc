@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { EditorAsset } from "./types";
+import { uploadAsset } from "./upload";
 
 /**
  * Choosing an image by looking at it.
@@ -16,6 +17,7 @@ import type { EditorAsset } from "./types";
 export default function AssetPicker({
   images,
   selectedId,
+  usedIds,
   onSelect,
   onUploaded,
   onRenamed,
@@ -24,6 +26,8 @@ export default function AssetPicker({
 }: {
   images: EditorAsset[];
   selectedId: string | null;
+  /** Everything the design already uses, so a tile can say it's in play. */
+  usedIds?: Set<string>;
   onSelect: (id: string) => void;
   onUploaded: () => void | Promise<void>;
   onRenamed?: () => void | Promise<void>;
@@ -42,17 +46,14 @@ export default function AssetPicker({
     setBusy(true);
     setError(null);
     try {
-      const body = new FormData();
-      body.set("file", file);
-      const res = await fetch("/api/assets", { method: "POST", body });
-      const data = await res.json().catch(() => ({}));
+      const res = await uploadAsset(file);
       if (!res.ok) {
-        setError(data.error ?? "Upload failed");
+        setError(res.error);
         return;
       }
       await onUploaded();
       // Uploading from here means you wanted to use it, so select it.
-      if (data.asset?.id) onSelect(data.asset.id);
+      onSelect(res.asset.id);
     } finally {
       setBusy(false);
     }
@@ -90,7 +91,7 @@ export default function AssetPicker({
           {images.map((a) => {
             const isSelected = a.id === selectedId;
             return (
-              <li key={a.id} className="min-w-0">
+              <li key={a.id} className="relative min-w-0">
                 <button
                   type="button"
                   aria-pressed={isSelected}
@@ -117,6 +118,15 @@ export default function AssetPicker({
                     {a.name}
                   </span>
                 </button>
+                {/* Already somewhere on the card, just not in this slot —
+                    worth knowing before you place the same logo twice. */}
+                {!isSelected && usedIds?.has(a.id) ? (
+                  <span
+                    aria-hidden
+                    title="Already used elsewhere on this card"
+                    className="pointer-events-none absolute left-1 top-1 h-1.5 w-1.5 rounded-full bg-indigo-400"
+                  />
+                ) : null}
               </li>
             );
           })}

@@ -35,6 +35,7 @@ export default function EditorCanvas({
   selectedId,
   onSelect,
   onChangeLayer,
+  onDropFiles,
   width,
 }: {
   spec: TemplateSpec;
@@ -43,12 +44,15 @@ export default function EditorCanvas({
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   onChangeLayer: (id: string, patch: Partial<Layer>) => void;
+  /** Files dropped on the card, with the drop point in design pixels. */
+  onDropFiles?: (files: File[], at: { x: number; y: number }) => void;
   width: number;
 }) {
   const canvas = canvasOfSpec(spec);
   const scale = width / canvas.width;
   const drag = useRef<DragState | null>(null);
   const [, force] = useState(0);
+  const [dropping, setDropping] = useState(false);
 
   const bg = spec.background;
   const bgAsset =
@@ -101,6 +105,32 @@ export default function EditorCanvas({
       }}
       onPointerDown={(e) => {
         if (e.target === e.currentTarget) onSelect(null);
+      }}
+      // Dropping a file on the card is the shortest path from "I have a
+      // logo" to "the logo is on the card": it uploads and places in one
+      // gesture, with no tab to find first.
+      onDragOver={(e) => {
+        if (!onDropFiles || !e.dataTransfer.types.includes("Files")) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        setDropping(true);
+      }}
+      onDragLeave={(e) => {
+        // Moving onto a layer inside the card is not leaving the card.
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+        setDropping(false);
+      }}
+      onDrop={(e) => {
+        if (!onDropFiles) return;
+        e.preventDefault();
+        setDropping(false);
+        const files = [...e.dataTransfer.files];
+        if (files.length === 0) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        onDropFiles(files, {
+          x: Math.round((e.clientX - rect.left) / scale),
+          y: Math.round((e.clientY - rect.top) / scale),
+        });
       }}
     >
       {bgAsset ? (
@@ -246,6 +276,14 @@ export default function EditorCanvas({
           </div>
         );
       })}
+
+      {dropping ? (
+        // pointer-events-none, or the overlay would swallow the drop it is
+        // there to advertise.
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-400 bg-indigo-950/70 text-sm font-medium text-indigo-100">
+          Drop to add it to the card
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -3,8 +3,7 @@ import { getDb } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { deleteAsset, getOwnedAsset, renameAsset } from "@/lib/assets";
 import { z } from "zod";
-import { listTemplates } from "@/lib/templates";
-import { parseSpec, specAssetIds } from "@/lib/og/spec";
+import { assetUsage } from "@/lib/templates";
 
 export const runtime = "nodejs";
 
@@ -66,12 +65,11 @@ export async function DELETE(
   const db = getDb();
 
   // Deleting an asset a template still points at would silently break every
-  // card that template renders, so name the templates instead.
-  const rows = await listTemplates(db, user.id);
-  const usedBy = rows.filter((row) => {
-    const spec = parseSpec(row.spec);
-    return spec.success && specAssetIds(spec.data).includes(id);
-  });
+  // card that template renders, so name the templates instead. The editor
+  // shows the same usage up front, from the same helper, so the two cannot
+  // disagree about what is in use.
+  const usage = await assetUsage(db, user.id);
+  const usedBy = usage[id] ?? [];
   if (usedBy.length > 0) {
     return NextResponse.json(
       {

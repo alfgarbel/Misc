@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getUserPlan } from "@/lib/usage";
 import { PLANS } from "@/lib/plans";
 import { createAsset, listAssets, MAX_ASSET_BYTES } from "@/lib/assets";
+import { assetUsage } from "@/lib/templates";
 
 export const runtime = "nodejs";
 
@@ -13,11 +14,17 @@ export async function GET() {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
   const db = getDb();
-  const [assets, plan] = await Promise.all([
+  const [assets, plan, usage] = await Promise.all([
     listAssets(db, user.id),
     getUserPlan(db, user.id),
+    assetUsage(db, user.id),
   ]);
-  return NextResponse.json({ assets, limit: PLANS[plan].assets });
+  // Sent with the list so the editor can say what a file is used by, rather
+  // than the user finding out from a refused delete.
+  return NextResponse.json({
+    assets: assets.map((a) => ({ ...a, usedBy: usage[a.id] ?? [] })),
+    limit: PLANS[plan].assets,
+  });
 }
 
 export async function POST(req: NextRequest) {
