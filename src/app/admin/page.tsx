@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import AdminBarChart from "@/components/AdminBarChart";
+import ProspectPanel from "@/components/admin/ProspectPanel";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { getAdminMetrics, isAdminUser } from "@/lib/admin";
+import { listScans } from "@/lib/prospects";
 
 export const metadata: Metadata = { title: "Admin" };
 export const dynamic = "force-dynamic";
@@ -24,7 +26,11 @@ export default async function AdminPage() {
   // Non-admins get a 404, not a 403, so the page's existence isn't revealed.
   if (!user || !isAdminUser(user)) notFound();
 
-  const m = await getAdminMetrics(getDb());
+  const db = getDb();
+  const [m, scans] = await Promise.all([
+    getAdminMetrics(db),
+    listScans(db, user.id),
+  ]);
   const verifiedPct =
     m.totalUsers > 0 ? Math.round((m.verifiedUsers / m.totalUsers) * 100) : 0;
   const planMax = Math.max(1, m.planCounts.free, m.planCounts.pro, m.planCounts.scale);
@@ -127,6 +133,8 @@ export default async function AdminPage() {
             )}
           </div>
         </div>
+
+        <ProspectPanel initialScans={scans} />
       </main>
     </>
   );

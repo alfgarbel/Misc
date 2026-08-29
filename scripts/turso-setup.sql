@@ -217,6 +217,44 @@ CREATE INDEX `webhooks_user_id_idx` ON `webhooks` (`user_id`);
 -- ---------- 0010_add_trial ----------
 ALTER TABLE `users` ADD `trial_ends_at` integer;
 
+-- ---------- 0011_add_prospect_scans ----------
+CREATE TABLE `prospect_rows` (
+	`scan_id` text NOT NULL,
+	`idx` integer NOT NULL,
+	`input` text NOT NULL,
+	`url` text,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`verdict` text,
+	`qualified` integer DEFAULT false NOT NULL,
+	`finding_id` text,
+	`reason` text,
+	`claim` text,
+	`page_url` text,
+	`domain` text,
+	`title` text,
+	`description` text,
+	`site_name` text,
+	`findings` text,
+	`checked_at` integer,
+	PRIMARY KEY(`scan_id`, `idx`),
+	FOREIGN KEY (`scan_id`) REFERENCES `prospect_scans`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE TABLE `prospect_scans` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`name` text DEFAULT 'Scan' NOT NULL,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`tier` text DEFAULT 'strict' NOT NULL,
+	`total` integer DEFAULT 0 NOT NULL,
+	`done` integer DEFAULT 0 NOT NULL,
+	`qualified` integer DEFAULT 0 NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`completed_at` integer,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+CREATE INDEX `prospect_scans_user_id_idx` ON `prospect_scans` (`user_id`);
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -234,3 +272,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('d8a30cf4a41abfef
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('7bc5a3806a067a227abf9138b30e7800442d8a3db1c7f0c0676a9f2f6b75b66e', 1787838555238);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('196288e33bcf1992db79f6aa44234e86f455a67b7acfb19c0e006bfdca1101c1', 1787845461443);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('86138e2ccae7024a2820b5a40503be93d43f75401b5d0bbe05ae030992ddad45', 1787847110829);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('8fb55b5528aeab8c22e0839f7cc6ae7aa9c6b61b4b5d5a953a91e81cf658ee4d', 1788039121315);

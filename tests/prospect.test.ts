@@ -130,11 +130,15 @@ describe("the email", () => {
   const r = report("<head><title>Acme</title></head>");
 
   it("states the finding, links the free tool, and offers an opt-out", () => {
-    const { subject, body } = draftEmail(r, prospect, {
-      signature: "— Alf",
-      checkerBase: "https://ogsmith.app",
-      attachmentName: "acme-com.png",
-    });
+    const { subject, body } = draftEmail(
+      { pageUrl: r.pageUrl, domain: r.meta.domain },
+      { claim: prospect.claim, findingId: prospect.finding.id },
+      {
+        signature: "— Alf",
+        checkerBase: "https://ogsmith.app",
+        attachmentName: "acme-com.png",
+      }
+    );
     expect(subject).toContain("acme.com");
     expect(body).toContain("https://acme.com/pricing");
     expect(body).toContain("acme-com.png");
@@ -146,8 +150,10 @@ describe("the email", () => {
   it("does not claim there is no image when the image is merely broken", () => {
     const broken = report(good, { ok: false, fault: "unreachable", detail: "404" });
     const p = qualify(broken) as Prospect;
-    expect(subjectFor(broken, p)).toMatch(/looks broken/);
-    expect(subjectFor(broken, p)).not.toMatch(/show no preview image/);
+    expect(subjectFor(broken.meta.domain, p.finding.id)).toMatch(/looks broken/);
+    expect(subjectFor(broken.meta.domain, p.finding.id)).not.toMatch(
+      /show no preview image/
+    );
   });
 });
 

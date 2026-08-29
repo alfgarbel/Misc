@@ -354,7 +354,84 @@ export const webhookDeliveries = sqliteTable(
   (t) => [index("webhook_deliveries_webhook_id_idx").on(t.webhookId)]
 );
 
+/**
+ * A prospecting run: a list of sites, checked for broken link previews.
+ *
+ * Kept separate from `batches` despite the similar shape. A batch renders
+ * cards the account owns; a scan reads other people's sites and judges
+ * them, and merging the two would put "is this stranger worth emailing"
+ * into the code path that serves customers their own images.
+ */
+export const prospectScans = sqliteTable(
+  "prospect_scans",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull().default("Scan"),
+    // "pending" | "running" | "completed"
+    status: text("status").notNull().default("pending"),
+    // "strict" | "wide"
+    tier: text("tier").notNull().default("strict"),
+    total: integer("total").notNull().default(0),
+    done: integer("done").notNull().default(0),
+    qualified: integer("qualified").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+  },
+  (t) => [index("prospect_scans_user_id_idx").on(t.userId)]
+);
+
+export const prospectRows = sqliteTable(
+  "prospect_rows",
+  {
+    scanId: text("scan_id")
+      .notNull()
+      .references(() => prospectScans.id, { onDelete: "cascade" }),
+    idx: integer("idx").notNull(),
+    /** The line exactly as it was pasted in. */
+    input: text("input").notNull(),
+    /** The absolute URL we actually fetched, once coerced. */
+    url: text("url"),
+    // "pending" | "checked" | "skipped" | "error"
+    status: text("status").notNull().default("pending"),
+    // "broken" | "degraded" | "good"
+    verdict: text("verdict"),
+    qualified: integer("qualified", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    /** The finding the email would lead with. */
+    findingId: text("finding_id"),
+    /** Why it didn't qualify, or why it couldn't be read. */
+    reason: text("reason"),
+    /** The clause the email uses, stored so the draft is reproducible. */
+    claim: text("claim"),
+    pageUrl: text("page_url"),
+    domain: text("domain"),
+    /**
+     * Enough of the page to re-render its card and re-draft the email
+     * without reading the site again. Cheaper than storing the PNG, and it
+     * means a card shown a week later still matches the finding.
+     */
+    title: text("title"),
+    description: text("description"),
+    siteName: text("site_name"),
+    /** Space-joined finding ids, for the CSV. */
+    findings: text("findings"),
+    checkedAt: integer("checked_at", { mode: "timestamp" }),
+  },
+  (t) => [primaryKey({ columns: [t.scanId, t.idx] })]
+);
+
 export type User = typeof users.$inferSelect;
+export type ProspectScanRow = typeof prospectScans.$inferSelect;
+export type ProspectItemRow = typeof prospectRows.$inferSelect;
 export type BatchRow = typeof batches.$inferSelect;
 export type BatchItemRow = typeof batchRows.$inferSelect;
 export type WebhookRow = typeof webhooks.$inferSelect;

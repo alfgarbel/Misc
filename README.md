@@ -123,6 +123,13 @@ Run tests with `npm test`. Build with `npm run build`.
 
 ## Finding people to write to
 
+There are two ways in: the **Prospecting panel on `/admin`**, which is the one
+to reach for — paste sites, watch them get read, and see each prospect with the
+card it could have and a drafted email you can copy. Scans are kept, so you can
+come back to one later, and every scan has a CSV download.
+
+The command line does the same job for larger runs and needs no deploy:
+
 `npm run prospect` reads a list of domains, checks each one's link preview,
 and builds a review queue of the sites whose cards are genuinely broken —
 with a card rendered from that page's own title and description, and a draft
