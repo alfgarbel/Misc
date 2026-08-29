@@ -4,7 +4,14 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { UpgradeButton } from "@/components/BillingButtons";
 import { getCurrentUser } from "@/lib/auth";
-import { PLANS, VAT_NOTE, VAT_SHORT, type Plan } from "@/lib/plans";
+import {
+  AGENCY_PREVIEW,
+  PLANS,
+  VAT_NOTE,
+  VAT_SHORT,
+  type Plan,
+} from "@/lib/plans";
+import { contactEmail } from "@/lib/stripe";
 
 import { TRIAL_DAYS } from "@/lib/trial";
 
@@ -36,6 +43,63 @@ function PlanFeatures({ plan }: { plan: Plan }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * Advertised, not purchasable. It is visually quieter than the real plans
+ * and has no price button, because a card someone can't buy sitting in a
+ * row of ones they can is a small trap.
+ */
+function AgencyPreview() {
+  const email = contactEmail();
+  return (
+    <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/30 p-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-xl font-semibold">{AGENCY_PREVIEW.name}</h2>
+            <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-0.5 text-xs font-medium text-amber-300">
+              Coming soon
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-zinc-500">
+            {AGENCY_PREVIEW.description}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-3xl font-bold text-zinc-300">
+            ${AGENCY_PREVIEW.priceMonthlyUsd}
+            <span className="text-base font-normal text-zinc-500">/mo</span>
+          </p>
+          <p className="mt-1 text-xs text-zinc-500">{VAT_SHORT}</p>
+        </div>
+      </div>
+
+      <ul className="mt-6 grid gap-2 text-sm text-zinc-400 sm:grid-cols-2">
+        {AGENCY_PREVIEW.features.map((f) => (
+          <li key={f} className="flex items-start gap-2">
+            <span className="mt-0.5 text-zinc-600">+</span>
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        {email ? (
+          <a
+            href={`mailto:${email}?subject=${encodeURIComponent("Agency plan — put me on the list")}`}
+            className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium hover:border-zinc-500"
+          >
+            Tell us you want it
+          </a>
+        ) : null}
+        <p className="text-sm text-zinc-500">
+          Multi-brand workspaces are next on the roadmap. Scale covers
+          everything else in the meantime.
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -104,6 +168,9 @@ export default async function PricingPage() {
             </div>
           ))}
         </div>
+
+        <AgencyPreview />
+
         <p className="mt-10 text-center text-sm text-zinc-500">
           Renders that hit the CDN cache don&apos;t count against your quota.
           Need more than 150k renders? <span className="text-zinc-300">Get in touch.</span>

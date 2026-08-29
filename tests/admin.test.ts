@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { createTestDb } from "./helpers";
 import { users, subscriptions, usage, apiKeys } from "@/lib/db/schema";
 import { isAdminEmail, isAdminUser, getAdminMetrics } from "@/lib/admin";
+import { PLANS } from "@/lib/plans";
 
 describe("isAdminEmail", () => {
   beforeEach(() => {
@@ -93,7 +94,9 @@ describe("getAdminMetrics", () => {
     expect(m.verifiedUsers).toBe(3);
     expect(m.planCounts).toEqual({ free: 2, pro: 1, scale: 1 });
     expect(m.payingCustomers).toBe(2);
-    expect(m.mrrUsd).toBe(9 + 29);
+    // Derived, not hard-coded: this asserts the sum is right, not what the
+    // prices happen to be today.
+    expect(m.mrrUsd).toBe(PLANS.pro.priceMonthlyUsd + PLANS.scale.priceMonthlyUsd);
     expect(m.activeKeys).toBe(2);
     expect(m.rendersThisMonth).toBe(1730);
   });

@@ -37,7 +37,7 @@ export default async function AdminPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Tile
-            label="MRR"
+            label="MRR at list price"
             value={`$${m.mrrUsd.toLocaleString()}`}
             sub={`${m.payingCustomers} paying customer${m.payingCustomers === 1 ? "" : "s"}`}
           />
