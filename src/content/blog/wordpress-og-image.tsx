@@ -6,7 +6,7 @@ export const meta: PostMeta = {
   slug: "wordpress-og-image",
   title: "Automatic Open Graph images in WordPress",
   description:
-    "Give every WordPress post and page a proper social card without designing one each time: a few lines in functions.php, or a Yoast SEO filter if you already use it.",
+    "Give every WordPress post and page a proper social card without designing one each time: a free plugin, a few lines in functions.php, or a Yoast SEO filter.",
   cardSubtitle: "A card for every post, without opening Canva.",
   date: "2026-10-11",
   readingMinutes: 4,
@@ -21,6 +21,24 @@ export default function Post() {
         card made from its own title, in your colours.
       </Lead>
 
+      <H2 id="plugin">The plugin: no code</H2>
+      <P>
+        Download the{" "}
+        <a href="/downloads/ogsmith-wordpress.zip" className="text-indigo-400 hover:underline">
+          OGsmith plugin for WordPress
+        </a>
+        , then upload it under Plugins → Add New → Upload Plugin and activate
+        it. Under Settings → OGsmith, paste your Account ID and signing secret
+        from the dashboard&apos;s Signed URLs panel. Every post, page and the
+        home page then gets a card made from its title and excerpt, and the
+        settings page shows a preview.
+      </P>
+      <P>
+        It works next to Yoast SEO, Rank Math and similar plugins: their
+        image tags are swapped for the card, so each page keeps exactly one{" "}
+        <Code>og:image</Code>. The rest of this post is for doing the same by
+        hand.
+      </P>
       <H2 id="no-seo-plugin">Without an SEO plugin</H2>
       <P>
         Add this to your child theme&apos;s <Code>functions.php</Code>, or to
