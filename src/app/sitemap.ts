@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { appUrl } from "@/lib/stripe";
 import { allPosts } from "@/lib/blog";
 import { PLATFORM_PAGES } from "@/lib/checker/platforms";
+import { COMPARISONS } from "@/lib/compare";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = appUrl();
@@ -23,5 +24,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly" as const,
     priority: 0.8,
   }));
-  return [...pages, ...checkers, ...posts];
+  const comparisons = COMPARISONS.map((c) => ({
+    url: `${base}/vs/${c.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+  return [...pages, ...checkers, ...comparisons, ...posts];
 }

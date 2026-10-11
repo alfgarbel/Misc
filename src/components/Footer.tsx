@@ -2,6 +2,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import { contactEmail } from "@/lib/stripe";
 import { PLATFORM_PAGES } from "@/lib/checker/platforms";
+import { COMPARISONS } from "@/lib/compare";
 
 const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string }> }> = [
   {
@@ -22,6 +23,7 @@ const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string
     links: [
       { href: "/docs", label: "Docs" },
       { href: "/blog", label: "Writing" },
+      ...COMPARISONS.map((c) => ({ href: `/vs/${c.slug}`, label: `vs ${c.name}` })),
     ],
   },
   {
