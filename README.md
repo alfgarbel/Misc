@@ -12,7 +12,7 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
 ## Why this is a business
 
 - **Proven market.** Bannerbear, Placid, and Dynapictures charge $29–$89/mo for
-  the same job. OGsmith undercuts them at $9/mo with a developer-first API.
+  the same job. OGsmith undercuts them at $19/mo with a developer-first API.
 - **Near-zero marginal cost.** Rendering uses satori (no headless browser), so
   it runs on serverless functions; responses are CDN-cached, so most crawler
   traffic never even hits the API. Free tier costs pennies.
@@ -22,8 +22,8 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
 | Plan  | Price  | Renders/mo | Watermark |
 | ----- | ------ | ---------- | --------- |
 | Free  | $0     | 500        | Yes       |
-| Pro   | $9/mo  | 20,000     | No        |
-| Scale | $29/mo | 150,000    | No        |
+| Pro   | $19/mo | 20,000     | No        |
+| Scale | $49/mo | 150,000    | No        |
 
 ## What's inside
 
@@ -109,7 +109,7 @@ Run tests with `npm test`. Build with `npm run build`.
 2. **Host (Vercel, free):** import the repo, set env vars from `.env.example`
    (`AUTH_SECRET`, `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `ADMIN_EMAILS`,
    `NEXT_PUBLIC_APP_URL=https://your-domain`).
-3. **Stripe:** create two recurring prices (Pro $9/mo, Scale $29/mo), set
+3. **Stripe:** create two recurring prices (Pro $19/mo, Scale $49/mo), set
    `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_SCALE`. Add a
    webhook endpoint `https://your-domain/api/stripe/webhook` subscribed to
    `checkout.session.completed`, `customer.subscription.updated`,
@@ -119,7 +119,10 @@ Run tests with `npm test`. Build with `npm run build`.
 4. **Email (Resend, free tier):** set `RESEND_API_KEY` and `EMAIL_FROM` to
    send real verification/reset emails; without them the flows log links to
    the server console.
-5. **Domain:** point one at the deployment and update `NEXT_PUBLIC_APP_URL`.
+5. **Lifecycle emails:** set `CRON_SECRET` to any long random string. Vercel
+   Cron then calls `/api/cron/activation` daily (see `vercel.json`) to send
+   the day-3 nudge and the trial-ending reminder. Without it, none go out.
+6. **Domain:** point one at the deployment and update `NEXT_PUBLIC_APP_URL`.
 
 ## Finding people to write to
 
