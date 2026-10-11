@@ -8,6 +8,8 @@ import { googleConfigured } from "@/lib/oauth";
 import RememberUrl from "@/components/onboarding/RememberUrl";
 import { coerceUrl } from "@/lib/checker";
 import { TRIAL_DAYS } from "@/lib/trial";
+import { getDb } from "@/lib/db";
+import { saveOnboardingUrl } from "@/lib/onboarding";
 
 export const metadata: Metadata = { title: "Sign up" };
 export const dynamic = "force-dynamic";
@@ -17,10 +19,18 @@ export default async function SignupPage({
 }: {
   searchParams: Promise<{ error?: string; url?: string }>;
 }) {
-  if (await getCurrentUser().catch(() => null)) redirect("/dashboard");
   const { error, url } = await searchParams;
   // Arriving from the checker: the dashboard will open on this page's card.
   const fromCheck = url ? coerceUrl(url) : null;
+  const user = await getCurrentUser().catch(() => null);
+  if (user) {
+    // Already signed in: keep the page they just checked, unless their
+    // card is already live and the checklist is gone anyway.
+    if (fromCheck && !user.liveAt) {
+      await saveOnboardingUrl(getDb(), user.id, fromCheck, { overwrite: true });
+    }
+    redirect("/dashboard");
+  }
   const domain = fromCheck ? new URL(fromCheck).hostname.replace(/^www\./, "") : null;
   const google = googleConfigured();
 

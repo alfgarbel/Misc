@@ -72,8 +72,12 @@ export default function ActivationChecklist({
     null
   );
   const objectUrl = useRef<string | null>(null);
+  // Each preview reads the user's site, so an unchanged address isn't re-read.
+  const previewed = useRef<string | null>(null);
 
   const renderPreview = useCallback(async (target: string) => {
+    if (previewed.current === target) return;
+    previewed.current = target;
     setPreviewError(null);
     try {
       const res = await fetch("/api/url-preview/render", {
@@ -84,6 +88,7 @@ export default function ActivationChecklist({
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setPreviewError(data.error ?? "We couldn't read that page.");
+        previewed.current = null;
         return;
       }
       const next = URL.createObjectURL(await res.blob());
@@ -92,6 +97,7 @@ export default function ActivationChecklist({
       setPreview(next);
     } catch {
       setPreviewError("We couldn't reach that page.");
+      previewed.current = null;
     }
   }, []);
 
@@ -156,6 +162,8 @@ export default function ActivationChecklist({
       }
       setResult({ status: data.status, message: data.message });
       if (data.status === "live") router.refresh();
+    } catch {
+      setResult({ status: "error", message: "We couldn't reach the server. Check your connection and try again." });
     } finally {
       setChecking(false);
     }
@@ -242,8 +250,8 @@ export default function ActivationChecklist({
               {checking ? "Checking…" : "Check my page"}
             </button>
             <p className="text-xs text-zinc-500">
-              This also completes on its own the first time someone shares the
-              page on X, LinkedIn, Slack or WhatsApp.
+              This can also complete on its own when X, LinkedIn, Slack or
+              WhatsApp first fetch your card.
             </p>
           </form>
           {result ? (

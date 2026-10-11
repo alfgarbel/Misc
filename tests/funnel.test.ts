@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { createTestDb } from "./helpers";
-import { users, subscriptions, events } from "@/lib/db/schema";
+import { users, subscriptions, events, usage } from "@/lib/db/schema";
 import { getFunnel, isSocialCrawler, markLive, recordEvent, trackRender } from "@/lib/funnel";
 import { classifyOgImage, saveOnboardingUrl } from "@/lib/onboarding";
 import { createApiKey, revokeApiKey } from "@/lib/keys";
@@ -19,7 +19,9 @@ const DAY = 24 * 60 * 60 * 1000;
 
 async function seedUser(db: Db, fields: Partial<typeof users.$inferInsert> = {}) {
   const id = randomUUID();
-  await db.insert(users).values({ id, email: `${id}@t.dev`, passwordHash: "x", ...fields });
+  await db
+    .insert(users)
+    .values({ id, email: `${id}@t.dev`, passwordHash: "x", emailVerifiedAt: new Date(0), ...fields });
   await db.insert(subscriptions).values({ userId: id, plan: "free" });
   return id;
 }
@@ -198,6 +200,16 @@ describe("activation emails", () => {
     expect(await runActivationEmails(db, now)).toEqual({ nudged: 0, reminded: 0 });
   });
 
+  it("skips unverified addresses and retries a send that failed", async () => {
+    const db = await createTestDb();
+    await seedUser(db, { createdAt: new Date(now.getTime() - 4 * DAY), emailVerifiedAt: null });
+    const stuck = await seedUser(db, { createdAt: new Date(now.getTime() - 4 * DAY) });
+    vi.mocked(sendEmail).mockResolvedValueOnce(false);
+    expect(await runActivationEmails(db, now)).toEqual({ nudged: 0, reminded: 0 });
+    expect((await loadUser(db, stuck)).nudgeEmailAt).toBeNull();
+    expect(await runActivationEmails(db, now)).toEqual({ nudged: 1, reminded: 0 });
+  });
+
   it("reminds free accounts two days before the trial ends, but not paying ones", async () => {
     const db = await createTestDb();
     const ending = await seedUser(db, {
@@ -222,5 +234,22 @@ describe("activation emails", () => {
     expect(call.to).toBe(`${ending}@t.dev`);
     expect(call.subject).toBe("Your OGsmith trial ends in 2 days");
     expect(await runActivationEmails(db, now)).toEqual({ nudged: 0, reminded: 0 });
+  });
+});
+
+describe("migration backfill", () => {
+  it("treats accounts that rendered before the funnel existed as already live", async () => {
+    // createTestDb applies every migration, including 0012's backfill, to an
+    // empty database; replay its UPDATE against seeded rows to check it.
+    const { readFileSync } = await import("fs");
+    const db = await createTestDb();
+    const active = await seedUser(db);
+    const idle = await seedUser(db);
+    await db.insert(usage).values({ userId: active, month: "2026-09", count: 12 });
+    const sql = readFileSync("drizzle/0012_add_funnel.sql", "utf8");
+    const update = sql.split("--> statement-breakpoint").map((x) => x.trim()).find((x) => x.includes("UPDATE"))!;
+    await db.run(update.replace(/^--.*$/gm, "").trim());
+    expect((await loadUser(db, active)).liveAt).not.toBeNull();
+    expect((await loadUser(db, idle)).firstRenderAt).toBeNull();
   });
 });
