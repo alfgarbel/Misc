@@ -42,7 +42,7 @@ export default function SigningPanel({ accountId }: { accountId: string }) {
           {accountId}
         </code>
         . See the{" "}
-        <a href="/docs#signed-urls" className="text-indigo-400 hover:underline">
+        <a href="/docs/signed-urls" className="text-indigo-400 hover:underline">
           docs
         </a>{" "}
         for the signing snippet.

@@ -49,3 +49,26 @@ describe("machine-readable descriptions", () => {
     expect(names).toEqual(expect.arrayContaining(["title", "url", "template", "size", "sig"]));
   });
 });
+
+describe("docs split into pages", () => {
+  it("gives every section its own page in the sitemap and llms.txt", async () => {
+    const { DOC_SECTIONS } = await import("@/components/docs/sections");
+    const { default: sitemap } = await import("@/app/sitemap");
+    const urls = sitemap().map((e) => e.url);
+    const txt = llmsTxt(base);
+    for (const s of DOC_SECTIONS) {
+      expect(urls.some((u) => u.endsWith(`/docs/${s.slug}`))).toBe(true);
+      expect(txt).toContain(`/docs/${s.slug}`);
+    }
+  });
+
+  it("keeps every section in the one-page Markdown", async () => {
+    const { DOC_SECTIONS } = await import("@/components/docs/sections");
+    const md = htmlToMarkdown(renderToStaticMarkup(createElement(DocsContent, { base })), base);
+    for (const s of DOC_SECTIONS.filter((s) => !s.ownHeadings)) {
+      expect(md).toContain(`## ${s.title}`);
+    }
+    expect(md).toContain("## Quotas & caching");
+    expect(md).toContain(`(${base}/docs/cache-refresh)`);
+  });
+});

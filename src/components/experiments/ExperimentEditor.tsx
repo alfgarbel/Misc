@@ -363,7 +363,7 @@ export default function ExperimentEditor({
           works well. With{" "}
           <code className="text-zinc-400">&amp;url=</code> it defaults to the
           URL. See the{" "}
-          <a href="/docs#experiments" className="text-indigo-400 hover:underline">
+          <a href="/docs/experiments" className="text-indigo-400 hover:underline">
             docs
           </a>{" "}
           for reporting outcomes.
