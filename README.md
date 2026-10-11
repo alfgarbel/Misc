@@ -168,7 +168,10 @@ confirm each claim yourself, and check what GDPR and CAN-SPAM require of you
 
 ## Using OGsmith from Claude (MCP)
 
-`npm run mcp` starts an [MCP](https://modelcontextprotocol.io) server over
+Users install it with `npx -y ogsmith-mcp`: the published package lives in
+[`packages/mcp`](packages/mcp), with its own README and the `server.json`
+for the MCP registry (see "Publishing the MCP package" below). From this
+repo, `npm run mcp` starts the same [MCP](https://modelcontextprotocol.io) server over
 the public API, so Claude (Desktop, Code, or any MCP client) can design cards
 in conversation: render one, look at it, change the template or accent,
 render again, and save the result. It uses an ordinary API key, so quotas,
@@ -244,3 +247,15 @@ for these ten blog titles and give me the zip".
 
 - Custom fonts per account
 - Team accounts with shared billing
+
+## Publishing the MCP package
+
+1. `cd packages/mcp && npm publish` (needs `npm install` at the repo root first;
+   `prepack` bundles `dist/index.js` with esbuild).
+2. List it in the official MCP registry: install
+   [`mcp-publisher`](https://github.com/modelcontextprotocol/registry), then
+   `mcp-publisher login github` and `mcp-publisher publish` from `packages/mcp`.
+   The GitHub login must be `alfgarbel`, which owns the `io.github.alfgarbel/*` namespace.
+3. For a new version, bump `version` in both `package.json` and `server.json`
+   (a test checks they agree).
+

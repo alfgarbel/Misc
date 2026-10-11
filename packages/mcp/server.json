@@ -1,0 +1,34 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.alfgarbel/ogsmith",
+  "title": "OGsmith",
+  "description": "Render, preview and save Open Graph social card images with the OGsmith API.",
+  "websiteUrl": "https://ogsmith.app",
+  "repository": {
+    "url": "https://github.com/alfgarbel/Misc",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "ogsmith-mcp",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "OGSMITH_API_KEY",
+          "description": "Your og_… API key from the OGsmith dashboard. Without it, renders are the watermarked demo.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "OGSMITH_OUTPUT_DIR",
+          "description": "Folder for saved PNGs and batch zips. Defaults to ~/OGsmith.",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}
