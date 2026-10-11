@@ -49,10 +49,24 @@ function remember(url: string, hero: HeroImage | null): HeroImage | null {
  * throws and never explains why: a missing hero image degrades the card,
  * it doesn't fail the render.
  */
+/**
+ * Whether an image URL is itself an OGsmith card. A site that adopts
+ * ?url= puts exactly such a URL in its og:image, so drawing that page's
+ * image into its own card would request the card from inside itself, over
+ * and over. No one wants a card inside a card, whichever deployment drew it.
+ */
+export function isCardUrl(url: string): boolean {
+  try {
+    return new URL(url).pathname === "/api/og";
+  } catch {
+    return false;
+  }
+}
+
 export async function loadHeroImage(
   url: string | null
 ): Promise<HeroImage | null> {
-  if (!url) return null;
+  if (!url || isCardUrl(url)) return null;
 
   const hit = cache.get(url);
   // Failures are cached too, so a broken image isn't refetched on every

@@ -28,9 +28,17 @@ export interface Post {
 import ogImageNotUpdating, {
   meta as ogImageNotUpdatingMeta,
 } from "@/content/blog/og-image-not-updating";
+import nextjsOgImage, { meta as nextjsOgImageMeta } from "@/content/blog/nextjs-og-image";
+import astroOgImage, { meta as astroOgImageMeta } from "@/content/blog/astro-og-image";
+import wordpressOgImage, { meta as wordpressOgImageMeta } from "@/content/blog/wordpress-og-image";
+import webflowOgImage, { meta as webflowOgImageMeta } from "@/content/blog/webflow-og-image";
 
 const POSTS: Post[] = [
   { meta: ogImageNotUpdatingMeta, Body: ogImageNotUpdating },
+  { meta: nextjsOgImageMeta, Body: nextjsOgImage },
+  { meta: astroOgImageMeta, Body: astroOgImage },
+  { meta: wordpressOgImageMeta, Body: wordpressOgImage },
+  { meta: webflowOgImageMeta, Body: webflowOgImage },
 ];
 
 /** Newest first. */
