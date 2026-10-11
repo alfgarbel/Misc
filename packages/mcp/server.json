@@ -19,7 +19,7 @@
       "environmentVariables": [
         {
           "name": "OGSMITH_API_KEY",
-          "description": "Your og_… API key from the OGsmith dashboard. Without it, renders are the watermarked demo.",
+          "description": "Your og_… API key from the OGsmith dashboard. Without it, cards render with the demo watermark.",
           "isRequired": false,
           "isSecret": true
         },

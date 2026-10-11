@@ -226,7 +226,7 @@ export function createOgsmithMcpServer(options: OgsmithMcpOptions): McpServer {
     {
       title: "Render a batch",
       description:
-        "Renders many cards in one go, one row per card, and runs the batch to completion. " +
+        "Renders many cards in one request, one row per card, and runs the batch until it finishes. " +
         "Each row's params are the same parameters render_card takes. " +
         "Use download_batch afterwards to save the zip.",
       inputSchema: {
