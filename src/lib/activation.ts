@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, lte } from "drizzle-orm";
+import { and, eq, gt, isNotNull, isNull, lte } from "drizzle-orm";
 import type { Database } from "./db";
 import { subscriptions, users } from "./db/schema";
 import { sendEmail } from "./mailer";
@@ -16,7 +16,7 @@ const DAY = 24 * 60 * 60 * 1000;
  * someone has forgotten reads as spam, not help.
  *
  * The trial reminder goes two days before the watermark comes back, only to
- * accounts still on the free plan.
+ * accounts still on the free plan. Both go only to verified addresses.
  */
 export const NUDGE_AFTER_DAYS = 3;
 export const NUDGE_UNTIL_DAYS = 7;
@@ -42,6 +42,15 @@ async function claim(
     .set({ [column]: now })
     .where(and(eq(users.id, userId), isNull(users[column])));
   return res.rowsAffected > 0;
+}
+
+/** Gives a claim back after a failed send, so tomorrow's run tries again. */
+async function release(
+  db: Database,
+  userId: string,
+  column: "nudgeEmailAt" | "trialEmailAt"
+): Promise<void> {
+  await db.update(users).set({ [column]: null }).where(eq(users.id, userId));
 }
 
 export function nudgeEmail(onboardingUrl: string | null): {
@@ -98,6 +107,8 @@ export async function runActivationEmails(
       and(
         isNull(users.firstRenderAt),
         isNull(users.nudgeEmailAt),
+        // Unconfirmed addresses may be typos or someone else's inbox.
+        isNotNull(users.emailVerifiedAt),
         lte(users.createdAt, new Date(now.getTime() - NUDGE_AFTER_DAYS * DAY)),
         gt(users.createdAt, new Date(now.getTime() - NUDGE_UNTIL_DAYS * DAY))
       )
@@ -106,6 +117,8 @@ export async function runActivationEmails(
     if (!(await claim(db, user.id, "nudgeEmailAt", now))) continue;
     if (await sendEmail({ to: user.email, ...nudgeEmail(user.onboardingUrl) })) {
       result.nudged += 1;
+    } else {
+      await release(db, user.id, "nudgeEmailAt");
     }
   }
 
@@ -117,6 +130,7 @@ export async function runActivationEmails(
       and(
         eq(subscriptions.plan, "free"),
         isNull(users.trialEmailAt),
+        isNotNull(users.emailVerifiedAt),
         gt(users.trialEndsAt, now),
         lte(users.trialEndsAt, new Date(now.getTime() + TRIAL_REMINDER_DAYS * DAY))
       )
@@ -127,6 +141,8 @@ export async function runActivationEmails(
     const daysLeft = Math.ceil((user.trialEndsAt.getTime() - now.getTime()) / DAY);
     if (await sendEmail({ to: user.email, ...trialEmail(daysLeft) })) {
       result.reminded += 1;
+    } else {
+      await release(db, user.id, "trialEmailAt");
     }
   }
 
