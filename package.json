@@ -10,7 +10,8 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/migrate.mjs",
-    "prospect": "tsx scripts/prospect.ts"
+    "prospect": "tsx scripts/prospect.ts",
+    "mcp": "tsx scripts/mcp.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
@@ -24,6 +25,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
