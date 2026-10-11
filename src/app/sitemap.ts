@@ -7,7 +7,7 @@ import { DOC_SECTIONS } from "@/components/docs/sections";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = appUrl();
-  const pages = ["", "/check", "/blog", "/templates", "/pricing", "/docs", "/signup"].map(
+  const pages = ["", "/check", "/for/marketing", "/blog", "/templates", "/pricing", "/docs", "/signup"].map(
     (path) => ({
       url: `${base}${path}`,
       changeFrequency: "weekly" as const,

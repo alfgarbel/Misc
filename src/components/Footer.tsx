@@ -11,6 +11,7 @@ const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string
       { href: "/check", label: "Link checker" },
       { href: "/templates", label: "Templates" },
       { href: "/pricing", label: "Pricing" },
+      { href: "/for/marketing", label: "For marketing teams" },
     ],
   },
   {
