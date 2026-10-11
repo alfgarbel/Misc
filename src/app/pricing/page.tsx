@@ -18,6 +18,7 @@ import { TRIAL_DAYS } from "@/lib/trial";
 export const metadata: Metadata = {
   title: "Pricing",
   description: `OGsmith pricing: start free with ${TRIAL_DAYS} days without a watermark, then Pro at $${PLANS.pro.priceMonthlyUsd}/month for ${PLANS.pro.monthlyRenders.toLocaleString()} renders. Flat monthly quotas, no overage charges.`,
+  alternates: { canonical: "/pricing" },
 };
 export const dynamic = "force-dynamic";
 

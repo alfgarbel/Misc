@@ -9,7 +9,7 @@ import { getAdminMetrics, isAdminUser } from "@/lib/admin";
 import { listScans } from "@/lib/prospects";
 import { getFunnel } from "@/lib/funnel";
 
-export const metadata: Metadata = { title: "Admin" };
+export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {

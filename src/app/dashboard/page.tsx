@@ -26,7 +26,7 @@ import { refreshStatus } from "@/lib/cachebust";
 import { effectiveWatermark, trialActive, trialDaysLeft, TRIAL_DAYS } from "@/lib/trial";
 import { appUrl } from "@/lib/stripe";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const metadata: Metadata = { title: "Dashboard", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {

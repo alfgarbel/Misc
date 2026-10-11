@@ -6,7 +6,7 @@ import GoogleButton, { GoogleError } from "@/components/GoogleButton";
 import { getCurrentUser } from "@/lib/auth";
 import { googleConfigured } from "@/lib/oauth";
 
-export const metadata: Metadata = { title: "Log in" };
+export const metadata: Metadata = { title: "Log in", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({

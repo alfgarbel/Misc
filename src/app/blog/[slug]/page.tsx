@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { allPosts, formatPostDate, postBySlug } from "@/lib/blog";
+import { jsonLdScript } from "@/lib/llms";
+import { appUrl } from "@/lib/stripe";
 
 export function generateStaticParams() {
   return allPosts().map(({ meta }) => ({ slug: meta.slug }));
@@ -45,6 +47,7 @@ export default async function BlogPost({
   const post = postBySlug(slug);
   if (!post) notFound();
   const { meta, Body } = post;
+  const base = appUrl().replace(/\/$/, "");
 
   return (
     <>
@@ -54,6 +57,22 @@ export default async function BlogPost({
           ← Writing
         </Link>
 
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScript({
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              headline: meta.title,
+              description: meta.description,
+              datePublished: meta.date,
+              url: `${base}/blog/${meta.slug}`,
+              image: `${base}/blog/${meta.slug}/opengraph-image`,
+              author: { "@type": "Organization", name: "OGsmith", url: `${base}/` },
+              publisher: { "@type": "Organization", name: "OGsmith", logo: `${base}/icon.svg` },
+            }),
+          }}
+        />
         <article className="mt-6">
           <h1 className="text-balance text-3xl font-bold leading-tight sm:text-4xl">
             {meta.title}
