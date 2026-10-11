@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TEMPLATES } from "@/lib/og/params";
 import type { Variant } from "@/lib/experiments/spec";
@@ -363,9 +364,9 @@ export default function ExperimentEditor({
           works well. With{" "}
           <code className="text-zinc-400">&amp;url=</code> it defaults to the
           URL. See the{" "}
-          <a href="/docs#experiments" className="text-indigo-400 hover:underline">
+          <Link href="/docs/experiments" className="text-indigo-400 hover:underline">
             docs
-          </a>{" "}
+          </Link>{" "}
           for reporting outcomes.
         </p>
       </div>

@@ -43,9 +43,9 @@ export default function SigningPanel({ accountId }: { accountId: string }) {
           {accountId}
         </code>
         . See the{" "}
-        <a href="/docs#signed-urls" className="text-indigo-400 hover:underline">
+        <Link href="/docs/signed-urls" className="text-indigo-400 hover:underline">
           docs
-        </a>{" "}
+        </Link>{" "}
         for the signing snippet, or use the{" "}
         <Link href="/blog/wordpress-og-image#plugin" className="text-indigo-400 hover:underline">
           WordPress plugin

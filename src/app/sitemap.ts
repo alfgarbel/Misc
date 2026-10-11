@@ -3,10 +3,11 @@ import { appUrl } from "@/lib/stripe";
 import { allPosts } from "@/lib/blog";
 import { PLATFORM_PAGES } from "@/lib/checker/platforms";
 import { COMPARISONS } from "@/lib/compare";
+import { DOC_SECTIONS } from "@/components/docs/sections";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = appUrl();
-  const pages = ["", "/check", "/blog", "/templates", "/pricing", "/docs", "/signup"].map(
+  const pages = ["", "/check", "/for/marketing", "/blog", "/templates", "/pricing", "/docs", "/signup"].map(
     (path) => ({
       url: `${base}${path}`,
       changeFrequency: "weekly" as const,
@@ -29,5 +30,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
-  return [...pages, ...checkers, ...comparisons, ...posts];
+  const docs = DOC_SECTIONS.map((s) => ({
+    url: `${base}/docs/${s.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+  return [...pages, ...checkers, ...comparisons, ...docs, ...posts];
 }
