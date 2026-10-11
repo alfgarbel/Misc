@@ -21,6 +21,7 @@ import {
 } from "@/lib/experiments";
 import { effectiveWatermark } from "@/lib/trial";
 import { trackRender } from "@/lib/funnel";
+import { recordCard } from "@/lib/cards";
 
 export const runtime = "nodejs";
 
@@ -32,7 +33,9 @@ function jsonError(status: number, message: string, extra?: object) {
 }
 
 export async function GET(req: NextRequest) {
-  let params = req.nextUrl.searchParams;
+  const sent = req.nextUrl.searchParams;
+  let params = sent;
+  const userAgent = req.headers.get("user-agent");
   const key = params.get("key");
   const acct = params.get("acct");
 
@@ -85,6 +88,7 @@ export async function GET(req: NextRequest) {
     }
     const resolved = await resolveUrlParams(getDb(), params, sourceUrl);
     if (!resolved.ok) {
+      await recordCard(getDb(), { userId, sent, error: resolved.message, userAgent });
       return jsonError(resolved.status, resolved.message, { url: sourceUrl });
     }
     params = resolved.params;
@@ -169,6 +173,7 @@ export async function GET(req: NextRequest) {
     const quota = await checkAndRecordRender(db, userId);
     await maybeSendQuotaAlert(db, userId, quota.plan, quota.used);
     if (!quota.allowed) {
+      await recordCard(db, { userId, sent, error: "Monthly render quota reached", userAgent });
       return jsonError(
         429,
         `Monthly render quota exceeded (${PLANS[quota.plan].monthlyRenders.toLocaleString()} on the ${PLANS[quota.plan].name} plan). Upgrade at /pricing.`,
@@ -176,7 +181,8 @@ export async function GET(req: NextRequest) {
       );
     }
     if (keyId) await recordKeyRender(db, keyId);
-    await trackRender(db, account, req.headers.get("user-agent"));
+    await trackRender(db, account, userAgent);
+    await recordCard(db, { userId, sent, title: params.get("title"), userAgent });
 
     try {
       const specAssets = await loadSpecAssets(db, spec.data, userId);
@@ -208,6 +214,7 @@ export async function GET(req: NextRequest) {
     const quota = await checkAndRecordRender(db, userId);
     await maybeSendQuotaAlert(db, userId, quota.plan, quota.used);
     if (!quota.allowed) {
+      await recordCard(db, { userId, sent, error: "Monthly render quota reached", userAgent });
       return jsonError(
         429,
         `Monthly render quota exceeded (${PLANS[quota.plan].monthlyRenders.toLocaleString()} on the ${PLANS[quota.plan].name} plan). Upgrade at /pricing.`,
@@ -215,7 +222,7 @@ export async function GET(req: NextRequest) {
       );
     }
     if (keyId) await recordKeyRender(db, keyId);
-    if (account) await trackRender(db, account, req.headers.get("user-agent"));
+    if (account) await trackRender(db, account, userAgent);
     watermark = effectiveWatermark(quota.plan, account ?? { trialEndsAt: null });
     // Custom logo is a paid-plan feature.
     if (!watermark) logo = account?.brandLogo ?? null;
@@ -227,6 +234,17 @@ export async function GET(req: NextRequest) {
   }
 
   const rendered = await renderResolvedCard(params, { watermark, logo, pageMeta });
+  if (userId) {
+    await recordCard(getDb(), {
+      userId,
+      sent,
+      title: params.get("title"),
+      error: rendered.ok
+        ? null
+        : [rendered.message, ...(rendered.details ?? [])].join(". "),
+      userAgent,
+    });
+  }
   if (!rendered.ok) {
     return jsonError(rendered.status, rendered.message,
       rendered.details ? { details: rendered.details } : undefined);

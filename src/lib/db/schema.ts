@@ -463,7 +463,45 @@ export const events = sqliteTable(
   (t) => [index("events_name_created_idx").on(t.name, t.createdAt)]
 );
 
+/**
+ * One row per distinct card an account serves: a page read with ?url=, a
+ * page named with ?k=, or otherwise one set of parameters. It powers the
+ * dashboard's page list, which answers "is this working on my site?".
+ *
+ * Renders reach us only when the CDN cache misses, so counts and dates are
+ * when we drew the card, not every time a link was shared.
+ */
+export const cards = sqliteTable(
+  "cards",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // Hash of the page URL, the k value, or the credential-free query.
+    cardKey: text("card_key").notNull(),
+    pageUrl: text("page_url"),
+    // The title the card showed last time, after reading the page.
+    title: text("title"),
+    // The request's parameters without key, acct, sig or v, enough to draw
+    // the card again for a thumbnail.
+    request: text("request").notNull(),
+    // Why the last attempt failed, or null when it rendered.
+    error: text("error"),
+    renders: integer("renders").notNull().default(0),
+    firstSeenAt: integer("first_seen_at", { mode: "timestamp" }).notNull(),
+    lastSeenAt: integer("last_seen_at", { mode: "timestamp" }).notNull(),
+    // The last social platform whose crawler fetched it.
+    lastCrawler: text("last_crawler"),
+    lastCrawledAt: integer("last_crawled_at", { mode: "timestamp" }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.cardKey] }),
+    index("cards_user_last_seen_idx").on(t.userId, t.lastSeenAt),
+  ]
+);
+
 export type User = typeof users.$inferSelect;
+export type CardRow = typeof cards.$inferSelect;
 export type ProspectScanRow = typeof prospectScans.$inferSelect;
 export type ProspectItemRow = typeof prospectRows.$inferSelect;
 export type BatchRow = typeof batches.$inferSelect;
