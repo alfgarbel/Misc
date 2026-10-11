@@ -32,6 +32,19 @@ export const users = sqliteTable("users", {
    * whose trial has been cleared.
    */
   trialEndsAt: integer("trial_ends_at", { mode: "timestamp" }),
+  /**
+   * Activation milestones, each set once. `firstRenderAt` is the first card
+   * rendered with this account's credentials; `liveAt` is the first sign the
+   * card is on a real page — a social crawler fetching it, or the dashboard
+   * finding it in a page's og:image.
+   */
+  firstRenderAt: integer("first_render_at", { mode: "timestamp" }),
+  liveAt: integer("live_at", { mode: "timestamp" }),
+  /** The page someone was looking at in the checker when they signed up. */
+  onboardingUrl: text("onboarding_url"),
+  /** Lifecycle emails, claimed atomically so each goes out at most once. */
+  nudgeEmailAt: integer("nudge_email_at", { mode: "timestamp" }),
+  trialEmailAt: integer("trial_email_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -427,6 +440,27 @@ export const prospectRows = sqliteTable(
     checkedAt: integer("checked_at", { mode: "timestamp" }),
   },
   (t) => [primaryKey({ columns: [t.scanId, t.idx] })]
+);
+
+/**
+ * Funnel events, one row per step someone reaches.
+ *
+ * Deliberately first-party and coarse: no cookies, no IPs, no page views —
+ * just the handful of steps between "ran the checker" and "paid", so the
+ * admin page can say where people drop out.
+ */
+export const events = sqliteTable(
+  "events",
+  {
+    id: text("id").primaryKey(),
+    // One of FUNNEL_STEPS in lib/funnel.ts.
+    name: text("name").notNull(),
+    userId: text("user_id"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [index("events_name_created_idx").on(t.name, t.createdAt)]
 );
 
 export type User = typeof users.$inferSelect;

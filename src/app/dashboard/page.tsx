@@ -9,6 +9,7 @@ import SigningPanel from "@/components/SigningPanel";
 import RefreshPanel from "@/components/RefreshPanel";
 import UrlCardPanel from "@/components/UrlCardPanel";
 import VerifyBanner from "@/components/VerifyBanner";
+import ActivationChecklist from "@/components/onboarding/ActivationChecklist";
 import {
   UpgradeButton,
   ManageBillingButton,
@@ -63,6 +64,16 @@ export default async function DashboardPage() {
 
         <div className="grid gap-6 [&>*]:min-w-0">
           {!user.emailVerifiedAt ? <VerifyBanner /> : null}
+
+          {/* Gone for good once a card has been seen on a real page. */}
+          {!user.liveAt ? (
+            <ActivationChecklist
+              baseUrl={appUrl()}
+              keyHint={keys[0]?.keyPrefix ? `${keys[0].keyPrefix}…` : "YOUR_KEY"}
+              savedUrl={user.onboardingUrl}
+              rendered={Boolean(user.firstRenderAt)}
+            />
+          ) : null}
 
           {inTrial ? (
             <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 sm:p-6">

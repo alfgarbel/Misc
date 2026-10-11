@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { subscriptions } from "@/lib/db/schema";
 import { getStripe, planForPriceId } from "@/lib/stripe";
 import { applySubscriptionChange } from "@/lib/billing";
+import { recordEvent } from "@/lib/funnel";
 
 export const runtime = "nodejs";
 
@@ -84,6 +85,7 @@ export async function POST(req: NextRequest) {
             ...details,
           },
         });
+      await recordEvent(db, "checkout", userId);
       break;
     }
     case "customer.subscription.updated": {

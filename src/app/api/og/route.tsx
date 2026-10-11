@@ -20,6 +20,7 @@ import {
   getExperimentBySlug,
 } from "@/lib/experiments";
 import { effectiveWatermark } from "@/lib/trial";
+import { trackRender } from "@/lib/funnel";
 
 export const runtime = "nodejs";
 
@@ -175,6 +176,7 @@ export async function GET(req: NextRequest) {
       );
     }
     if (keyId) await recordKeyRender(db, keyId);
+    await trackRender(db, account, req.headers.get("user-agent"));
 
     try {
       const specAssets = await loadSpecAssets(db, spec.data, userId);
@@ -213,6 +215,7 @@ export async function GET(req: NextRequest) {
       );
     }
     if (keyId) await recordKeyRender(db, keyId);
+    if (account) await trackRender(db, account, req.headers.get("user-agent"));
     watermark = effectiveWatermark(quota.plan, account ?? { trialEndsAt: null });
     // Custom logo is a paid-plan feature.
     if (!watermark) logo = account?.brandLogo ?? null;

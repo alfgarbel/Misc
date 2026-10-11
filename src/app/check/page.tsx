@@ -9,6 +9,9 @@ import { cachedReport, checkUrl, coerceUrl } from "@/lib/checker";
 import type { Finding, Severity } from "@/lib/checker";
 import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
 import { appUrl } from "@/lib/stripe";
+import { getDb } from "@/lib/db";
+import { recordEvent } from "@/lib/funnel";
+import { TRIAL_DAYS } from "@/lib/trial";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -163,6 +166,7 @@ export default async function CheckPage({
     );
   } else {
     const report = await checkUrl(target);
+    if (report.ok) await recordEvent(getDb(), "check_run");
 
     if (!report.ok) {
       body = (
@@ -318,10 +322,10 @@ export default async function CheckPage({
             <CopyBlock code={metaTags} />
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href="/signup"
+                href={`/signup?url=${encodeURIComponent(report.pageUrl)}`}
                 className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
               >
-                Get a key — free
+                Get this card — free for {TRIAL_DAYS} days
               </Link>
               <Link href="/docs" className="text-sm text-indigo-400 hover:underline">
                 Read the docs

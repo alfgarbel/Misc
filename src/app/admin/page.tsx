@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { getAdminMetrics, isAdminUser } from "@/lib/admin";
 import { listScans } from "@/lib/prospects";
+import { getFunnel } from "@/lib/funnel";
 
 export const metadata: Metadata = { title: "Admin" };
 export const dynamic = "force-dynamic";
@@ -27,10 +28,12 @@ export default async function AdminPage() {
   if (!user || !isAdminUser(user)) notFound();
 
   const db = getDb();
-  const [m, scans] = await Promise.all([
+  const [m, scans, funnel] = await Promise.all([
     getAdminMetrics(db),
     listScans(db, user.id),
+    getFunnel(db, 30),
   ]);
+  const funnelMax = Math.max(1, ...funnel.map((f) => f.count));
   const verifiedPct =
     m.totalUsers > 0 ? Math.round((m.verifiedUsers / m.totalUsers) * 100) : 0;
   const planMax = Math.max(1, m.planCounts.free, m.planCounts.pro, m.planCounts.scale);
@@ -58,6 +61,34 @@ export default async function AdminPage() {
           />
           <Tile label="Active API keys" value={m.activeKeys.toLocaleString()} />
         </div>
+
+        <section className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5">
+          <h2 className="font-semibold">Funnel — last 30 days</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Checker runs are counted per check; every other step per account.
+            Steps are counted independently, so treat the percentages as a
+            guide to where people stop.
+          </p>
+          <ol className="mt-4 flex flex-col gap-3">
+            {funnel.map((f) => (
+              <li key={f.step} className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-sm">
+                <span className="truncate text-zinc-400">{f.label}</span>
+                <span className="h-2 overflow-hidden rounded-full bg-zinc-800">
+                  <span
+                    className="block h-full rounded-full bg-indigo-500"
+                    style={{ width: `${Math.max(1, (f.count / funnelMax) * 100)}%` }}
+                  />
+                </span>
+                <span className="w-24 text-right tabular-nums">
+                  {f.count.toLocaleString()}
+                  {f.fromPrevious !== null ? (
+                    <span className="ml-2 text-xs text-zinc-500">{f.fromPrevious}%</span>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5">
