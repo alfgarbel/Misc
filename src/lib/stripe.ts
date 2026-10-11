@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import type { PlanId } from "./plans";
+import type { BillingInterval, PlanId } from "./plans";
 
 let _stripe: Stripe | null = null;
 
@@ -16,18 +16,35 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-export function priceIdForPlan(plan: "pro" | "scale"): string | null {
-  const id =
-    plan === "pro"
-      ? process.env.STRIPE_PRICE_PRO
-      : process.env.STRIPE_PRICE_SCALE;
-  return id ?? null;
+const PRICE_ENV: Record<"pro" | "scale", Record<BillingInterval, string>> = {
+  pro: { month: "STRIPE_PRICE_PRO", year: "STRIPE_PRICE_PRO_YEARLY" },
+  scale: { month: "STRIPE_PRICE_SCALE", year: "STRIPE_PRICE_SCALE_YEARLY" },
+};
+
+export function priceIdForPlan(
+  plan: "pro" | "scale",
+  interval: BillingInterval = "month"
+): string | null {
+  return process.env[PRICE_ENV[plan][interval]] || null;
 }
 
+/** Both intervals of a plan grant the same plan; only the billing differs. */
 export function planForPriceId(priceId: string): PlanId | null {
-  if (priceId === process.env.STRIPE_PRICE_PRO) return "pro";
-  if (priceId === process.env.STRIPE_PRICE_SCALE) return "scale";
+  for (const plan of ["pro", "scale"] as const) {
+    for (const interval of ["month", "year"] as const) {
+      if (priceId === priceIdForPlan(plan, interval)) return plan;
+    }
+  }
   return null;
+}
+
+/**
+ * Yearly billing is offered only once every paid plan has a yearly price
+ * in Stripe, so the toggle can ship before the dashboard work and never
+ * shows a plan that can't be bought yearly.
+ */
+export function yearlyBillingAvailable(): boolean {
+  return Boolean(priceIdForPlan("pro", "year") && priceIdForPlan("scale", "year"));
 }
 
 export function appUrl(): string {

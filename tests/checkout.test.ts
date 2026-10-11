@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { checkoutSessionParams, stripeTaxEnabled } from "@/lib/stripe";
+import {
+  checkoutSessionParams,
+  planForPriceId,
+  priceIdForPlan,
+  stripeTaxEnabled,
+  yearlyBillingAvailable,
+} from "@/lib/stripe";
+import { PLANS } from "@/lib/plans";
 
 const opts = {
   priceId: "price_123",
@@ -59,5 +66,37 @@ describe("checkout session", () => {
     expect(p.line_items).toEqual([{ price: "price_123", quantity: 1 }]);
     expect(p.allow_promotion_codes).toBe(true);
     expect(p.client_reference_id).toBe("user-abc");
+  });
+});
+
+describe("yearly billing", () => {
+  const keys = ["STRIPE_PRICE_PRO", "STRIPE_PRICE_SCALE", "STRIPE_PRICE_PRO_YEARLY", "STRIPE_PRICE_SCALE_YEARLY"];
+  beforeEach(() => {
+    for (const k of keys) delete process.env[k];
+  });
+
+  it("is offered only once both yearly prices exist", () => {
+    expect(yearlyBillingAvailable()).toBe(false);
+    process.env.STRIPE_PRICE_PRO_YEARLY = "price_pro_y";
+    expect(yearlyBillingAvailable()).toBe(false);
+    process.env.STRIPE_PRICE_SCALE_YEARLY = "price_scale_y";
+    expect(yearlyBillingAvailable()).toBe(true);
+  });
+
+  it("maps both intervals to the same plan", () => {
+    process.env.STRIPE_PRICE_PRO = "price_pro_m";
+    process.env.STRIPE_PRICE_PRO_YEARLY = "price_pro_y";
+    process.env.STRIPE_PRICE_SCALE_YEARLY = "price_scale_y";
+    expect(priceIdForPlan("pro")).toBe("price_pro_m");
+    expect(priceIdForPlan("pro", "year")).toBe("price_pro_y");
+    expect(priceIdForPlan("scale", "month")).toBeNull();
+    expect(planForPriceId("price_pro_y")).toBe("pro");
+    expect(planForPriceId("price_scale_y")).toBe("scale");
+    expect(planForPriceId("price_other")).toBeNull();
+  });
+
+  it("charges ten months for a year", () => {
+    expect(PLANS.pro.priceYearlyUsd).toBe(PLANS.pro.priceMonthlyUsd * 10);
+    expect(PLANS.scale.priceYearlyUsd).toBe(PLANS.scale.priceMonthlyUsd * 10);
   });
 });
