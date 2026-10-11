@@ -15,23 +15,19 @@ import { contactEmail } from "@/lib/stripe";
 
 import { TRIAL_DAYS } from "@/lib/trial";
 
-export const metadata: Metadata = { title: "Pricing" };
+export const metadata: Metadata = {
+  title: "Pricing",
+  description: `OGsmith pricing: start free with ${TRIAL_DAYS} days without a watermark, then Pro at $${PLANS.pro.priceMonthlyUsd}/month for ${PLANS.pro.monthlyRenders.toLocaleString()} renders. Flat monthly quotas, no overage charges.`,
+};
 export const dynamic = "force-dynamic";
 
+/** The few lines that actually tell the plans apart. The rest is in the table. */
 function PlanFeatures({ plan }: { plan: Plan }) {
   const items = [
     `${plan.monthlyRenders.toLocaleString()} renders / month`,
-    plan.watermark ? `No watermark for ${TRIAL_DAYS} days, then a small one` : "No watermark",
-    "All templates & themes",
-    "Cards straight from a URL",
-    `${plan.experiments} split ${plan.experiments === 1 ? "test" : "tests"}`,
-    `Batches up to ${plan.batchRows} cards`,
-    `${plan.webhooks} webhook ${plan.webhooks === 1 ? "endpoint" : "endpoints"}`,
+    plan.watermark ? `No watermark for ${TRIAL_DAYS} days, then a small one` : "No watermark, your logo on cards",
     `${plan.templates} custom ${plan.templates === 1 ? "design" : "designs"} in the editor`,
-    `${plan.assets} uploaded fonts & images`,
-    ...(plan.watermark ? [] : ["Custom logo on cards"]),
-    "CDN-cached responses",
-    "Quota alert emails",
+    `${plan.experiments} split ${plan.experiments === 1 ? "test" : "tests"} at once`,
     plan.id === "scale" ? "Priority support" : "Email support",
   ];
   return (
@@ -43,6 +39,87 @@ function PlanFeatures({ plan }: { plan: Plan }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+type Cell = string | boolean;
+
+/** Every plan limit side by side, so the cards above can stay short. */
+const COMPARE_ROWS: Array<{ label: string; value: (p: Plan) => Cell }> = [
+  { label: "Renders per month", value: (p) => p.monthlyRenders.toLocaleString() },
+  { label: "Watermark", value: (p) => (p.watermark ? `After ${TRIAL_DAYS}-day trial` : "None") },
+  { label: "Custom logo on cards", value: (p) => !p.watermark },
+  { label: "Custom designs (editor)", value: (p) => String(p.templates) },
+  { label: "Uploaded fonts & images", value: (p) => String(p.assets) },
+  { label: "Split tests at once", value: (p) => String(p.experiments) },
+  { label: "Cards per batch", value: (p) => p.batchRows.toLocaleString() },
+  { label: "Webhook endpoints", value: (p) => String(p.webhooks) },
+  { label: "All templates & themes", value: () => true },
+  { label: "Cards straight from a URL", value: () => true },
+  { label: "Cache refresh for shared links", value: () => true },
+  { label: "CDN-cached responses", value: () => true },
+  { label: "Quota alert emails", value: () => true },
+  { label: "Support", value: (p) => (p.id === "scale" ? "Priority" : "Email") },
+];
+
+function CellValue({ value }: { value: Cell }) {
+  if (value === true) {
+    return (
+      <span className="text-indigo-400">
+        ✓<span className="sr-only">Included</span>
+      </span>
+    );
+  }
+  if (value === false) {
+    return (
+      <span className="text-zinc-600">
+        —<span className="sr-only">Not included</span>
+      </span>
+    );
+  }
+  return <>{value}</>;
+}
+
+function CompareTable() {
+  const plans = Object.values(PLANS);
+  return (
+    <section className="mt-16">
+      <h2 className="text-2xl font-bold">Compare plans</h2>
+      <div className="mt-6 overflow-x-auto rounded-xl border border-zinc-800">
+        <table className="w-full min-w-[34rem] text-left text-sm">
+          <thead className="bg-zinc-900 text-zinc-400">
+            <tr>
+              <th scope="col" className="px-4 py-3 font-medium">
+                <span className="sr-only">Feature</span>
+              </th>
+              {plans.map((p) => (
+                <th
+                  key={p.id}
+                  scope="col"
+                  className={`px-4 py-3 font-medium ${p.id === "pro" ? "text-indigo-300" : ""}`}
+                >
+                  {p.name} · ${p.priceMonthlyUsd}/mo
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-800">
+            {COMPARE_ROWS.map((row) => (
+              <tr key={row.label}>
+                <th scope="row" className="px-4 py-3 font-medium text-zinc-300">
+                  {row.label}
+                </th>
+                {plans.map((p) => (
+                  <td key={p.id} className="px-4 py-3 tabular-nums text-zinc-200">
+                    <CellValue value={row.value(p)} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -168,6 +245,8 @@ export default async function PricingPage() {
             </div>
           ))}
         </div>
+
+        <CompareTable />
 
         <AgencyPreview />
 

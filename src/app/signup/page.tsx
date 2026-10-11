@@ -5,6 +5,11 @@ import AuthForm from "@/components/AuthForm";
 import GoogleButton, { GoogleError } from "@/components/GoogleButton";
 import { getCurrentUser } from "@/lib/auth";
 import { googleConfigured } from "@/lib/oauth";
+import RememberUrl from "@/components/onboarding/RememberUrl";
+import { coerceUrl } from "@/lib/checker";
+import { TRIAL_DAYS } from "@/lib/trial";
+import { getDb } from "@/lib/db";
+import { saveOnboardingUrl } from "@/lib/onboarding";
 
 export const metadata: Metadata = { title: "Sign up" };
 export const dynamic = "force-dynamic";
@@ -12,10 +17,21 @@ export const dynamic = "force-dynamic";
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; url?: string }>;
 }) {
-  if (await getCurrentUser().catch(() => null)) redirect("/dashboard");
-  const { error } = await searchParams;
+  const { error, url } = await searchParams;
+  // Arriving from the checker: the dashboard will open on this page's card.
+  const fromCheck = url ? coerceUrl(url) : null;
+  const user = await getCurrentUser().catch(() => null);
+  if (user) {
+    // Already signed in: keep the page they just checked, unless their
+    // card is already live and the checklist is gone anyway.
+    if (fromCheck && !user.liveAt) {
+      await saveOnboardingUrl(getDb(), user.id, fromCheck, { overwrite: true });
+    }
+    redirect("/dashboard");
+  }
+  const domain = fromCheck ? new URL(fromCheck).hostname.replace(/^www\./, "") : null;
   const google = googleConfigured();
 
   return (
@@ -23,11 +39,21 @@ export default async function SignupPage({
       <Nav />
       <main className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-16 sm:px-6 sm:py-20">
         <div className="text-center">
-          <h1 className="mb-2 text-3xl font-bold">Create your account</h1>
+          <h1 className="mb-2 text-3xl font-bold">
+            {domain ? `Get the card for ${domain}` : "Create your account"}
+          </h1>
           <p className="text-zinc-400">
-            Free plan included — 500 renders a month, no card required.
+            {TRIAL_DAYS} days without a watermark, then 500 free renders a
+            month. No card required.
           </p>
+          {domain ? (
+            <p className="mt-2 text-sm text-zinc-500">
+              Your dashboard will open with this page&apos;s card and the tag
+              to paste.
+            </p>
+          ) : null}
         </div>
+        {fromCheck ? <RememberUrl url={fromCheck} /> : null}
         <GoogleError code={error} />
         {google ? (
           <>

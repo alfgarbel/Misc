@@ -5,6 +5,7 @@ import { users, subscriptions } from "./db/schema";
 import { createApiKey } from "./keys";
 import { generateSigningSecret } from "./signing";
 import { trialEndFor } from "./trial";
+import { recordEvent } from "./funnel";
 import type { GoogleProfile } from "./oauth";
 
 export interface NewAccount {
@@ -42,6 +43,7 @@ export async function provisionAccount(
   });
   await db.insert(subscriptions).values({ userId, plan: "free" });
   const created = await createApiKey(db, userId, "Default");
+  await recordEvent(db, "signup", userId);
   return { userId, apiKey: created?.key ?? null };
 }
 
