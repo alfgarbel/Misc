@@ -11,6 +11,7 @@ import UrlCardPanel from "@/components/UrlCardPanel";
 import VerifyBanner from "@/components/VerifyBanner";
 import ActivationChecklist from "@/components/onboarding/ActivationChecklist";
 import DashboardNav, { type DashboardSection } from "@/components/DashboardNav";
+import PagesPanel from "@/components/PagesPanel";
 import {
   UpgradeButton,
   ManageBillingButton,
@@ -26,6 +27,7 @@ import { PLANS, VAT_NOTE } from "@/lib/plans";
 import { refreshStatus } from "@/lib/cachebust";
 import { effectiveWatermark, trialActive, trialDaysLeft } from "@/lib/trial";
 import { appUrl } from "@/lib/stripe";
+import { listCards } from "@/lib/cards";
 
 export const metadata: Metadata = { title: "Dashboard", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -35,13 +37,14 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const db = getDb();
-  const [plan, used, keys, history, templateCount, experimentCount] = await Promise.all([
+  const [plan, used, keys, history, templateCount, experimentCount, pages] = await Promise.all([
     getUserPlan(db, user.id),
     getMonthlyUsage(db, user.id),
     listActiveKeys(db, user.id),
     getUsageHistory(db, user.id, 6),
     countTemplates(db, user.id),
     countExperiments(db, user.id),
+    listCards(db, user.id),
   ]);
   const historyMax = Math.max(1, ...history.map((h) => h.count));
   const planInfo = PLANS[plan];
@@ -55,6 +58,7 @@ export default async function DashboardPage() {
   const anyHistory = history.some((h) => h.count > 0);
   const sections: DashboardSection[] = [
     { id: "overview", label: "Overview" },
+    { id: "pages", label: "Your pages" },
     { id: "integrate", label: "Integrate" },
     { id: "brand", label: "Brand" },
     { id: "tools", label: "Tools" },
@@ -162,6 +166,10 @@ export default async function DashboardPage() {
                   </div>
                 ) : null}
               </div>
+            </Section>
+
+            <Section id="pages" title="Your pages">
+              <PagesPanel rows={pages} now={new Date()} />
             </Section>
 
             <Section id="integrate" title="Integrate">
