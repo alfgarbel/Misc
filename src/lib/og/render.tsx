@@ -96,11 +96,19 @@ function Watermark({ theme }: { theme: "dark" | "light" }) {
         borderRadius: 999,
         backgroundColor:
           theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)",
-        color: theme === "dark" ? "#d4d4d8" : "#3f3f46",
+        color: theme === "dark" ? "#e6e0d9" : "#3d3631",
         fontSize: 22,
       }}
     >
-      made with OGsmith
+      {/* The Forja mark, so a watermark reads as a brand rather than a
+          caption. The address is what someone types to find us. */}
+      <svg width="28" height="28" viewBox="0 0 32 32" style={{ marginRight: 10 }}>
+        <rect x="3" y="9" width="26" height="14" rx="3" fill="none" stroke="#ff6a2b" strokeWidth="2.5" />
+        <path d="M11 23v4h10v-4" fill="none" stroke="#ff6a2b" strokeWidth="2.5" />
+        <circle cx="24" cy="5" r="2" fill="#ffb27a" />
+        <circle cx="28" cy="8" r="1.3" fill="#ffb27a" />
+      </svg>
+      made with ogsmith.app
     </div>
   );
 }

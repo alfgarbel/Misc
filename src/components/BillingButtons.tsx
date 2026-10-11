@@ -39,7 +39,7 @@ export function UpgradeButton({
         }}
         className={`rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 ${
           primary
-            ? "bg-indigo-600 text-white hover:bg-indigo-500"
+            ? "bg-indigo-600 text-zinc-950 hover:bg-indigo-500"
             : "border border-zinc-700 hover:border-zinc-500"
         }`}
       >

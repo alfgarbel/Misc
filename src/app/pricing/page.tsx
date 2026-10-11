@@ -201,7 +201,7 @@ export default async function PricingPage() {
               }`}
             >
               {plan.id === "pro" ? (
-                <p className="mb-3 w-fit rounded-full bg-indigo-500 px-3 py-0.5 text-xs font-medium text-white">
+                <p className="mb-3 w-fit rounded-full bg-indigo-500 px-3 py-0.5 text-xs font-medium text-zinc-950">
                   Most popular
                 </p>
               ) : null}
@@ -234,7 +234,7 @@ export default async function PricingPage() {
                     href="/signup"
                     className={`block rounded-lg px-4 py-2.5 text-center text-sm font-medium ${
                       plan.id === "pro"
-                        ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                        ? "bg-indigo-600 text-zinc-950 hover:bg-indigo-500"
                         : "border border-zinc-700 hover:border-zinc-500"
                     }`}
                   >

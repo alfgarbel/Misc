@@ -158,7 +158,7 @@ export default function EditorCanvas({
           opacity: layer.opacity,
           transform: layer.rotate ? `rotate(${layer.rotate}deg)` : undefined,
           cursor: "move",
-          outline: selected ? "2px solid #6366f1" : undefined,
+          outline: selected ? "2px solid #ff6a2b" : undefined,
           outlineOffset: 1,
         };
 
@@ -267,7 +267,7 @@ export default function EditorCanvas({
                   top: (layer.y + layer.h) * scale - 6,
                   width: 12,
                   height: 12,
-                  backgroundColor: "#6366f1",
+                  backgroundColor: "#ff6a2b",
                   borderRadius: 3,
                   cursor: "nwse-resize",
                 }}

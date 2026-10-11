@@ -1,28 +1,62 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
+import { contactEmail } from "@/lib/stripe";
+
+const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string }> }> = [
+  {
+    title: "Product",
+    links: [
+      { href: "/check", label: "Link checker" },
+      { href: "/templates", label: "Templates" },
+      { href: "/pricing", label: "Pricing" },
+    ],
+  },
+  {
+    title: "Learn",
+    links: [
+      { href: "/docs", label: "Docs" },
+      { href: "/blog", label: "Writing" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/terms", label: "Terms" },
+      { href: "/privacy", label: "Privacy" },
+    ],
+  },
+];
 
 export default function Footer() {
+  const email = contactEmail();
   return (
-    <footer className="border-t border-zinc-800 py-10 text-sm text-zinc-500">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
-        <p>© {new Date().getFullYear()} OGsmith</p>
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-          <Link href="/templates" className="hover:text-zinc-300">
-            Templates
+    <footer className="border-t border-zinc-800 py-12 text-sm text-zinc-400">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="flex flex-col gap-3">
+          <Link href="/" aria-label="OGsmith home" className="w-fit">
+            <Logo />
           </Link>
-          <Link href="/docs" className="hover:text-zinc-300">
-            Docs
-          </Link>
-          <Link href="/pricing" className="hover:text-zinc-300">
-            Pricing
-          </Link>
-          <Link href="/terms" className="hover:text-zinc-300">
-            Terms
-          </Link>
-          <Link href="/privacy" className="hover:text-zinc-300">
-            Privacy
-          </Link>
+          <p className="max-w-xs">Open Graph images as an API. Every link, forged into a card.</p>
+          {email ? (
+            <a href={`mailto:${email}`} className="w-fit text-zinc-300 hover:text-indigo-400">
+              {email}
+            </a>
+          ) : null}
         </div>
+        {COLUMNS.map((col) => (
+          <nav key={col.title} aria-label={col.title} className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{col.title}</p>
+            {col.links.map((l) => (
+              <Link key={l.href} href={l.href} className="w-fit hover:text-zinc-100">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        ))}
       </div>
+      <p className="mx-auto mt-10 max-w-6xl px-4 text-xs text-zinc-500 sm:px-6">
+        © {new Date().getFullYear()} OGsmith
+      </p>
     </footer>
   );
 }

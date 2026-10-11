@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { TEMPLATES } from "@/lib/og/params";
 
-const ACCENTS = ["#6366f1", "#f43f5e", "#10b981", "#f59e0b", "#06b6d4", "#a855f7"];
+const ACCENTS = ["#ff6a2b", "#6366f1", "#f43f5e", "#10b981", "#f59e0b", "#06b6d4", "#a855f7"];
 
 export default function Playground() {
   const [template, setTemplate] = useState<string>("gradient");
@@ -105,7 +105,7 @@ export default function Playground() {
         </div>
         <button
           onClick={() => setRendered(url)}
-          className="mt-2 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-500"
+          className="mt-2 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-zinc-950 hover:bg-indigo-500"
         >
           Render preview
         </button>

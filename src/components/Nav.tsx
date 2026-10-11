@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import Logo from "@/components/Logo";
 
 /**
  * On a phone there isn't room for a logo, five section links and a call to
@@ -15,14 +16,14 @@ export default async function Nav() {
   const cta = user ? (
     <Link
       href="/dashboard"
-      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
     >
       Dashboard
     </Link>
   ) : (
     <Link
       href="/signup"
-      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
     >
       Get started
     </Link>
@@ -31,9 +32,8 @@ export default async function Nav() {
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
-        <Link href="/" className="mr-auto flex items-center gap-2 font-bold">
-          <span className="inline-block h-3 w-3 rounded-full bg-indigo-500" />
-          OGsmith
+        <Link href="/" className="mr-auto" aria-label="OGsmith home">
+          <Logo />
         </Link>
 
         <nav className="order-last -mx-1 flex w-full items-center gap-x-5 overflow-x-auto px-1 pt-1 text-sm text-zinc-400 sm:order-none sm:mx-0 sm:w-auto sm:gap-x-6 sm:overflow-visible sm:px-0 sm:pt-0">

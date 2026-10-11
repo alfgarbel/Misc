@@ -3,6 +3,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { TEMPLATES } from "@/lib/og/params";
+import { SHOWCASE, showcaseSrc } from "@/lib/showcase";
 
 export const metadata: Metadata = {
   title: "Templates",
@@ -120,10 +121,45 @@ export default function TemplatesPage() {
             </div>
           ))}
         </div>
+        <section className="mt-20">
+          <h2 className="text-3xl font-bold tracking-tight">By kind of site</h2>
+          <p className="mt-2 max-w-2xl text-zinc-400">
+            The same templates with a different theme and accent. Each one is a
+            single URL your pages fill in with their own title.
+          </p>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {SHOWCASE.map((card) => {
+              const query = new URLSearchParams(card.params).toString();
+              return (
+                <figure key={card.slug} className="flex min-w-0 flex-col gap-3">
+                  <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={showcaseSrc(card.slug)}
+                      alt={`Example card for ${card.useCase.toLowerCase()}`}
+                      width={1200}
+                      height={630}
+                      loading="lazy"
+                      className="w-full"
+                    />
+                  </div>
+                  <figcaption>
+                    <h3 className="font-semibold text-zinc-100">{card.useCase}</h3>
+                    <p className="text-sm text-zinc-400">{card.blurb}</p>
+                    <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded bg-zinc-900 px-2 py-1 text-xs text-emerald-400">
+                      /api/og?{query}
+                    </code>
+                  </figcaption>
+                </figure>
+              );
+            })}
+          </div>
+        </section>
+
         <div className="mt-14 text-center">
           <Link
             href="/signup"
-            className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500"
+            className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-zinc-950 hover:bg-indigo-500"
           >
             Get your free API key
           </Link>

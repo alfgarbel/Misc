@@ -29,6 +29,7 @@ export default async function PostImage({
   const parsed = parseOgParams(
     new URLSearchParams({
       template: "gradient",
+      accent: "#ff6a2b",
       title: post?.meta.title ?? "OGsmith",
       subtitle: post?.meta.cardSubtitle ?? "Open Graph images as an API",
       site: "ogsmith.app",

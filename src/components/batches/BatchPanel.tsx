@@ -173,7 +173,7 @@ export default function BatchPanel({
           <button
             type="submit"
             disabled={busy || !parsed?.ok || rowCount === 0 || rowCount > rowLimit}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-indigo-500 disabled:opacity-50"
           >
             {busy ? "Rendering…" : `Render ${rowCount || ""} ${rowCount === 1 ? "card" : "cards"}`.trim()}
           </button>

@@ -77,7 +77,7 @@ export default async function BlogPost({
           </p>
           <Link
             href="/check"
-            className="mt-4 inline-block rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
+            className="mt-4 inline-block rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
           >
             Open the checker
           </Link>

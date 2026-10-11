@@ -222,7 +222,7 @@ export default function ActivationChecklist({
               <button
                 type="button"
                 onClick={copyTag}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
               >
                 {copied ? "Copied" : "Copy tag"}
               </button>

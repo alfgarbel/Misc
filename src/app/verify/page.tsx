@@ -51,7 +51,7 @@ export default async function VerifyPage({
         )}
         <Link
           href="/dashboard"
-          className="mt-8 rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500"
+          className="mt-8 rounded-lg bg-indigo-600 px-6 py-3 font-medium text-zinc-950 hover:bg-indigo-500"
         >
           Go to dashboard
         </Link>
