@@ -13,9 +13,9 @@ export interface Bar {
 const W = 560;
 const H = 180;
 const PAD = { top: 18, right: 8, bottom: 22, left: 8 };
-const MARK = "#818cf8";
-const GRID = "#27272a";
-const INK_MUTED = "#71717a";
+const MARK = "#ff7d45";
+const GRID = "#2c2723";
+const INK_MUTED = "#9a8f84";
 
 function roundedTopBar(
   x: number,

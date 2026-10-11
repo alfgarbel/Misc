@@ -23,7 +23,8 @@ export default async function OpengraphImage() {
   const parsed = parseOgParams(
     new URLSearchParams({
       template: "gradient",
-      title: "Social cards for every page, from one URL",
+      accent: "#ff6a2b",
+      title: "Every link, forged into a card",
       subtitle:
         "Render a perfect 1200×630 Open Graph image on demand. No headless browser, no design tool, no build step.",
       site: "ogsmith.app",

@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Bricolage_Grotesque, Inter } from "next/font/google";
 import "./globals.css";
 import { appUrl } from "@/lib/stripe";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+// Headings only; body copy stays in Inter for legibility at small sizes.
+const display = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-display-face",
+});
 
 const DESCRIPTION =
   "Generate beautiful social card images (Open Graph / Twitter cards) from a single URL. No headless browser, no design tool — just an API call.";
@@ -37,7 +42,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${display.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

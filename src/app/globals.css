@@ -1,16 +1,59 @@
 @import "tailwindcss";
 
+/*
+ * Forja: ember on charcoal.
+ *
+ * The site was written against Tailwind's zinc and indigo scales, so the
+ * brand is applied by redefining those two scales rather than renaming a
+ * few hundred class names. "zinc" is now a warm charcoal and "indigo" is
+ * ember. Text steps are chosen for WCAG AA on the dark surfaces they sit on:
+ * zinc-500 is 5.5:1 on zinc-900 and 5.2:1 on zinc-950.
+ */
+@theme {
+  --color-zinc-50: #f8f5f1;
+  --color-zinc-100: #f1ebe4;
+  --color-zinc-200: #e6e0d9;
+  --color-zinc-300: #d4ccc3;
+  --color-zinc-400: #b5aba0;
+  --color-zinc-500: #9a8f84;
+  --color-zinc-600: #776d64;
+  --color-zinc-700: #3d3631;
+  --color-zinc-800: #2c2723;
+  --color-zinc-900: #1c1916;
+  --color-zinc-950: #141210;
+
+  --color-indigo-50: #fff4ed;
+  --color-indigo-100: #ffe6d6;
+  --color-indigo-200: #ffd3b8;
+  --color-indigo-300: #ffb88f;
+  --color-indigo-400: #ff9a66;
+  --color-indigo-500: #ff7d45;
+  --color-indigo-600: #ff6a2b;
+  --color-indigo-700: #e0521a;
+  --color-indigo-800: #a83a10;
+  --color-indigo-900: #5c200a;
+  --color-indigo-950: #2a1206;
+
+  --font-display: var(--font-display-face), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
   color-scheme: dark;
 }
 
 body {
-  background-color: #09090b;
-  color: #fafafa;
+  background-color: #141210;
+  color: #f1ebe4;
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+h1,
+h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
 ::selection {
-  background-color: #6366f1;
-  color: #fff;
+  background-color: #ff6a2b;
+  color: #1a0d05;
 }

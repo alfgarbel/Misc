@@ -222,12 +222,19 @@ function Watermark() {
         padding: "8px 16px",
         borderRadius: 999,
         backgroundColor: "rgba(0,0,0,0.35)",
-        color: "#e4e4e7",
+        color: "#e6e0d9",
         fontSize: 22,
         fontFamily: "Inter",
       }}
     >
-      made with OGsmith
+      {/* Same mark as the built-in templates' watermark in render.tsx. */}
+      <svg width="28" height="28" viewBox="0 0 32 32" style={{ marginRight: 10 }}>
+        <rect x="3" y="9" width="26" height="14" rx="3" fill="none" stroke="#ff6a2b" strokeWidth="2.5" />
+        <path d="M11 23v4h10v-4" fill="none" stroke="#ff6a2b" strokeWidth="2.5" />
+        <circle cx="24" cy="5" r="2" fill="#ffb27a" />
+        <circle cx="28" cy="8" r="1.3" fill="#ffb27a" />
+      </svg>
+      made with ogsmith.app
     </div>
   );
 }

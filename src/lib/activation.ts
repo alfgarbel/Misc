@@ -75,7 +75,7 @@ export function trialEmail(daysLeft: number): { subject: string; text: string } 
     subject: `Your OGsmith trial ends ${when}`,
     text: `Hi,
 
-Your OGsmith trial ends ${when}. After that, new cards on the Free plan carry a small "made with OGsmith" mark. Cards platforms have already cached keep their clean copy, so nothing you've shared changes overnight.
+Your OGsmith trial ends ${when}. After that, new cards on the Free plan carry a small "made with ogsmith.app" mark. Cards platforms have already cached keep their clean copy, so nothing you've shared changes overnight.
 
 To keep every new card clean, Pro is $${PLANS.pro.priceMonthlyUsd}/month for ${PLANS.pro.monthlyRenders.toLocaleString()} renders:
 

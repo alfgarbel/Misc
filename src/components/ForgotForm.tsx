@@ -42,7 +42,7 @@ export default function ForgotForm() {
       <button
         type="submit"
         disabled={busy}
-        className="rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+        className="rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-zinc-950 hover:bg-indigo-500 disabled:opacity-50"
       >
         {busy ? "Sending…" : "Send reset link"}
       </button>

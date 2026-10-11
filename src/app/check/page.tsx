@@ -100,7 +100,7 @@ function UrlForm({ defaultValue }: { defaultValue?: string }) {
       />
       <button
         type="submit"
-        className="rounded-lg bg-indigo-600 px-6 py-3 text-sm font-medium text-white hover:bg-indigo-500"
+        className="rounded-lg bg-indigo-600 px-6 py-3 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
       >
         Check the link
       </button>
@@ -323,7 +323,7 @@ export default async function CheckPage({
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href={`/signup?url=${encodeURIComponent(report.pageUrl)}`}
-                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
+                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
               >
                 Get this card — free for {TRIAL_DAYS} days
               </Link>
