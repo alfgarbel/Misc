@@ -11,7 +11,7 @@ import {
   VAT_SHORT,
   type Plan,
 } from "@/lib/plans";
-import { contactEmail } from "@/lib/stripe";
+import { contactEmail, yearlyBillingAvailable } from "@/lib/stripe";
 
 import { TRIAL_DAYS } from "@/lib/trial";
 
@@ -86,7 +86,7 @@ function CompareTable() {
   return (
     <section className="mt-16">
       <h2 className="text-2xl font-bold">Compare plans</h2>
-      <div className="mt-6 overflow-x-auto rounded-xl border border-zinc-800">
+      <div className="relative mt-6 overflow-x-auto rounded-xl border border-zinc-800">
         <table className="w-full min-w-[34rem] text-left text-sm">
           <thead className="bg-zinc-900 text-zinc-400">
             <tr>
@@ -181,8 +181,57 @@ function AgencyPreview() {
   );
 }
 
-export default async function PricingPage() {
+/**
+ * Monthly or yearly, as two links rather than client state: the choice
+ * survives a reload and a shared link, and the page needs no JS for it.
+ */
+function IntervalToggle({ yearly }: { yearly: boolean }) {
+  const option = (active: boolean) =>
+    `rounded-full px-4 py-1.5 text-sm font-medium ${
+      active ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-zinc-200"
+    }`;
+  return (
+    <nav aria-label="Billing period" className="mx-auto mt-8 flex w-fit gap-1 rounded-full border border-zinc-800 p-1">
+      <Link href="/pricing" scroll={false} aria-current={yearly ? undefined : "page"} className={option(!yearly)}>
+        Monthly
+      </Link>
+      <Link href="/pricing?billing=yearly" scroll={false} aria-current={yearly ? "page" : undefined} className={option(yearly)}>
+        Yearly <span className={yearly ? "text-indigo-600" : "text-indigo-400"}>· 2 months free</span>
+      </Link>
+    </nav>
+  );
+}
+
+function PlanPrice({ plan, yearly }: { plan: Plan; yearly: boolean }) {
+  if (!yearly || plan.priceYearlyUsd === 0) {
+    return (
+      <p className="mt-4 text-4xl font-bold">
+        ${plan.priceMonthlyUsd}
+        <span className="text-base font-normal text-zinc-500">/mo</span>
+      </p>
+    );
+  }
+  return (
+    <>
+      <p className="mt-4 text-4xl font-bold">
+        ${plan.priceYearlyUsd}
+        <span className="text-base font-normal text-zinc-500">/yr</span>
+      </p>
+      <p className="mt-1 text-sm text-zinc-400">
+        ${(plan.priceYearlyUsd / 12).toFixed(2)}/mo, instead of ${plan.priceMonthlyUsd * 12} a year
+      </p>
+    </>
+  );
+}
+
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ billing?: string }>;
+}) {
   const user = await getCurrentUser().catch(() => null);
+  const canYearly = yearlyBillingAvailable();
+  const yearly = canYearly && (await searchParams).billing === "yearly";
   return (
     <>
       <Nav />
@@ -191,7 +240,8 @@ export default async function PricingPage() {
         <p className="mt-3 text-center text-zinc-400">
           Every plan is a flat monthly price with a generous render quota.
         </p>
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        {canYearly ? <IntervalToggle yearly={yearly} /> : null}
+        <div className={`${canYearly ? "mt-8" : "mt-12"} grid gap-6 lg:grid-cols-3`}>
           {Object.values(PLANS).map((plan) => (
             <div
               key={plan.id}
@@ -208,10 +258,7 @@ export default async function PricingPage() {
               ) : null}
               <h2 className="text-xl font-semibold">{plan.name}</h2>
               <p className="mt-1 text-sm text-zinc-500">{plan.description}</p>
-              <p className="mt-4 text-4xl font-bold">
-                ${plan.priceMonthlyUsd}
-                <span className="text-base font-normal text-zinc-500">/mo</span>
-              </p>
+              <PlanPrice plan={plan} yearly={yearly} />
               {plan.priceMonthlyUsd > 0 ? (
                 <p className="mt-1 text-xs text-zinc-500">{VAT_SHORT}</p>
               ) : null}
@@ -227,7 +274,8 @@ export default async function PricingPage() {
                 ) : user ? (
                   <UpgradeButton
                     plan={plan.id}
-                    label={`Upgrade to ${plan.name}`}
+                    interval={yearly ? "year" : "month"}
+                    label={`Upgrade to ${plan.name}${yearly ? " yearly" : ""}`}
                     primary={plan.id === "pro"}
                   />
                 ) : (

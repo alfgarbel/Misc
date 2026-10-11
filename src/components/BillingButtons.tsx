@@ -19,10 +19,12 @@ async function postAndRedirect(path: string, body?: object): Promise<string | nu
 
 export function UpgradeButton({
   plan,
+  interval = "month",
   label,
   primary,
 }: {
   plan: "pro" | "scale";
+  interval?: "month" | "year";
   label: string;
   primary?: boolean;
 }) {
@@ -34,7 +36,7 @@ export function UpgradeButton({
         disabled={busy}
         onClick={async () => {
           setBusy(true);
-          setError(await postAndRedirect("/api/stripe/checkout", { plan }));
+          setError(await postAndRedirect("/api/stripe/checkout", { plan, interval }));
           setBusy(false);
         }}
         className={`rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 ${

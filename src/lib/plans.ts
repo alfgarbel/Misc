@@ -1,4 +1,5 @@
 export type PlanId = "free" | "pro" | "scale";
+export type BillingInterval = "month" | "year";
 
 /**
  * Displayed prices are net of tax: Stripe adds VAT on top at checkout based
@@ -13,6 +14,8 @@ export interface Plan {
   id: PlanId;
   name: string;
   priceMonthlyUsd: number;
+  /** Paid once a year: ten months' price, so two months are free. */
+  priceYearlyUsd: number;
   monthlyRenders: number;
   watermark: boolean;
   description: string;
@@ -33,6 +36,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "free",
     name: "Free",
     priceMonthlyUsd: 0,
+    priceYearlyUsd: 0,
     monthlyRenders: 500,
     watermark: true,
     description: "For side projects and trying things out.",
@@ -46,6 +50,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "pro",
     name: "Pro",
     priceMonthlyUsd: 19,
+    priceYearlyUsd: 190,
     monthlyRenders: 20_000,
     watermark: false,
     description: "For production sites and small businesses.",
@@ -59,6 +64,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "scale",
     name: "Scale",
     priceMonthlyUsd: 49,
+    priceYearlyUsd: 490,
     monthlyRenders: 150_000,
     watermark: false,
     description: "For high-traffic sites and platforms.",

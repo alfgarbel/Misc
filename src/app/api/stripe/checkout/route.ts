@@ -14,7 +14,10 @@ import {
 
 export const runtime = "nodejs";
 
-const bodySchema = z.object({ plan: z.enum(["pro", "scale"]) });
+const bodySchema = z.object({
+  plan: z.enum(["pro", "scale"]),
+  interval: z.enum(["month", "year"]).default("month"),
+});
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
@@ -31,10 +34,11 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
-  const priceId = priceIdForPlan(parsed.data.plan);
+  const { plan, interval } = parsed.data;
+  const priceId = priceIdForPlan(plan, interval);
   if (!priceId) {
     return NextResponse.json(
-      { error: `Missing Stripe price ID for the ${parsed.data.plan} plan` },
+      { error: `Missing Stripe price ID for the ${interval}ly ${plan} plan` },
       { status: 503 }
     );
   }
@@ -68,14 +72,16 @@ export async function POST(req: NextRequest) {
   // the mismatch is loud in the logs rather than silent.
   try {
     const price = await stripe.prices.retrieve(priceId);
-    const advertisedCents = PLANS[parsed.data.plan].priceMonthlyUsd * 100;
+    const advertisedUsd =
+      interval === "year" ? PLANS[plan].priceYearlyUsd : PLANS[plan].priceMonthlyUsd;
+    const advertisedCents = advertisedUsd * 100;
     if (
       price.unit_amount !== null &&
       price.unit_amount !== advertisedCents
     ) {
       console.error(
-        `Stripe price mismatch for the ${parsed.data.plan} plan: the site advertises ` +
-          `$${PLANS[parsed.data.plan].priceMonthlyUsd} but ${priceId} charges ` +
+        `Stripe price mismatch for the ${interval}ly ${plan} plan: the site advertises ` +
+          `$${advertisedUsd} but ${priceId} charges ` +
           `${(price.unit_amount / 100).toFixed(2)} ${price.currency}. ` +
           `Update the Stripe price or PLANS so they agree.`
       );
