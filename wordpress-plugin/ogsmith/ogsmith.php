@@ -217,7 +217,7 @@ function ogsmith_settings_page() {
 		<form method="post" action="options.php">
 			<?php settings_fields('ogsmith'); ?>
 			<h2>Connect your account</h2>
-			<p>Recommended: a signed URL, so no secret appears in your pages. Find both values in the OGsmith dashboard under <strong>Signed URLs</strong>.</p>
+			<p>Recommended: a signed URL, so no secret appears in your pages. Find both values in the OGsmith dashboard under <strong>Advanced → Signed URLs</strong>.</p>
 			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row"><label for="ogsmith-account">Account ID</label></th>

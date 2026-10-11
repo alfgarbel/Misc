@@ -28,7 +28,7 @@ This plugin points your pages' og:image and twitter:image tags at `https://ogsmi
 == Installation ==
 
 1. Upload the plugin and activate it.
-2. In OGsmith, open the dashboard and copy your Account ID and signing secret from Signed URLs.
+2. In OGsmith, open the dashboard and copy your Account ID and signing secret from Advanced → Signed URLs.
 3. In WordPress, go to Settings → OGsmith, paste both and save. A preview of your home page card appears.
 
 == Frequently Asked Questions ==
