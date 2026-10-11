@@ -86,6 +86,7 @@ There are no overage charges: rendering stops at the monthly quota.
 - [Full API reference as Markdown](${base}/llms-full.txt)
 - [OpenAPI description](${base}/openapi.json) of \`/api/og\` and \`/api/usage\`.
 - [Templates](${base}/templates): every built-in layout, rendered live.
+- [For marketing teams](${base}/for/marketing): visual editor, A/B tests by page and cache refresh, set up once by a developer.
 
 ## Tools
 
