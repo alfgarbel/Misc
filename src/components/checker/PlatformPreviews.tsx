@@ -59,6 +59,12 @@ const PLATFORMS: Platform[] = [
   { id: "imessage", name: "iMessage", shape: "wide", titleChars: 60, showsDescription: false },
 ];
 
+function ordered(focus: string[] | undefined): Platform[] {
+  if (!focus?.length) return PLATFORMS;
+  const first = focus.flatMap((id) => PLATFORMS.filter((p) => p.id === id));
+  return [...first, ...PLATFORMS.filter((p) => !focus.includes(p.id))];
+}
+
 function truncate(text: string, max: number): { text: string; cut: boolean } {
   if (text.length <= max) return { text, cut: false };
   return { text: `${text.slice(0, max).trimEnd()}…`, cut: true };
@@ -106,11 +112,14 @@ export default function PlatformPreviews({
   title,
   description,
   domain,
+  focus,
 }: {
   imageUrl: string | null;
   title: string;
   description: string | null;
   domain: string;
+  /** Platform ids to put first, as on a page about one platform. */
+  focus?: string[];
 }) {
   // The browser loads the image straight from its own host, so a site with
   // hotlink protection can fail here even though our server fetched it
@@ -120,7 +129,7 @@ export default function PlatformPreviews({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid items-start gap-4 sm:grid-cols-2">
-        {PLATFORMS.map((p) => {
+        {ordered(focus).map((p) => {
           const t = truncate(title, p.titleChars);
           return (
             <figure

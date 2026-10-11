@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import { contactEmail } from "@/lib/stripe";
+import { PLATFORM_PAGES } from "@/lib/checker/platforms";
 
 const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string }> }> = [
   {
@@ -10,6 +11,11 @@ const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string
       { href: "/templates", label: "Templates" },
       { href: "/pricing", label: "Pricing" },
     ],
+  },
+  {
+    // Also the internal links that help these pages get found.
+    title: "Free checkers",
+    links: PLATFORM_PAGES.map((p) => ({ href: `/check/${p.slug}`, label: p.linkLabel })),
   },
   {
     title: "Learn",
@@ -31,7 +37,7 @@ export default function Footer() {
   const email = contactEmail();
   return (
     <footer className="border-t border-zinc-800 py-12 text-sm text-zinc-400">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div className="flex flex-col gap-3">
           <Link href="/" aria-label="OGsmith home" className="w-fit">
             <Logo />

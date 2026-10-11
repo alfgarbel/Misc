@@ -5,6 +5,7 @@ import { SIZES, SIZE_IDS } from "./og/sizes";
 import { TRIAL_DAYS } from "./trial";
 import { allPosts } from "./blog";
 import { contactEmail } from "./stripe";
+import { PLATFORM_PAGES } from "./checker/platforms";
 
 /**
  * Machine-readable descriptions of OGsmith for search engines and AI
@@ -88,6 +89,7 @@ There are no overage charges: rendering stops at the monthly quota.
 ## Tools
 
 - [Link preview checker](${base}/check): free, no signup. Shows how a link looks on X, LinkedIn, Slack, Discord, WhatsApp, Facebook and iMessage, and what is wrong with its Open Graph tags.
+${PLATFORM_PAGES.map((p) => `- [${p.h1}](${base}/check/${p.slug}): ${p.description}`).join("\n")}
 - [Pricing](${base}/pricing)
 
 ## Blog

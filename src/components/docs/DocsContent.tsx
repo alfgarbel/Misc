@@ -291,9 +291,9 @@ signedOgUrl({ title: "My post", template: "split" }, ACCOUNT_ID, SECRET);`}</Cod
         </h2>
         <p className="mt-4 text-sm text-zinc-400">
           The{" "}
-          <a href="/check" className="text-indigo-400 hover:underline">
+          <A href="/check" className="text-indigo-400 hover:underline">
             link preview checker
-          </a>{" "}
+          </A>{" "}
           reads any public page&apos;s Open Graph tags, fetches its image, and
           reports what will go wrong when the link is shared — a missing or
           unreachable <code className="text-zinc-300">og:image</code>, one too
