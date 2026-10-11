@@ -25,7 +25,7 @@ function backgroundCss(spec: TemplateSpec): React.CSSProperties {
       backgroundImage: `linear-gradient(${bg.angle}deg, ${bg.from} 0%, ${bg.to} 100%)`,
     };
   }
-  return { backgroundColor: "#141210" };
+  return { backgroundColor: "#09090b" };
 }
 
 export default function EditorCanvas({

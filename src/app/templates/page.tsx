@@ -19,7 +19,7 @@ const SAMPLES: Record<
     title: "A soft glow for big launches",
     subtitle: "The default template — works for almost anything",
     site: "example.com",
-    accent: "#ff6a2b",
+    accent: "#6366f1",
     theme: "dark",
     blurb: "Radial accent glow with bottom-anchored copy. The default.",
   },
