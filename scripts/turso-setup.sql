@@ -255,6 +255,25 @@ CREATE TABLE `prospect_scans` (
 );
 CREATE INDEX `prospect_scans_user_id_idx` ON `prospect_scans` (`user_id`);
 
+-- ---------- 0012_add_funnel ----------
+CREATE TABLE `events` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`user_id` text,
+	`created_at` integer NOT NULL
+);
+CREATE INDEX `events_name_created_idx` ON `events` (`name`,`created_at`);
+ALTER TABLE `users` ADD `first_render_at` integer;
+ALTER TABLE `users` ADD `live_at` integer;
+ALTER TABLE `users` ADD `onboarding_url` text;
+ALTER TABLE `users` ADD `nudge_email_at` integer;
+ALTER TABLE `users` ADD `trial_email_at` integer;
+-- Accounts that already render are past onboarding: without this they would
+-- see the first-card checklist, get the "you haven't rendered yet" email and
+-- each log a fresh first_render. Their real dates are unknown, so signup
+-- time stands in.
+UPDATE `users` SET `first_render_at` = `created_at`, `live_at` = `created_at` WHERE `id` IN (SELECT `user_id` FROM `usage` WHERE `count` > 0);
+
 -- ---------- migration bookkeeping ----------
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
 			id SERIAL PRIMARY KEY,
@@ -273,3 +292,4 @@ INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('7bc5a3806a067a22
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('196288e33bcf1992db79f6aa44234e86f455a67b7acfb19c0e006bfdca1101c1', 1787845461443);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('86138e2ccae7024a2820b5a40503be93d43f75401b5d0bbe05ae030992ddad45', 1787847110829);
 INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('8fb55b5528aeab8c22e0839f7cc6ae7aa9c6b61b4b5d5a953a91e81cf658ee4d', 1788039121315);
+INSERT INTO __drizzle_migrations ("hash", "created_at") VALUES('e09961ac93177f3d90520a9f75bf9ba5ddc30031a712316c28b6aabe1d27906a', 1791718270375);
