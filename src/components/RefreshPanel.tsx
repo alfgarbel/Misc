@@ -40,7 +40,7 @@ export default function RefreshPanel({
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
       <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h2 className="font-semibold">Cache refresh</h2>
+        <h3 className="font-semibold">Cache refresh</h3>
         <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-0.5 text-xs text-zinc-400">
           version {version}
         </span>
@@ -109,7 +109,7 @@ export default function RefreshPanel({
       </div>
       <p className="mt-3 text-xs text-zinc-500">
         Signed URLs cover <code className="text-emerald-400">v</code> like any
-        other parameter, so re-sign after bumping.
+        other parameter, so sign the URL again after changing the version.
       </p>
     </div>
   );

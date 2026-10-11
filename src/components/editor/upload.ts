@@ -17,7 +17,7 @@ export async function uploadAsset(file: File): Promise<UploadResult> {
   try {
     res = await fetch("/api/assets", { method: "POST", body });
   } catch {
-    return { ok: false, error: "Upload failed — check your connection." };
+    return { ok: false, error: "Upload failed. Check your connection." };
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.asset) {

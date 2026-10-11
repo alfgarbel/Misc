@@ -82,14 +82,14 @@ export default function BrandPanel({
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
-      <h2 className="mb-1 font-semibold">Brand defaults</h2>
+      <h3 className="mb-1 font-semibold">Brand defaults</h3>
       <p className="mb-4 text-sm text-zinc-400">
-        Saved defaults apply to authenticated renders whenever a parameter is
-        omitted — so your URLs can be as short as{" "}
+        Saved defaults fill in any parameter missing from a render that uses
+        your key, so your URLs can be as short as{" "}
         <code className="rounded bg-zinc-950 px-1.5 py-0.5 text-emerald-400">
           ?key=…&amp;title=Hello
         </code>
-        . Explicit parameters always win.
+        . Parameters in the URL always win.
       </p>
       <form onSubmit={save} className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
         <label className="flex flex-col gap-1 text-sm text-zinc-400">
@@ -99,7 +99,7 @@ export default function BrandPanel({
             onChange={(e) => set("template", e.target.value)}
             className={selectClass}
           >
-            <option value="">— none —</option>
+            <option value="">Not set</option>
             {TEMPLATES.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -114,7 +114,7 @@ export default function BrandPanel({
             onChange={(e) => set("theme", e.target.value)}
             className={selectClass}
           >
-            <option value="">— none —</option>
+            <option value="">Not set</option>
             <option value="dark">dark</option>
             <option value="light">light</option>
           </select>
@@ -131,7 +131,7 @@ export default function BrandPanel({
             <input
               value={values.accent}
               onChange={(e) => set("accent", e.target.value)}
-              placeholder="#6366f1 (empty = none)"
+              placeholder="#6366f1 (optional)"
               className={`flex-1 ${selectClass}`}
             />
           </div>
@@ -142,7 +142,7 @@ export default function BrandPanel({
             value={values.site}
             onChange={(e) => set("site", e.target.value)}
             maxLength={100}
-            placeholder="example.com (empty = none)"
+            placeholder="example.com (optional)"
             className={selectClass}
           />
         </label>

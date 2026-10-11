@@ -77,16 +77,16 @@ export default function KeysManager({ keys }: { keys: KeyRow[] }) {
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
-      <h2 className="mb-1 font-semibold">API keys</h2>
+      <h3 className="mb-1 font-semibold">API keys</h3>
       <p className="mb-4 text-sm text-zinc-400">
-        Up to 10 active keys — use separate keys per site or environment so you
-        can revoke them independently and see per-key usage.
+        You can have up to 10 active keys. Use a separate key for each site or
+        environment so you can revoke them one at a time and see usage per key.
       </p>
 
       {newKey ? (
         <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-4">
           <p className="mb-2 text-sm text-amber-400">
-            Copy this key now — it won&apos;t be shown again.
+            Copy this key now. It won&apos;t be shown again.
           </p>
           <div className="flex items-center gap-2">
             <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-emerald-400">

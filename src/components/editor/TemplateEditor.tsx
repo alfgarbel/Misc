@@ -409,9 +409,9 @@ export default function TemplateEditor({
           </p>
           {spec.size !== initialSpec.size ? (
             <p className="mt-2 max-w-xl text-xs text-amber-300">
-              Changing the canvas doesn&apos;t move your layers — they keep the
-              coordinates you gave them, so check nothing has fallen outside
-              the new shape before saving.
+              Changing the canvas doesn&apos;t move your layers. They keep the
+              coordinates you gave them, so before saving, check that nothing
+              has fallen outside the new shape.
             </p>
           ) : null}
         </div>
@@ -490,7 +490,7 @@ export default function TemplateEditor({
               <h3 className="mb-2 text-sm font-semibold">
                 Rendered PNG{" "}
                 <span className="font-normal text-zinc-500">
-                  — what social platforms will actually receive
+                  (what social platforms receive)
                 </span>
               </h3>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -571,7 +571,7 @@ export default function TemplateEditor({
                         {l.type === "text"
                           ? l.text || "(empty)"
                           : l.type === "image" && !l.assetId
-                            ? "image — none chosen"
+                            ? "image (none chosen)"
                             : l.type}
                       </button>
                       <button
