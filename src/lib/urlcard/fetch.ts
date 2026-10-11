@@ -29,7 +29,7 @@ export const MAX_REDIRECTS = 4;
 
 /** Identifies us honestly, so sites can allow or block on sight. */
 const USER_AGENT =
-  "OGsmithBot/1.0 (+https://ogsmith.app/docs#url-to-card; link preview renderer)";
+  "OGsmithBot/1.0 (+https://ogsmith.app/docs/url-to-card; link preview renderer)";
 
 export type FetchFailure =
   | SafetyFailure

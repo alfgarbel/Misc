@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function SigningPanel({ accountId }: { accountId: string }) {
   const [secret, setSecret] = useState<string | null>(null);
@@ -42,9 +43,9 @@ export default function SigningPanel({ accountId }: { accountId: string }) {
           {accountId}
         </code>
         . See the{" "}
-        <a href="/docs#signed-urls" className="text-indigo-400 hover:underline">
+        <Link href="/docs/signed-urls" className="text-indigo-400 hover:underline">
           docs
-        </a>{" "}
+        </Link>{" "}
         for the signing snippet.
       </p>
       {secret ? (

@@ -80,7 +80,7 @@ og.searchParams.set("url", \`https://example.com/blog/\${slug}\`);`}</CodeBlock>
       <P>
         Image URLs are public by nature, because crawlers have to fetch them.
         If you&apos;d rather not show the key, use a{" "}
-        <Link href="/docs#signed-urls" className="text-indigo-400 hover:underline">
+        <Link href="/docs/signed-urls" className="text-indigo-400 hover:underline">
           signed URL
         </Link>
         : the signature covers the exact parameters, so nobody can reuse it

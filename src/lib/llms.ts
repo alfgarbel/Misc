@@ -6,6 +6,7 @@ import { TRIAL_DAYS } from "./trial";
 import { allPosts } from "./blog";
 import { contactEmail } from "./stripe";
 import { PLATFORM_PAGES } from "./checker/platforms";
+import { DOC_SECTIONS } from "@/components/docs/sections";
 import { COMPARISONS } from "./compare";
 
 /**
@@ -84,6 +85,7 @@ There are no overage charges: rendering stops at the monthly quota.
 
 - [API reference](${base}/docs): parameters, sizes, signed URLs, cards from a URL, custom templates, A/B tests, cache refresh, batches, webhooks and quotas.
 - [Full API reference as Markdown](${base}/llms-full.txt)
+${DOC_SECTIONS.map((s) => `- [${s.title}](${base}/docs/${s.slug}): ${s.description}`).join("\n")}
 - [OpenAPI description](${base}/openapi.json) of \`/api/og\` and \`/api/usage\`.
 - [Templates](${base}/templates): every built-in layout, rendered live.
 - [For marketing teams](${base}/for/marketing): visual editor, A/B tests by page and cache refresh, set up once by a developer.
@@ -230,7 +232,7 @@ export function openApiSpec(base: string) {
               maxLength: 32,
             }),
             query("acct", "Account id, for signed URLs (with sig) instead of key."),
-            query("sig", "HMAC-SHA256 signature of the other parameters. See /docs#signed-urls."),
+            query("sig", "HMAC-SHA256 signature of the other parameters. See /docs/signed-urls."),
           ],
           responses: {
             "200": { description: "The card.", content: { "image/png": { schema: { type: "string", format: "binary" } } } },
