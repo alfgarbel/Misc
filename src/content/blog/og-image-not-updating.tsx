@@ -18,9 +18,9 @@ export const meta: PostMeta = {
   slug: "og-image-not-updating",
   title: "Why your og:image won't update, and what actually clears it",
   description:
-    "You changed the card and reshared the link, and it's still the old image. There are two caches involved and almost every explanation online conflates them. Here's which one is biting you and what genuinely clears each.",
+    "You changed the card and reshared the link, and it's still the old image. Two caches are involved, and almost every explanation online mixes them up. This covers how to tell which one you're hitting and what clears each.",
   cardSubtitle:
-    "Two caches, not one — and only one of them is yours to control.",
+    "There are two caches, and you only control one of them.",
   date: "2026-08-29",
   readingMinutes: 7,
 };
@@ -35,13 +35,12 @@ export default function Post() {
       </Lead>
 
       <P>
-        The reason this is so maddening is that two different caches are
-        involved, and almost every answer online treats one of them as if it
-        were the only one. They fail in different ways and they clear
-        differently. Once you can tell which one is holding your old card, the
-        problem stops being mysterious — though for one of them the honest
-        answer is that you cannot fix it, and knowing that is worth something
-        too.
+        This is frustrating because two different caches are involved, and
+        almost every answer online treats one of them as if it were the only
+        one. They fail in different ways and clear in different ways. Once you
+        can tell which one is holding your old card, you know what to do. For
+        one of them, the answer is that you can&apos;t fix it, which is still
+        useful to know.
       </P>
 
       <H2 id="two-caches">The two caches</H2>
@@ -49,8 +48,8 @@ export default function Post() {
       <H3>One: the platform&apos;s copy of your page</H3>
       <P>
         The first time anybody shares your URL, the platform&apos;s crawler
-        fetches the page, reads the meta tags, and stores what it found —
-        title, description, and usually the image itself, copied onto the
+        fetches the page, reads the meta tags, and stores what it found: the
+        title, the description, and usually the image itself, copied onto the
         platform&apos;s own servers. That snapshot is keyed on the page URL.
       </P>
       <P>
@@ -58,7 +57,7 @@ export default function Post() {
         <strong className="text-zinc-200">
           Your server is never contacted again.
         </strong>{" "}
-        This is the part people miss: resharing does nothing, because nobody
+        This is the part people miss. Resharing does nothing, because nobody
         is asking your server anything. You are looking at a copy that was
         taken once and kept.
       </P>
@@ -66,7 +65,7 @@ export default function Post() {
       <H3>Two: the image bytes</H3>
       <P>
         Separately, the image living at your <Code>og:image</Code> URL is
-        cached — by your own CDN, and again by the platform when it copies the
+        cached by your own CDN, and again by the platform when it copies the
         file. If you regenerate the card at the same address, everything
         downstream still holds the old bytes. A crawler that <em>does</em> come
         back for a fresh look can still be handed the old picture.
@@ -78,7 +77,7 @@ export default function Post() {
         If the link was shared before you made the change, it is almost always
         cache one, and there is usually nothing you can do for that
         already-posted link. If it is a brand-new share and the card is still
-        wrong, it is cache two — and that one is entirely yours to fix.
+        wrong, it is cache two, and you can fix that one yourself.
       </Callout>
 
       <H2 id="what-clears-them">What actually clears each platform</H2>
@@ -111,8 +110,8 @@ export default function Post() {
               re-read a URL.
             </>,
           ],
-          ["Slack", "No", <>Unfurls expire on their own; no flush control.</>],
-          ["Discord", "No", <>Same — cached, with no user-facing refresh.</>],
+          ["Slack", "No", <>Unfurls expire on their own, and you can&apos;t flush them.</>],
+          ["Discord", "No", <>Also cached, with no refresh you can trigger.</>],
           [
             "WhatsApp",
             "No",
@@ -123,13 +122,12 @@ export default function Post() {
       />
 
       <P>
-        Treat that table as a starting point rather than gospel — these
-        products change their behaviour without announcing it, and the two
-        debuggers move around. If a card matters, check it before you publish
-        rather than after.
+        Treat that table as a starting point. These products change their
+        behaviour without announcing it, and the two debuggers move around.
+        If a card matters, check it before you publish, not after.
       </P>
 
-      <H2 id="the-one-lever">The one lever that always works</H2>
+      <H2 id="the-one-lever">The one lever you have</H2>
       <P>
         Both caches are keyed on a URL. You cannot flush them, but you can
         change the key. That is the whole trick, and it only helps in one of
@@ -155,13 +153,13 @@ export default function Post() {
 <meta property="og:image" content="https://example.com/og/launch.png?v=3">`}</CodeBlock>
 
       <P>
-        Be clear about what this does and does not buy you.{" "}
+        This has limits.{" "}
         <strong className="text-zinc-200">
           It does not force anyone to re-read your page.
         </strong>{" "}
-        What it means is that whenever a re-read <em>does</em> happen — a new
-        share, a platform you have not been posted on yet, a scheduled
-        recrawl, someone hitting the Facebook debugger — the crawler follows a
+        What it does mean is that whenever a re-read <em>does</em> happen (a
+        new share, a platform you have not been posted on yet, a scheduled
+        recrawl, someone hitting the Facebook debugger), the crawler follows a
         URL nothing has ever cached and gets the current art. Without a
         version, your HTML can be right while the bytes served to that crawler
         are months old.
@@ -174,7 +172,7 @@ export default function Post() {
           after a page has been shared is the case that cannot be fixed.
         </li>
         <li>
-          Bump the version whenever the design changes — not just when the
+          Bump the version whenever the design changes, not only when the
           title does.
         </li>
         <li>
@@ -184,7 +182,7 @@ export default function Post() {
         <li>
           Accept that links already circulating on X, Slack, Discord and
           WhatsApp will keep the old card until their caches expire on their
-          own. Do not burn a day trying; there is no lever.
+          own. There is no lever here, so don&apos;t spend a day trying.
         </li>
         <li>
           Do not rely on <Code>Cache-Control</Code> on the image. It
@@ -202,15 +200,15 @@ export default function Post() {
           link preview checker
         </Link>{" "}
         reads any public page, fetches the image, and shows you what each
-        platform will do with it — no account, and it takes about four
+        platform will do with it. It needs no account and takes about four
         seconds.
       </P>
       <P>
         OGsmith puts the version in the image URL for you: every card carries a{" "}
         <Code>v</Code> parameter, and changing your design bumps it across
         every card on the account at once, so you never have to remember which
-        pages need editing. That is the whole feature — it is not clever, it is
-        just the one thing the caches leave you.
+        pages need editing. That is all the feature does. It&apos;s simple, but
+        it&apos;s the one thing the caches leave you.
       </P>
     </>
   );

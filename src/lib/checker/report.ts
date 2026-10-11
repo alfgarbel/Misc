@@ -90,7 +90,7 @@ export function fetchFailureMessage(err: {
     return FETCH_MESSAGES[err.reason];
   }
   if (err.status === 401 || err.status === 403) {
-    return `That site refused our reader (HTTP ${err.status}). Many sites allow Facebook's and X's crawlers but block everything else, so your card may well be fine — we just can't see it from here.`;
+    return `That site refused our reader (HTTP ${err.status}). Many sites allow Facebook's and X's crawlers but block everything else, so your card may well be fine. We just can't see it from here.`;
   }
   if (err.status === 404 || err.status === 410) {
     return `That page returned HTTP ${err.status}. Check the URL.`;

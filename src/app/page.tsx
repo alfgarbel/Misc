@@ -19,7 +19,7 @@ const FEATURE_GROUPS: Array<{
 }> = [
   {
     name: "Put it on your site",
-    blurb: "One tag, any stack. No SDK, no build step.",
+    blurb: "One tag works on any stack. You don't need an SDK or a build step.",
     items: [
       {
         title: "One GET request",
@@ -31,7 +31,7 @@ const FEATURE_GROUPS: Array<{
       },
       {
         title: "Fast and serverless",
-        body: "Images render in milliseconds with satori, no headless browser. Responses are CDN-cached, so repeat crawls are free.",
+        body: "Images render in milliseconds with satori instead of a headless browser. Responses are CDN-cached, so repeat crawls are free.",
       },
     ],
   },
@@ -41,7 +41,7 @@ const FEATURE_GROUPS: Array<{
     items: [
       {
         title: "Templates that read well in a feed",
-        body: "Six hand-tuned templates with themes and accent colors. Legible at any title length.",
+        body: "Seven hand-tuned templates with themes and accent colors. They stay legible at any title length.",
       },
       {
         title: "Or design your own",
@@ -204,9 +204,9 @@ export default function Home() {
             card
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400">
-            Stop shipping pages with blank link previews. OGsmith renders
-            pixel-perfect 1200×630 Open Graph images on demand, with no
-            headless browser, design tool or build step.
+            OGsmith renders 1200×630 Open Graph images on demand, so your
+            pages stop showing blank link previews. You don&apos;t need a
+            headless browser, a design tool or a build step.
           </p>
 
           <form
@@ -237,8 +237,8 @@ export default function Home() {
             </button>
           </form>
           <p className="mt-3 text-sm text-zinc-400">
-            Free, no account. See what X, LinkedIn, Slack and WhatsApp show for
-            it today.
+            It&apos;s free and needs no account. See what X, LinkedIn, Slack
+            and WhatsApp show for it today.
           </p>
           <p className="mt-6 text-sm text-zinc-400">
             Already know you want it?{" "}

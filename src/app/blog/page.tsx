@@ -7,7 +7,7 @@ import { allPosts, formatPostDate } from "@/lib/blog";
 export const metadata: Metadata = {
   title: "Writing",
   description:
-    "Notes on Open Graph images, link previews and the caches behind them — from the people who render them for a living.",
+    "Notes on Open Graph images, link previews and the caches behind them, from the people who render them for a living.",
   alternates: { canonical: "/blog" },
 };
 

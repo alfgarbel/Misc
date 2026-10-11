@@ -74,7 +74,7 @@ export function llmsTxt(base: string): string {
 
 > ${SUMMARY}
 
-One GET request returns the image: \`${base}/api/og?key=og_…&title=My%20post\`. With \`url=\` OGsmith reads the page's own title, description and image and builds the card from them, so a site can add every page's card with a single meta tag. No headless browser and no design tool are needed.
+One GET request returns the image: \`${base}/api/og?key=og_…&title=My%20post\`. With \`url=\` OGsmith reads the page's own title, description and image and builds the card from them, so a site can add every page's card with a single meta tag. You don't need a headless browser or a design tool.
 
 Pricing:
 ${plans}
@@ -92,7 +92,7 @@ ${DOC_SECTIONS.map((s) => `- [${s.title}](${base}/docs/${s.slug}): ${s.descripti
 
 ## Tools
 
-- [Link preview checker](${base}/check): free, no signup. Shows how a link looks on X, LinkedIn, Slack, Discord, WhatsApp, Facebook and iMessage, and what is wrong with its Open Graph tags.
+- [Link preview checker](${base}/check): free and needs no signup. Shows how a link looks on X, LinkedIn, Slack, Discord, WhatsApp, Facebook and iMessage, and what is wrong with its Open Graph tags.
 ${PLATFORM_PAGES.map((p) => `- [${p.h1}](${base}/check/${p.slug}): ${p.description}`).join("\n")}
 - [Pricing](${base}/pricing)
 

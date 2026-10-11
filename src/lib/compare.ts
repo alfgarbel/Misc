@@ -38,7 +38,7 @@ export const COMPARISONS: Comparison[] = [
     name: "@vercel/og",
     title: "OGsmith vs @vercel/og: build your OG images or call an API",
     description:
-      "@vercel/og is a free library you run yourself; OGsmith is a hosted API. A fair comparison of cost, limits, design work and what happens after a card is shared.",
+      "@vercel/og is a free library you run yourself; OGsmith is a hosted API. How they compare on cost, limits, design work and what happens after a card is shared.",
     summary:
       "@vercel/og (ImageResponse in Next.js) is a free library that turns JSX into a PNG inside your own functions. If you're on Next.js and want one layout you fully control, it's a good choice. OGsmith is the same idea as a hosted service: you send a URL and get the card back, with templates, an editor, cache refresh and testing already built.",
     rows: [

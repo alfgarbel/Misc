@@ -18,11 +18,11 @@ const SAMPLES: Record<
 > = {
   gradient: {
     title: "A soft glow for big launches",
-    subtitle: "The default template — works for almost anything",
+    subtitle: "The default template, good for almost anything",
     site: "example.com",
     accent: "#6366f1",
     theme: "dark",
-    blurb: "Radial accent glow with bottom-anchored copy. The default.",
+    blurb: "Radial accent glow with bottom-anchored copy. This is the default.",
   },
   minimal: {
     title: "Let the headline do the talking",
@@ -30,7 +30,7 @@ const SAMPLES: Record<
     site: "blog.example.com",
     accent: "#10b981",
     theme: "light",
-    blurb: "Quiet, editorial, great for blogs and docs.",
+    blurb: "A quiet editorial layout for blogs and docs.",
   },
   split: {
     title: "Content left, color right",
@@ -46,7 +46,7 @@ const SAMPLES: Record<
     site: "cli.example.com",
     accent: "#34d399",
     theme: "dark",
-    blurb: "Editor-window chrome — ideal for dev tools.",
+    blurb: "Editor-window chrome, made for dev tools.",
   },
   quote: {
     title: "The best way to predict the future is to invent it",
@@ -70,7 +70,7 @@ const SAMPLES: Record<
     site: "example.com",
     accent: "#a855f7",
     theme: "dark",
-    blurb: "Built for ?url= — pairs the page's own image with its title.",
+    blurb: "Made for ?url=. It pairs the page's own image with its title.",
   },
 };
 
@@ -94,7 +94,7 @@ export default function TemplatesPage() {
       <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h1 className="text-4xl font-bold">Templates</h1>
         <p className="mt-3 max-w-2xl text-zinc-400">
-          Every card below is rendered live by the API — the same endpoint your
+          The API renders every card below live, from the same endpoint your
           site will call. Pass{" "}
           <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-emerald-400">
             template=&lt;name&gt;

@@ -30,7 +30,7 @@ const JOBS: Array<{ title: string; before: string; after: string }> = [
     title: "Find out which design gets clicks",
     before: "Picking a style by gut feeling, and never knowing if it worked.",
     after:
-      "Split your pages between two designs and read the result with a proper significance test, not a hunch.",
+      "Split your pages between two designs and read the result with a proper significance test.",
   },
   {
     title: "Rebrand without broken previews",
@@ -120,7 +120,7 @@ export default function ForMarketingPage() {
         <p className="mt-4 max-w-2xl text-pretty leading-relaxed text-zinc-400">
           OGsmith makes the image people see when your posts are shared on X, LinkedIn, Slack and
           WhatsApp. Design it in your brand, test which version gets more clicks, and change it
-          after links are out. Your developer sets it up once; the rest is yours.
+          after links are out. Your developer sets it up once, and your team handles the rest.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
@@ -231,7 +231,7 @@ export default function ForMarketingPage() {
         <section className="mt-12 rounded-xl border border-indigo-500/40 bg-indigo-500/5 p-6">
           <h2 className="text-lg font-semibold">See your own links first</h2>
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-            Paste any post. No signup, and you&apos;ll see the card OGsmith would make for it.
+            Paste any post to see the card OGsmith would make for it. You don&apos;t need to sign up.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link

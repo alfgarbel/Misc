@@ -132,8 +132,8 @@ export default async function CheckerTool({
       <div className="flex flex-col gap-4">
         <UrlForm action={action} />
         <p className="text-sm text-zinc-500">
-          No sign-up. Paste any public page and see what X, LinkedIn, Slack,
-          Discord, WhatsApp, Facebook and iMessage will actually show.
+          You don&apos;t need an account. Paste any public page and see what X,
+          LinkedIn, Slack, Discord, WhatsApp, Facebook and iMessage will show.
         </p>
       </div>
     );
@@ -143,7 +143,7 @@ export default async function CheckerTool({
         <UrlForm defaultValue={url} action={action} />
         <CantCheck
           url={url}
-          message="That doesn't look like a web address. A domain on its own is fine — try something like ogsmith.app/pricing."
+          message="That doesn't look like a web address. A domain on its own is fine. Try something like ogsmith.app/pricing."
         />
       </div>
     );
@@ -156,9 +156,9 @@ export default async function CheckerTool({
       <div className="flex flex-col gap-4">
         <UrlForm defaultValue={url} action={action} />
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
-          That&apos;s a lot of checks in one minute. Give it sixty seconds and
-          try again — each check reads someone else&apos;s server, so we keep
-          the pace civil.
+          That&apos;s a lot of checks in one minute. Wait sixty seconds and
+          try again. Each check reads someone else&apos;s server, so we limit
+          how often it runs.
         </p>
       </div>
     );
@@ -324,7 +324,7 @@ export default async function CheckerTool({
                 href={`/signup?url=${encodeURIComponent(report.pageUrl)}`}
                 className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
               >
-                Get this card — free for {TRIAL_DAYS} days
+                Get this card free for {TRIAL_DAYS} days
               </Link>
               <Link href="/docs" className="text-sm text-indigo-400 hover:underline">
                 Read the docs

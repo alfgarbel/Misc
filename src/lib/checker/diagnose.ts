@@ -149,14 +149,14 @@ export function diagnose(input: DiagnoseInput): Diagnosis {
         add({
           id: "image-tiny",
           severity: "error",
-          title: `Image is ${width}×${height} — too small to appear`,
+          title: `Image is ${width}×${height}, too small to appear`,
           detail: `Below ${HARD_MIN.width}×${HARD_MIN.height} platforms drop the image entirely. Aim for ${IDEAL.width}×${IDEAL.height}.`,
         });
       } else if (width < LARGE_CARD_MIN.width || height < LARGE_CARD_MIN.height) {
         add({
           id: "image-small",
           severity: "warning",
-          title: `Image is ${width}×${height} — too small for a large card`,
+          title: `Image is ${width}×${height}, too small for a large card`,
           detail: `Under ${LARGE_CARD_MIN.width}×${LARGE_CARD_MIN.height} you get the small square thumbnail instead of the wide banner. ${IDEAL.width}×${IDEAL.height} is what every platform designs around.`,
         });
       } else if (width < IDEAL.width) {
@@ -167,7 +167,7 @@ export function diagnose(input: DiagnoseInput): Diagnosis {
           detail: `It'll show, but under ${IDEAL.width}px it looks soft on high-density screens, which is most phones.`,
         });
       } else {
-        passed.push(`Image is ${width}×${height} — large enough everywhere`);
+        passed.push(`Image is ${width}×${height}, large enough everywhere`);
       }
 
       if (width >= HARD_MIN.width && height >= HARD_MIN.height) {
@@ -185,7 +185,7 @@ export function diagnose(input: DiagnoseInput): Diagnosis {
           add({
             id: "image-aspect-wide",
             severity: "warning",
-            title: `Image is ${ratio.toFixed(2)}:1 — wider than the slot`,
+            title: `Image is ${ratio.toFixed(2)}:1, wider than the slot`,
             detail:
               "Very wide images get cropped at the sides, or letterboxed with bands above and below.",
           });

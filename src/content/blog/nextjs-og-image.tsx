@@ -78,7 +78,7 @@ og.searchParams.set("url", \`https://example.com/blog/\${slug}\`);`}</CodeBlock>
 
       <H2 id="key">Is the key safe in the page?</H2>
       <P>
-        Image URLs are public by nature, because crawlers have to fetch them.
+        Image URLs have to be public, because crawlers need to fetch them.
         If you&apos;d rather not show the key, use a{" "}
         <Link href="/docs/signed-urls" className="text-indigo-400 hover:underline">
           signed URL

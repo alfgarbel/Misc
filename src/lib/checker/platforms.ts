@@ -32,7 +32,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
     slug: "twitter-card-validator",
     focus: ["x-large", "x-small"],
     linkLabel: "X (Twitter) card validator",
-    title: "Twitter card validator (X) — free, no login",
+    title: "Twitter card validator (X): free, no login needed",
     description:
       "X retired its Card Validator. Paste a URL to see how your Twitter card renders on X, check twitter:card and og:image, and find out why the large image isn't showing.",
     h1: "Twitter card validator",
@@ -42,7 +42,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
       { label: "Large image card", value: 'Needs <meta name="twitter:card" content="summary_large_image">. Without it X shows a small square thumbnail.' },
       { label: "Fallbacks", value: "Missing twitter:title, twitter:description or twitter:image fall back to og:title, og:description and og:image." },
       { label: "Image", value: "A wide image around 2:1 or 1.91:1 (1200×630 works), JPG, PNG, WEBP or GIF, under 5 MB." },
-      { label: "Refreshing a card", value: "No public tool. Change the URL (for example add ?v=2) so X treats it as a new link." },
+      { label: "Refreshing a card", value: "There is no public tool. Change the URL (for example add ?v=2) so X treats it as a new link." },
     ],
     faq: [
       {
@@ -63,7 +63,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
     slug: "linkedin-post-inspector",
     focus: ["linkedin"],
     linkLabel: "LinkedIn preview checker",
-    title: "LinkedIn Post Inspector alternative — check your link preview",
+    title: "LinkedIn Post Inspector alternative: check your link preview",
     description:
       "See how your link previews on LinkedIn before you post: title, image and crop, plus the Open Graph problems that make LinkedIn show no image or an old one.",
     h1: "LinkedIn link preview checker",
@@ -94,7 +94,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
     slug: "facebook-debugger",
     focus: ["facebook"],
     linkLabel: "Facebook preview checker",
-    title: "Facebook Sharing Debugger alternative — preview your link, no login",
+    title: "Facebook Sharing Debugger alternative: preview links without a login",
     description:
       "Check how a link looks when shared on Facebook without logging in: og:image, title, description and the tag problems the Facebook Sharing Debugger would flag.",
     h1: "Facebook link preview checker",
@@ -125,7 +125,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
     slug: "whatsapp-link-preview",
     focus: ["whatsapp"],
     linkLabel: "WhatsApp link preview",
-    title: "WhatsApp link preview checker — why no image shows",
+    title: "WhatsApp link preview checker: why no image shows",
     description:
       "See the preview WhatsApp builds for your link and why it might show no image or no preview at all. Checks og:image, title and description in seconds.",
     h1: "WhatsApp link preview checker",
@@ -135,7 +135,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
       { label: "Tags it reads", value: "og:title, og:description and og:image." },
       { label: "Image", value: "Keep the file small and served over https. Heavy images are often dropped, leaving a text-only preview." },
       { label: "Shape", value: "Usually a square thumbnail beside the text; a wide image appears only for some links and senders." },
-      { label: "Refreshing a preview", value: "No tool. Previews are generated on the sender's device, so a changed URL (?v=2) is the reliable way to get a new one." },
+      { label: "Refreshing a preview", value: "There is no tool. Previews are generated on the sender's device, so a changed URL (?v=2) is the reliable way to get a new one." },
     ],
     faq: [
       {
@@ -156,7 +156,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
     slug: "slack-link-preview",
     focus: ["slack"],
     linkLabel: "Slack unfurl preview",
-    title: "Slack link preview checker — test how your link unfurls",
+    title: "Slack link preview checker: test how your link unfurls",
     description:
       "Test how your link unfurls in Slack before you share it: title, description and image from your Open Graph tags, and what to fix when the unfurl is missing or wrong.",
     h1: "Slack link preview checker",
@@ -166,7 +166,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
       { label: "Tags it reads", value: "Open Graph and Twitter tags (og:title, og:description, og:image, og:site_name), plus oEmbed where a site offers it." },
       { label: "Image", value: "A wide image shown below the text; 1200×630 works well." },
       { label: "Who fetches it", value: "Slack's own crawler (Slackbot-LinkExpanding). Pages behind a login or blocked to bots won't unfurl." },
-      { label: "Refreshing an unfurl", value: "No flush control: unfurls expire on their own. A changed URL (?v=2) unfurls fresh straight away." },
+      { label: "Refreshing an unfurl", value: "There is no way to flush the cache; unfurls expire on their own. A changed URL (?v=2) unfurls fresh straight away." },
     ],
     faq: [
       {
@@ -187,7 +187,7 @@ export const PLATFORM_PAGES: PlatformPage[] = [
     slug: "discord-embed-preview",
     focus: ["discord"],
     linkLabel: "Discord embed preview",
-    title: "Discord embed preview — check your link embed",
+    title: "Discord embed preview: check your link embed",
     description:
       "Preview the embed Discord shows for your link: title, description, image size and colour. Find out why the image is small or the embed is missing.",
     h1: "Discord embed preview",

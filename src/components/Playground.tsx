@@ -9,7 +9,7 @@ export default function Playground() {
   const [template, setTemplate] = useState<string>("gradient");
   const [title, setTitle] = useState("Ship social cards without a designer");
   const [subtitle, setSubtitle] = useState(
-    "One GET request. A perfect 1200×630 image for every page."
+    "One GET request gives every page a 1200×630 image."
   );
   const [site, setSite] = useState("example.com");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -125,8 +125,8 @@ export default function Playground() {
           GET {shownUrl}
         </code>
         <p className="text-xs text-zinc-500">
-          Demo renders are watermarked and rate limited. Sign up for a free API
-          key to remove limits per your plan.
+          Demo renders are watermarked and rate limited. With a free API key,
+          your plan&apos;s limits apply instead.
         </p>
       </div>
     </div>
