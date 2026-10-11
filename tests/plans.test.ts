@@ -71,10 +71,10 @@ describe("prices", () => {
   });
 
   it("are quoted before tax everywhere they appear", () => {
-    // Spain-based, so every displayed figure is net and Stripe adds VAT at
+    // Spain-based, so every displayed figure is net and Stripe adds taxes at
     // checkout. Losing this wording would make the prices misleading.
-    expect(VAT_SHORT).toMatch(/excl\. VAT/i);
-    expect(VAT_NOTE).toMatch(/exclude VAT/i);
+    expect(VAT_SHORT).toMatch(/excl\. taxes/i);
+    expect(VAT_NOTE).toMatch(/exclude taxes/i);
     expect(VAT_NOTE).toMatch(/VAT number|reverse charge/i);
   });
 });
