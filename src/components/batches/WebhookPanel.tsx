@@ -80,8 +80,8 @@ export default function WebhookPanel({
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
       <h2 className="mb-1 font-semibold">Webhooks</h2>
       <p className="mb-4 text-sm text-zinc-400">
-        We POST to your endpoint when something finishes — a batch completing,
-        or your usage crossing a threshold. Every request is signed, so you can
+        We send a POST request to your endpoint when a batch finishes or your
+        usage crosses a threshold. Every request is signed, so you can
         tell it came from us.
       </p>
 
@@ -102,14 +102,14 @@ export default function WebhookPanel({
       </form>
       <p className="mt-2 text-xs text-zinc-500">
         {items.length} of {limit} on the {planName} plan. Must be a public
-        https address — private and internal addresses are refused.
+        https address. Private and internal addresses are refused.
       </p>
       {error ? <p className="mt-2 text-sm text-red-400">{error}</p> : null}
 
       {secret ? (
         <div className="mt-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3">
           <p className="mb-2 text-sm text-emerald-200">
-            Signing secret — copy it now, it isn&apos;t shown again.
+            Copy this signing secret now. It won&apos;t be shown again.
           </p>
           <div className="flex items-center gap-2">
             <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded bg-zinc-950 px-3 py-2 text-xs text-emerald-400">

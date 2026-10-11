@@ -107,8 +107,11 @@ export default function ActivationChecklist({
     // KeysManager, further down, is what clears it.
     let carried: string | null = null;
     try {
+      // Only ever set, never cleared: in dev, Strict Mode runs this twice and
+      // KeysManager may already have removed the key by the second run.
+      const fresh = sessionStorage.getItem("ogsmith:newKey");
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setKey(sessionStorage.getItem("ogsmith:newKey"));
+      if (fresh) setKey(fresh);
       carried = sessionStorage.getItem(ONBOARD_URL_KEY);
       sessionStorage.removeItem(ONBOARD_URL_KEY);
     } catch {}
@@ -176,9 +179,9 @@ export default function ActivationChecklist({
       aria-labelledby="activation-heading"
       className="rounded-xl border border-indigo-500/40 bg-indigo-500/5 p-4 sm:p-6"
     >
-      <h2 id="activation-heading" className="font-semibold">
+      <h3 id="activation-heading" className="font-semibold">
         Get your first card live
-      </h2>
+      </h3>
       <p className="mt-1 text-sm text-zinc-400">
         Three steps. Most people are done in five minutes.
       </p>

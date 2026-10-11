@@ -111,11 +111,11 @@ export default function UrlCardPanel({
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
-      <h2 className="mb-1 font-semibold">Card from a URL</h2>
+      <h3 className="mb-1 font-semibold">Card from a URL</h3>
       <p className="mb-4 text-sm text-zinc-400">
         Point <code className="rounded bg-zinc-950 px-1.5 py-0.5 text-emerald-400">&amp;url=</code>{" "}
         at any public page and OGsmith reads its title, description and image
-        for you — no per-post parameters to wire up.
+        for you, so you don&apos;t have to pass parameters for each post.
       </p>
 
       <form onSubmit={onSubmit} className="flex flex-wrap gap-2">
@@ -171,8 +171,8 @@ export default function UrlCardPanel({
             }`}
           />
           <p className="mt-2 text-xs text-zinc-500">
-            This is the image itself — the same bytes a crawler receives, your
-            brand defaults and plan included.
+            This is the actual image. Crawlers get the same bytes, with your
+            brand defaults and plan applied.
           </p>
         </div>
       ) : null}
@@ -183,7 +183,7 @@ export default function UrlCardPanel({
             ["Title", meta.title],
             ["Description", meta.description],
             ["Site", meta.siteName ?? meta.domain],
-            ["Image", meta.hasImage ? "found on the page" : "none — a gradient is used"],
+            ["Image", meta.hasImage ? "found on the page" : "none found, so a gradient is used"],
           ].map(([label, value]) => (
             <div key={label as string} className="flex flex-wrap gap-x-3">
               <dt className="w-24 shrink-0 text-zinc-500">{label}</dt>

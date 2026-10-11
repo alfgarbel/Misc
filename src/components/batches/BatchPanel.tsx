@@ -103,9 +103,9 @@ export default function BatchPanel({
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
       <h2 className="mb-1 font-semibold">Batches</h2>
       <p className="mb-4 text-sm text-zinc-400">
-        Render many cards at once and download them as a zip — for a CMS media
-        library, an email tool, or an archive. Cards you serve from a URL
-        don&apos;t need this; it&apos;s for when you need the files themselves.
+        Render many cards at once and download them as a zip, for a CMS media
+        library, an email tool, or an archive. You only need this when you want
+        the image files. Cards served from a URL work without it.
       </p>
 
       <form onSubmit={submit} className="space-y-3">
@@ -152,11 +152,11 @@ export default function BatchPanel({
         />
         <p className="text-xs text-zinc-500">
           First row names the columns. A <code className="text-zinc-400">key</code>{" "}
-          column names each card; every other column is a render parameter —{" "}
+          column names each card. Every other column is a render parameter, such as{" "}
           <code className="text-zinc-400">title</code>,{" "}
           <code className="text-zinc-400">template</code>,{" "}
           <code className="text-zinc-400">size</code>,{" "}
-          <code className="text-zinc-400">url</code>, and so on.
+          or <code className="text-zinc-400">url</code>.
         </p>
 
         {parsed && !parsed.ok ? (
@@ -164,7 +164,7 @@ export default function BatchPanel({
         ) : null}
         {parsed?.ok && rowCount > rowLimit ? (
           <p className="text-sm text-amber-300">
-            {rowCount} rows — the {planName} plan allows {rowLimit} per batch.
+            This CSV has {rowCount} rows. The {planName} plan allows {rowLimit} per batch.
           </p>
         ) : null}
         {error ? <p className="text-sm text-red-400">{error}</p> : null}

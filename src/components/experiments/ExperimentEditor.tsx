@@ -173,10 +173,10 @@ export default function ExperimentEditor({
       <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
         <h2 className="mb-1 font-semibold">Results</h2>
         <p className="mb-4 text-sm text-zinc-400">
-          Rates are outcomes per page, because a page is what gets randomised.
-          Renders are crawler fetches, not the number of people who saw a card —
-          nothing about a human&apos;s behaviour reaches OGsmith, so outcomes are
-          whatever you report through the API.
+          Rates are outcomes per page, because each page is randomly assigned a
+          variant. Renders count crawler fetches, which is different from the
+          number of people who saw a card. OGsmith never sees what people do, so
+          outcomes are whatever you report through the API.
         </p>
         <div className="overflow-x-auto rounded-lg border border-zinc-800">
           <table className="w-full min-w-[520px] text-left text-sm">
@@ -202,7 +202,7 @@ export default function ExperimentEditor({
                   <td className="px-4 py-2.5 text-zinc-400">{t.exposures}</td>
                   <td className="px-4 py-2.5 text-zinc-400">{t.conversions}</td>
                   <td className="px-4 py-2.5 text-zinc-300">
-                    {t.keys > 0 ? pct(t.conversions / t.keys) : "—"}
+                    {t.keys > 0 ? pct(t.conversions / t.keys) : "n/a"}
                   </td>
                 </tr>
               ))}
@@ -220,7 +220,7 @@ export default function ExperimentEditor({
               {resetting ? "Resetting…" : "Reset results"}
             </button>
             <span className="text-xs text-zinc-500">
-              Clears the numbers, keeps every page on its current variant.
+              Clears the numbers. Every page stays on its current variant.
             </span>
           </div>
         ) : null}
@@ -277,7 +277,7 @@ export default function ExperimentEditor({
             You&apos;ve changed what a variant looks like. The numbers above were
             collected under the old design, so once you save, one rate will be
             pooling two different cards. Reset the results after saving to start
-            a clean measurement — assignments are kept, so nothing already
+            a clean measurement. Assignments are kept, so nothing already
             shared changes.
           </div>
         ) : null}
@@ -305,7 +305,7 @@ export default function ExperimentEditor({
                     onChange={(e) => patchParam(i, "template", e.target.value)}
                     className={field}
                   >
-                    <option value="">— unchanged —</option>
+                    <option value="">Unchanged</option>
                     {TEMPLATES.map((t) => (
                       <option key={t} value={t}>
                         {t}
@@ -320,7 +320,7 @@ export default function ExperimentEditor({
                     onChange={(e) => patchParam(i, "theme", e.target.value)}
                     className={field}
                   >
-                    <option value="">— unchanged —</option>
+                    <option value="">Unchanged</option>
                     <option value="dark">dark</option>
                     <option value="light">light</option>
                   </select>
@@ -360,8 +360,8 @@ export default function ExperimentEditor({
         </code>
         <p className="mt-3 text-sm text-zinc-500">
           <code className="text-zinc-400">k</code> identifies the page under
-          test and must stay the same for that page forever — a post slug or id
-          works well. With{" "}
+          test and must never change for that page. A post slug or ID works
+          well. With{" "}
           <code className="text-zinc-400">&amp;url=</code> it defaults to the
           URL. See the{" "}
           <Link href="/docs/experiments" className="text-indigo-400 hover:underline">

@@ -40,8 +40,8 @@ export default async function BatchesPage() {
           </Link>
           <h1 className="mt-2 text-2xl font-bold">Batches &amp; webhooks</h1>
           <p className="mt-1 text-sm text-zinc-400">
-            Render many cards at once and get the files, and be told when
-            things finish.
+            Render many cards at once as files you can download, and get
+            notified when jobs finish.
           </p>
         </div>
         <div className="grid gap-6 [&>*]:min-w-0">
