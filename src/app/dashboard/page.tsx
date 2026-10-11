@@ -197,6 +197,9 @@ export default async function DashboardPage() {
 
             <Section id="brand" title="Brand">
               <BrandPanel
+                // Remounts when the saved brand changes elsewhere, such as the
+                // defaults read from the site during onboarding.
+                key={`${user.brandSite}|${user.brandAccent}|${user.brandLogo?.length ?? 0}`}
                 initial={{
                   template: user.brandTemplate ?? "",
                   theme: user.brandTheme ?? "",

@@ -25,6 +25,60 @@ export default function BrandPanel({
   const [status, setStatus] = useState<string | null>(null);
   const [logoStatus, setLogoStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [siteUrl, setSiteUrl] = useState("");
+  const [detecting, setDetecting] = useState(false);
+  const [detectStatus, setDetectStatus] = useState<string | null>(null);
+  const [suggestedLogo, setSuggestedLogo] = useState<string | null>(null);
+
+  async function detect(e: React.FormEvent) {
+    e.preventDefault();
+    if (!siteUrl.trim()) return;
+    setDetecting(true);
+    setDetectStatus(null);
+    try {
+      const res = await fetch("/api/brand/detect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: siteUrl.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setDetectStatus(data.error ?? "We couldn't read that site.");
+        return;
+      }
+      setValues((prev) => ({
+        ...prev,
+        site: data.site ?? prev.site,
+        accent: data.accent ?? prev.accent,
+      }));
+      setSuggestedLogo(data.logo && data.logo !== logo ? data.logo : null);
+      const found = [data.site && "name", data.accent && "color", data.logo && "icon"].filter(
+        Boolean
+      );
+      setDetectStatus(
+        found.length > 0
+          ? `Found the site's ${found.join(", ")}. Check the fields below and save.`
+          : "That site doesn't set a name, color or icon we can use."
+      );
+    } finally {
+      setDetecting(false);
+    }
+  }
+
+  async function applySuggestedLogo() {
+    if (!suggestedLogo) return;
+    const res = await fetch("/api/brand/logo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ logo: suggestedLogo }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setLogoStatus(res.ok ? "Logo saved" : data.error ?? "Could not save logo");
+    if (res.ok) {
+      setSuggestedLogo(null);
+      router.refresh();
+    }
+  }
 
   async function uploadLogo(file: File) {
     if (file.size > 60_000) {
@@ -91,6 +145,30 @@ export default function BrandPanel({
         </code>
         . Parameters in the URL always win.
       </p>
+      <form onSubmit={detect} className="mb-5 flex flex-col gap-2 sm:flex-row">
+        <label htmlFor="brand-site-url" className="sr-only">
+          Your site
+        </label>
+        <input
+          id="brand-site-url"
+          type="text"
+          inputMode="url"
+          autoCapitalize="none"
+          spellCheck={false}
+          value={siteUrl}
+          onChange={(e) => setSiteUrl(e.target.value)}
+          placeholder="your-site.com"
+          className={`sm:flex-1 ${selectClass}`}
+        />
+        <button
+          type="submit"
+          disabled={detecting || !siteUrl.trim()}
+          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500 disabled:opacity-50"
+        >
+          {detecting ? "Reading your site…" : "Fill in from my site"}
+        </button>
+      </form>
+      {detectStatus ? <p className="-mt-3 mb-5 text-sm text-zinc-400">{detectStatus}</p> : null}
       <form onSubmit={save} className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
         <label className="flex flex-col gap-1 text-sm text-zinc-400">
           Default template
@@ -175,9 +253,26 @@ export default function BrandPanel({
           Shown on your cards next to the site name.
           {paidPlan
             ? " PNG/JPEG/GIF, up to 60KB."
-            : " Uploading works now, but logos only render on paid plans."}
+            : " You can upload one now. Logos show during the free trial and on paid plans."}
         </p>
         <div className="flex flex-wrap items-center gap-4">
+          {suggestedLogo ? (
+            <div className="flex items-center gap-3 rounded-lg border border-indigo-500/40 bg-indigo-500/5 p-2 pr-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={suggestedLogo}
+                alt="Icon found on your site"
+                className="h-12 w-12 rounded-lg border border-zinc-700 bg-zinc-950 object-contain"
+              />
+              <button
+                type="button"
+                onClick={applySuggestedLogo}
+                className="text-sm text-indigo-300 hover:text-indigo-200"
+              >
+                Use this icon from your site
+              </button>
+            </div>
+          ) : null}
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
