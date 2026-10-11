@@ -166,6 +166,66 @@ pass `--signature`, so an unfinished one looks unfinished. Before you send:
 confirm each claim yourself, and check what GDPR and CAN-SPAM require of you
 — an identifiable sender and a working opt-out at minimum.
 
+## Using OGsmith from Claude (MCP)
+
+`npm run mcp` starts an [MCP](https://modelcontextprotocol.io) server over
+the public API, so Claude (Desktop, Code, or any MCP client) can design cards
+in conversation: render one, look at it, change the template or accent,
+render again, and save the result. It uses an ordinary API key, so quotas,
+brand defaults, custom templates and experiments behave exactly as they do
+for real traffic.
+
+| Tool | What it does |
+| ---- | ------------ |
+| `render_card` | Renders a card with any `/api/og` parameter, saves the PNG, shows it, and returns the `og:image` URL and meta tag (with the key replaced by `YOUR_KEY`). |
+| `list_options` | Built-in templates, sizes and themes. |
+| `get_usage` | Plan, renders used this month, remaining. |
+| `create_batch` | Renders many cards at once and runs the batch to completion. |
+| `list_batches`, `get_batch` | Batch progress and per-row errors. |
+| `download_batch` | Saves a finished batch as a zip. |
+
+Configuration, all through environment variables:
+
+| Variable | Default |
+| -------- | ------- |
+| `OGSMITH_URL` | `NEXT_PUBLIC_APP_URL`, else `http://localhost:3000` |
+| `OGSMITH_API_KEY` | none: renders are the watermarked demo and account tools are off |
+| `OGSMITH_OUTPUT_DIR` | `~/OGsmith` |
+
+Run `npm install` in the repo once first. The MCP SDK is a dev dependency,
+so it never ships with the deployed app.
+
+**Claude Desktop:** Settings → Developer → Edit config, then add this with
+your own path and key. On Windows, use `npm.cmd` as the command and a path
+like `C:\\Users\\you\\misc`.
+
+```json
+{
+  "mcpServers": {
+    "ogsmith": {
+      "command": "npm",
+      "args": ["run", "--silent", "--prefix", "/path/to/misc", "mcp"],
+      "env": {
+        "OGSMITH_URL": "https://your-domain",
+        "OGSMITH_API_KEY": "og_..."
+      }
+    }
+  }
+}
+```
+
+**Claude Code:**
+
+```bash
+claude mcp add ogsmith \
+  -e OGSMITH_URL=https://your-domain -e OGSMITH_API_KEY=og_... \
+  -- npm run --silent --prefix /path/to/misc mcp
+```
+
+Then ask things like "make an OG card for my post 'Shipping v2' with the
+split template and a pink accent", "try it in light theme", or "render cards
+for these ten blog titles and give me the zip".
+
 ## Security notes
 
 - API keys and auth tokens are stored only as SHA-256 hashes; passwords as
