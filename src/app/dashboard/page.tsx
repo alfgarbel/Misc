@@ -287,9 +287,9 @@ export default async function DashboardPage() {
             </code>
             <p className="mt-3 text-sm text-zinc-500">
               Full parameter reference in the{" "}
-              <a href="/docs" className="text-indigo-400 hover:underline">
+              <Link href="/docs" className="text-indigo-400 hover:underline">
                 docs
-              </a>
+              </Link>
               .
             </p>
           </div>
