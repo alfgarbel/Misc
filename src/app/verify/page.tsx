@@ -6,7 +6,7 @@ import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { consumeAuthToken } from "@/lib/tokens";
 
-export const metadata: Metadata = { title: "Verify email" };
+export const metadata: Metadata = { title: "Verify email", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 export default async function VerifyPage({

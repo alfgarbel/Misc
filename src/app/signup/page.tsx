@@ -11,7 +11,11 @@ import { TRIAL_DAYS } from "@/lib/trial";
 import { getDb } from "@/lib/db";
 import { saveOnboardingUrl } from "@/lib/onboarding";
 
-export const metadata: Metadata = { title: "Sign up" };
+export const metadata: Metadata = {
+  title: "Sign up",
+  description: `Create a free OGsmith account: an API key in seconds and ${TRIAL_DAYS} days of social cards without a watermark. No card required.`,
+  alternates: { canonical: "/signup" },
+};
 export const dynamic = "force-dynamic";
 
 export default async function SignupPage({

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -6,6 +7,10 @@ import { PLANS, VAT_NOTE, VAT_SHORT } from "@/lib/plans";
 import { appUrl } from "@/lib/stripe";
 import { TRIAL_DAYS } from "@/lib/trial";
 import { SHOWCASE, showcaseSrc } from "@/lib/showcase";
+import { jsonLdScript, organizationJsonLd, softwareJsonLd } from "@/lib/llms";
+
+// Set here, not in the layout, so other pages don't inherit "/" as theirs.
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const FEATURE_GROUPS: Array<{
   name: string;
@@ -182,6 +187,12 @@ export default function Home() {
     <>
       <Nav />
       <main>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScript([organizationJsonLd(base), softwareJsonLd(base)]),
+          }}
+        />
         {/* Hero: the checker is the first thing to try, so it's a field here,
             not a link to another page. */}
         <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-20">
@@ -484,7 +495,7 @@ export default function Home() {
           </div>
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }}
+            dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }}
           />
         </section>
 

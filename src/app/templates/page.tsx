@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Templates",
   description:
     "Every OGsmith card template, rendered live by the API: gradient, minimal, split, terminal, quote, announce, and link.",
+  alternates: { canonical: "/templates" },
 };
 
 const SAMPLES: Record<

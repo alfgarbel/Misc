@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   title: "Link preview checker",
   description:
     "See how your link actually looks when it's shared on X, LinkedIn, Slack, Discord, WhatsApp, Facebook and iMessage — and what's wrong with your Open Graph tags.",
+  alternates: { canonical: "/check" },
 };
 
 /**

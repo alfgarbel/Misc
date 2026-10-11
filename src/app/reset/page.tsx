@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import Nav from "@/components/Nav";
 import ResetForm from "@/components/ResetForm";
 
-export const metadata: Metadata = { title: "Reset password" };
+export const metadata: Metadata = { title: "Reset password", robots: { index: false } };
 
 export default function ResetPage() {
   return (

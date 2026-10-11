@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import ForgotForm from "@/components/ForgotForm";
 
-export const metadata: Metadata = { title: "Forgot password" };
+export const metadata: Metadata = { title: "Forgot password", robots: { index: false } };
 
 export default function ForgotPage() {
   return (
