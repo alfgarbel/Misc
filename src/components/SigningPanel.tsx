@@ -46,7 +46,11 @@ export default function SigningPanel({ accountId }: { accountId: string }) {
         <Link href="/docs/signed-urls" className="text-indigo-400 hover:underline">
           docs
         </Link>{" "}
-        for the signing snippet.
+        for the signing snippet, or use the{" "}
+        <Link href="/blog/wordpress-og-image#plugin" className="text-indigo-400 hover:underline">
+          WordPress plugin
+        </Link>
+        , which signs for you.
       </p>
       {secret ? (
         <div className="mb-4 flex items-center gap-2">
