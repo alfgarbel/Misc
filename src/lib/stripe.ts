@@ -72,7 +72,7 @@ export function stripeTaxEnabled(): boolean {
 
 /**
  * Builds the Checkout session. Prices are treated as tax-exclusive in
- * Stripe, so VAT is added on top of the $9/$29 rather than carved out.
+ * Stripe, so VAT is added on top of the $19/$49 rather than carved out.
  */
 export function checkoutSessionParams(opts: {
   priceId: string;

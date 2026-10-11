@@ -7,8 +7,8 @@ export type BillingInterval = "month" | "year";
  * valid VAT number. Kept here so every surface words it identically.
  */
 export const VAT_NOTE =
-  "Prices exclude VAT. Tax is calculated at checkout from your billing country; EU businesses can enter a VAT number for reverse charge.";
-export const VAT_SHORT = "excl. VAT";
+  "Prices exclude taxes. Taxes are calculated at checkout from your billing country; EU businesses can enter a tax ID for reverse charge.";
+export const VAT_SHORT = "excl. taxes";
 
 export interface Plan {
   id: PlanId;
