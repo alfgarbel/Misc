@@ -190,8 +190,8 @@ export default function PlatformPreviews({
         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
           Your browser couldn&apos;t load that image, but our server could. That
           usually means hotlink protection or a firewall rule that lets crawlers
-          through and blocks browsers — worth checking, since some platforms
-          fetch the image the same way your browser just did.
+          through and blocks browsers. It&apos;s worth checking, because some
+          platforms fetch the image the same way your browser just did.
         </p>
       ) : null}
 

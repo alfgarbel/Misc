@@ -12,7 +12,7 @@ interface Email {
 export async function sendEmail({ to, subject, text }: Email): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.log(`[mailer] (no RESEND_API_KEY — logging instead)
+    console.log(`[mailer] (no RESEND_API_KEY, logging instead)
   To: ${to}
   Subject: ${subject}
   ${text.split("\n").join("\n  ")}`);
@@ -65,6 +65,6 @@ Set a new password here (link valid for 1 hour):
 
 ${link}
 
-If you didn't ask for this, you can safely ignore it — your password is unchanged.`,
+If you didn't ask for this, you can ignore this email. Your password hasn't changed.`,
   };
 }

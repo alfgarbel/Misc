@@ -37,7 +37,7 @@ export default async function LoginPage({
         <AuthForm mode="login" />
         {google ? (
           <p className="max-w-sm text-center text-xs text-zinc-600">
-            Signed up with Google? Use the button above — that account has no
+            Signed up with Google? Use the button above. That account has no
             password unless you set one.
           </p>
         ) : null}

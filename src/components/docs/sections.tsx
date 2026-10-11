@@ -10,7 +10,7 @@ const PARAMS: Array<{
   {
     name: "key",
     type: "string",
-    def: "—",
+    def: "none",
     desc: "Your API key (og_…). Omit for watermarked, rate-limited demo renders.",
   },
   {
@@ -28,13 +28,13 @@ const PARAMS: Array<{
   {
     name: "subtitle",
     type: "string (≤ 300 chars)",
-    def: "—",
+    def: "none",
     desc: "Supporting line under the title.",
   },
   {
     name: "site",
     type: "string (≤ 100 chars)",
-    def: "—",
+    def: "none",
     desc: "Site or brand name shown in the footer of the card.",
   },
   {
@@ -58,38 +58,38 @@ const PARAMS: Array<{
   {
     name: "exp",
     type: "string",
-    def: "—",
+    def: "none",
     desc: "Slug of one of your experiments. Picks a design variant for this page and records that a card was served. See Experiments.",
   },
   {
     name: "k",
     type: "string (≤ 500 chars)",
-    def: "—",
-    desc: "Identifies the page under test, for exp. Must be a stable id — a post slug or database id, never the title. Defaults to the url value when you pass one.",
+    def: "url, if given",
+    desc: "Identifies the page under test, for exp. Must be a stable id, such as a post slug or database id, never the title. Defaults to the url value when you pass one.",
   },
   {
     name: "url",
     type: "https URL",
-    def: "—",
+    def: "none",
     desc: "Read this page and use its title, description, site name and image. Anything you pass explicitly wins. See Cards from a URL.",
   },
   {
     name: "tpl",
     type: "string",
-    def: "—",
+    def: "none",
     desc: "Slug of one of your own templates from the visual editor. Replaces template; every other parameter becomes a {{placeholder}} value.",
   },
   {
     name: "v",
     type: "string (≤ 32 chars)",
-    def: "—",
+    def: "none",
     desc: "Cache-busting token. Ignored when rendering; changing it is what forces social platforms to re-fetch. See Refreshing cached cards.",
   },
   {
     name: "acct + sig",
     type: "string",
-    def: "—",
-    desc: "Signed-URL auth: your account ID plus an HMAC signature. Alternative to key — see Signed URLs below.",
+    def: "none",
+    desc: "Signed-URL auth: your account ID plus an HMAC signature. An alternative to key. See Signed URLs.",
   },
 ];
 
@@ -187,8 +187,8 @@ export function Overview({ base }: SectionProps) {
           parameter is omitted, so a URL can be as short as{" "}
           <code className="text-zinc-300">/api/og?key=…&amp;title=Hello</code>.
           Parameters in the URL always override defaults. You can create up to
-          10 named API keys and revoke them independently — per-key render
-          counts show on the dashboard. On paid plans, an uploaded logo
+          10 named API keys and revoke each one separately. The dashboard
+          shows render counts per key. On paid plans, an uploaded logo
           (dashboard → Brand defaults) renders on every card next to the site
           name.
         </p>
@@ -243,10 +243,10 @@ function Sizes({ base, A }: SectionProps) {
   return (
     <>
         <p className="mt-4 text-sm text-zinc-400">
-          Cards render at 1200×630 by default — the shape every link unfurler
+          Cards render at 1200×630 by default, the shape every link unfurler
           expects. <code className="text-zinc-300">size</code> renders the same
-          template at another platform&apos;s shape instead, so one design
-          covers your link previews, your feed posts and your stories.
+          template at another platform&apos;s shape instead, so one design can
+          serve link previews, feed posts and stories.
         </p>
         <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-800">
           <table className="w-full min-w-[520px] text-left text-sm">
@@ -281,10 +281,10 @@ function Sizes({ base, A }: SectionProps) {
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           Your own templates work differently: their layers hold absolute
-          coordinates, so the canvas is part of the design and is chosen in
-          the editor. Passing <code className="text-zinc-300">size</code>{" "}
-          alongside <code className="text-zinc-300">tpl</code> has no effect —
-          the design&apos;s own canvas is used.
+          coordinates, so the canvas is part of the design and you choose it
+          in the editor. Passing <code className="text-zinc-300">size</code>{" "}
+          alongside <code className="text-zinc-300">tpl</code> has no effect;
+          the design&apos;s own canvas applies.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           Changing size changes the image, so bump your{" "}
@@ -307,7 +307,7 @@ function Checker({ A }: SectionProps) {
             link preview checker
           </A>{" "}
           reads any public page&apos;s Open Graph tags, fetches its image, and
-          reports what will go wrong when the link is shared — a missing or
+          reports what will go wrong when the link is shared: a missing or
           unreachable <code className="text-zinc-300">og:image</code>, one too
           small or the wrong shape, dimensions that disagree with the file, a{" "}
           <code className="text-zinc-300">twitter:card</code> that throws away
@@ -325,8 +325,8 @@ function UrlToCard({ base, A }: SectionProps) {
         <p className="mt-4 text-sm text-zinc-400">
           Instead of describing the card, point at the page and let OGsmith
           read it. It takes the title, description, site name and image from
-          the page&apos;s own OpenGraph tags — the same ones social crawlers
-          use — falling back to Twitter card tags and then to the ordinary{" "}
+          the page&apos;s own OpenGraph tags (the same ones social crawlers
+          use), falling back to Twitter card tags and then to the ordinary{" "}
           <code className="text-zinc-300">&lt;title&gt;</code> and meta
           description.
         </p>
@@ -337,8 +337,8 @@ function UrlToCard({ base, A }: SectionProps) {
           Remember to URL-encode the address you pass. The{" "}
           <code className="text-zinc-300">link</code> template is built for
           this: it puts the page&apos;s own image across the top and the title,
-          description and site beneath. Every other template works too — they
-          just use the text.
+          description and site beneath. Every other template works too, using
+          only the text.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           Anything you state explicitly wins, so you can let the page supply
@@ -364,8 +364,8 @@ function UrlToCard({ base, A }: SectionProps) {
             Dashboard → Card from a URL
           </A>
           . That renders the real image through the same code path as the API,
-          brand defaults and plan included, so what you see is the card — not
-          an approximation of it.
+          brand defaults and plan included, so what you see is exactly the card
+          the API returns.
         </p>
 
         <h3 className="mt-8 text-lg font-semibold">What to expect</h3>
@@ -376,15 +376,14 @@ function UrlToCard({ base, A }: SectionProps) {
             keep serving the last copy rather than breaking your card.
           </li>
           <li>
-            Requires an API key or a signed URL — this is not available to
-            unauthenticated demo renders.
+            Needs an API key or a signed URL. Unauthenticated demo renders
+            can&apos;t use it.
           </li>
           <li>
-            Only <code className="text-zinc-300">http</code> and{" "}
-            <code className="text-zinc-300">https</code> public addresses are
-            fetched. Private networks, loopback and cloud metadata addresses
-            are refused, whether named directly, reached by redirect, or
-            arrived at through DNS.
+            We only fetch public <code className="text-zinc-300">http</code> and{" "}
+            <code className="text-zinc-300">https</code> addresses, and refuse
+            private network, loopback and cloud metadata addresses, whether
+            named directly, reached by redirect, or arrived at through DNS.
           </li>
           <li>
             We identify ourselves as{" "}
@@ -396,7 +395,7 @@ function UrlToCard({ base, A }: SectionProps) {
             If the page can&apos;t be read and you passed no{" "}
             <code className="text-zinc-300">title</code>, you get a{" "}
             <code className="text-zinc-300">422</code> saying why, rather than
-            a card that quietly says nothing.
+            a card with no text.
           </li>
         </ul>
 
@@ -426,8 +425,8 @@ function Templates({ base, A }: SectionProps) {
         </div>
         <p className="mt-4 text-sm text-zinc-400">
           Text layers hold <code className="text-zinc-300">{"{{placeholders}}"}</code>{" "}
-          rather than fixed words, and any query parameter fills one in — the
-          names are yours, so{" "}
+          rather than fixed words, and any query parameter fills one in. You
+          choose the names, so{" "}
           <code className="text-zinc-300">{"{{author}}"}</code> or{" "}
           <code className="text-zinc-300">{"{{readingTime}}"}</code> work just
           as well as <code className="text-zinc-300">{"{{title}}"}</code>. A
@@ -451,9 +450,9 @@ function Templates({ base, A }: SectionProps) {
           <code className="text-zinc-300">PNG</code>,{" "}
           <code className="text-zinc-300">JPEG</code> or{" "}
           <code className="text-zinc-300">GIF</code>, up to 512KB each.{" "}
-          <strong className="text-zinc-300">WOFF2 is not supported</strong> —
-          the renderer cannot parse it — so upload the TTF or WOFF build of the
-          same family. SVG and WebP aren&apos;t supported either; export a PNG.
+          <strong className="text-zinc-300">WOFF2 is not supported</strong>{" "}
+          because the renderer cannot parse it, so upload the TTF or WOFF build
+          of the same family. SVG and WebP aren&apos;t supported either; export a PNG.
           Google Fonts all publish TTF files on their GitHub repositories.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
@@ -479,19 +478,19 @@ function Experiments({ base, A }: SectionProps) {
   return (
     <>
         <p className="mt-4 text-sm text-zinc-400">
-          Before anything else, the honest constraint:{" "}
+          Start with the main constraint:{" "}
           <strong className="text-zinc-200">
             you cannot A/B test a card across viewers
           </strong>
           . A social platform fetches your image once and shows that single
-          copy to everyone who sees the post — there is no per-viewer request
+          copy to everyone who sees the post. There is no per-viewer request
           to split on. Any tool claiming otherwise is either splitting
           something else or not doing what it says.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           What does work is randomising by <em>page</em>. Half your articles
           get design A, half get design B, and you compare the two groups. That
-          is a real experiment — it just needs more pages than a viewer-level
+          is a real experiment. It needs more pages than a viewer-level
           test would need viewers, and it answers &ldquo;which design works
           better across my content&rdquo; rather than &ldquo;which works better
           for this one post&rdquo;.
@@ -501,10 +500,10 @@ function Experiments({ base, A }: SectionProps) {
         </div>
         <p className="mt-4 text-sm text-zinc-400">
           <code className="text-zinc-300">k</code> identifies the page and must
-          never change for it — a post slug or database id is ideal. With{" "}
+          never change for it, so a post slug or database id works best. With{" "}
           <code className="text-zinc-300">&amp;url=</code> it defaults to that
-          URL. A page&apos;s variant is decided once and stored, so editing an
-          experiment later never changes the artwork on posts already shared.
+          URL. OGsmith picks a page&apos;s variant once and stores it, so
+          editing an experiment later never changes the artwork on posts already shared.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           <strong className="text-zinc-200">Never key on the headline.</strong>{" "}
@@ -521,7 +520,7 @@ function Experiments({ base, A }: SectionProps) {
           <A href="/docs/cache-refresh" className="text-indigo-400 hover:underline">
             cache version
           </A>{" "}
-          so platforms refetch, and the experiment is untouched — the key
+          so platforms refetch, and the experiment is unaffected: the key
           didn&apos;t change, so the page keeps its variant and its numbers.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
@@ -529,15 +528,15 @@ function Experiments({ base, A }: SectionProps) {
           you have already describe the old design, so leaving them in place
           pools two different cards into one rate. The dashboard warns when you
           do this and offers <em>Reset results</em>, which clears the counters
-          while keeping every page on the variant it already has — so
-          measurement restarts cleanly and nothing already shared changes
+          while keeping every page on the variant it already has.
+          Measurement starts over, and nothing already shared changes
           appearance.
         </p>
 
         <h3 className="mt-8 text-lg font-semibold">Measuring the outcome</h3>
         <p className="mt-4 text-sm text-zinc-400">
           OGsmith can count how often a card was rendered, but a render is a
-          crawler fetch — not a person, and not a click. Nothing about what a
+          crawler fetch, not a person or a click. Nothing about what a
           human does with your post ever reaches us. So outcomes have to come
           from the side that can see them: your analytics.
         </p>
@@ -563,8 +562,8 @@ Authorization: Bearer og_yourkey
           <A href="/dashboard/experiments" className="text-indigo-400 hover:underline">
             Dashboard → Experiments
           </A>
-          , which reports a rate per page and a two-proportion test — and
-          refuses to call anything a winner until each variant has at least 20
+          , which reports a rate per page and a two-proportion test. It
+          won&apos;t call anything a winner until each variant has at least 20
           pages and 5 reported outcomes. Stopping at the first good-looking
           number is the way most split tests go wrong.
         </p>
@@ -581,13 +580,13 @@ function CacheRefresh({ base }: SectionProps) {
           serving the image they cached the first time, and none of them offer a
           way to clear it. Facebook and LinkedIn have scraper tools; the rest do
           not. Every one of them keys the cache on the image URL alone, so the
-          only reliable lever is a different URL.
+          only reliable fix is a different URL.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           That is what <code className="text-zinc-300">v</code> is for. It never
-          reaches the renderer — two URLs that differ only in{" "}
-          <code className="text-zinc-300">v</code> produce the identical image —
-          but to a cache they are different resources:
+          reaches the renderer, so two URLs that differ only in{" "}
+          <code className="text-zinc-300">v</code> produce the identical image,
+          but a cache treats them as different resources:
         </p>
         <div className="mt-4">
           <CodeBlock>{`<meta
@@ -598,8 +597,9 @@ function CacheRefresh({ base }: SectionProps) {
         <p className="mt-4 text-sm text-zinc-400">
           Your account carries a version number, shown in the dashboard under
           Cache refresh. It increments automatically whenever you change a brand
-          default or your logo — the edits that silently leave published cards
-          looking wrong — and you can bump it by hand from the same panel. Read
+          default or your logo, because those edits leave published cards
+          looking wrong without any warning. You can also bump it by hand from
+          the same panel. Read
           it into your templates and every page you re-deploy picks up the new
           artwork:
         </p>
@@ -628,7 +628,7 @@ function Batches({ base }: SectionProps) {
         <p className="mt-4 text-sm text-zinc-400">
           Cards render on demand at a URL, so you never need to generate them
           ahead of time. A batch is for the case a URL can&apos;t serve: when
-          you need the <em>files</em> — to upload into a CMS media library, to
+          you need the <em>files</em>: to upload into a CMS media library, to
           embed in an email tool that won&apos;t fetch a dynamic image, or to
           keep as an archive.
         </p>
@@ -646,14 +646,14 @@ Authorization: Bearer og_yourkey
           Each row&apos;s <code className="text-zinc-300">params</code> are
           exactly the parameters{" "}
           <code className="text-zinc-300">/api/og</code> takes, so anything you
-          can render one at a time you can render in bulk — templates, sizes,{" "}
-          <code className="text-zinc-300">url</code> and all. Rows count
+          can render one at a time you can render in bulk, including templates, sizes and{" "}
+          <code className="text-zinc-300">url</code>. Rows count
           against your monthly quota, because they are real renders. A row that
           fails is recorded with its error and the rest carry on.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           <strong className="text-zinc-200">
-            Batches are worked through a slice at a time.
+            OGsmith works through a batch one slice at a time.
           </strong>{" "}
           There is no background queue: the submit call renders the first ten
           cards, and the response tells you whether it finished. If it
@@ -668,8 +668,8 @@ POST ${base}/api/batches/:id/run        # render the next slice
 GET  ${base}/api/batches/:id/download   # zip of the rendered cards`}</CodeBlock>
         </div>
         <p className="mt-4 text-sm text-zinc-400">
-          Rendered images are kept for 24 hours and then dropped — a batch is a
-          handoff, not file hosting. Pass{" "}
+          We keep rendered images for 24 hours and then delete them, because a
+          batch is a handoff, not file hosting. Pass{" "}
           <code className="text-zinc-300">&quot;storeImages&quot;: false</code>{" "}
           to validate a set of rows without keeping anything, which is a cheap
           way to find the broken ones before a migration.
@@ -704,9 +704,10 @@ X-OGsmith-Signature: t=1787840000,v1=9a3f…
         <p className="mt-4 text-sm text-zinc-400">
           The signing secret is shown once when you add the endpoint. Verify a
           delivery by recomputing the HMAC over{" "}
-          <code className="text-zinc-300">timestamp + &quot;.&quot; + body</code>{" "}
-          — the timestamp is signed with the body, not merely sent beside it,
-          so a captured request can&apos;t be replayed with a fresh one:
+          <code className="text-zinc-300">timestamp + &quot;.&quot; + body</code>
+          . The timestamp is signed together with the body rather than sent
+          beside it, so nobody can replay a captured request with a fresh
+          timestamp:
         </p>
         <div className="mt-4">
           <CodeBlock>{`import { createHmac, timingSafeEqual } from "crypto";
@@ -722,11 +723,11 @@ function verify(header, body, secret) {
 }`}</CodeBlock>
         </div>
         <p className="mt-4 text-sm text-zinc-400">
-          Reply with any 2xx. A delivery that fails is retried with a growing
-          delay, up to five attempts, and every attempt is recorded so you can
-          see what happened. Endpoints must be public addresses —{" "}
-          private, loopback and cloud metadata addresses are refused when you
-          add them, and redirects are not followed.
+          Reply with any 2xx. We retry a failed delivery with a growing delay,
+          up to five attempts, and record every attempt so you can see what
+          happened. Endpoints must be public addresses: we refuse private,
+          loopback and cloud metadata addresses when you add them, and we
+          don&apos;t follow redirects.
         </p>
 
     </>
@@ -738,8 +739,8 @@ function Usage({ A }: SectionProps) {
     <>
         <h2 className="mt-12 text-2xl font-semibold">Check your usage</h2>
         <p className="mt-4 text-sm text-zinc-400">
-          Poll your quota programmatically — useful for alerting before you hit
-          the cap:
+          Poll your quota from code, for example to alert yourself before you
+          hit the cap:
         </p>
         <div className="mt-4">
           <CodeBlock>{`GET /api/usage
@@ -753,8 +754,9 @@ Authorization: Bearer og_yourkey
         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-zinc-400">
           <li>Each successful render counts one unit against your monthly quota.</li>
           <li>
-            Responses are CDN-cached for 24 hours — repeat crawls of the same URL
-            usually never hit the API (and never count against quota).
+            The CDN caches responses for 24 hours, so repeat crawls of the same
+            URL usually never reach the API (and cached hits never count
+            against quota).
           </li>
           <li>
             To break that cache after a design change, change the URL with{" "}
@@ -765,14 +767,14 @@ Authorization: Bearer og_yourkey
           </li>
           <li>Quotas reset on the 1st of each month (UTC).</li>
           <li>
-            You get one email at 80% of quota and one when the cap is reached —
+            We email you once at 80% of quota and once when you reach the cap,
             never more than one of each per month.
           </li>
           <li>Demo requests (no key) are watermarked and limited to ~20/minute.</li>
           <li>
             New accounts render without a watermark for {TRIAL_DAYS} days, so
             you can put real cards on a real site before deciding. After that
-            the free plan carries a small watermark — but cards already fetched
+            the free plan carries a small watermark, but cards already fetched
             keep the clean copy platforms cached, so nothing changes overnight.
           </li>
           <li>
@@ -780,18 +782,18 @@ Authorization: Bearer og_yourkey
             <A href="/docs/cache-refresh" className="text-indigo-400 hover:underline">
               cache version
             </A>{" "}
-            automatically, so the watermark actually disappears from links
-            you&apos;ve already shared rather than only from new ones.
+            automatically, so the watermark disappears from links you&apos;ve
+            already shared as well as from new ones.
           </li>
         </ul>
 
         <h2 className="mt-12 text-2xl font-semibold">Keep your key secret-ish</h2>
         <p className="mt-4 text-sm text-zinc-400">
-          OG image URLs are public by nature — crawlers must fetch them — so the
+          OG image URLs are public because crawlers must fetch them, so the
           key rides in the URL. That&apos;s standard for this category of API. If a
           key leaks and gets abused, rotate it from the dashboard; old URLs stop
           working immediately and your quota protects your bill (rendering stops
-          at the cap — there are no overage charges).
+          at the cap, and there are no overage charges).
         </p>
     </>
   );
@@ -859,14 +861,14 @@ export const DOC_SECTIONS: DocSection[] = [
     slug: "webhooks",
     title: "Webhooks",
     description:
-      "Get a signed POST when a batch finishes or you near your quota, and how to verify it.",
+      "Receive a signed POST when a batch finishes or you near your quota, and verify that it came from OGsmith.",
     Body: Webhooks,
   },
   {
     slug: "usage",
     title: "Usage, quotas and keys",
     description:
-      "Check your usage from the API, how quotas and caching work, and how to look after your API key.",
+      "How to check usage from the API, how quotas and caching work, and how to look after your API key.",
     ownHeadings: true,
     Body: Usage,
   },

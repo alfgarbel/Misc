@@ -85,8 +85,8 @@ add_filter('wpseo_twitter_image', function ($image) {
       <H2 id="design">Your colours and logo</H2>
       <P>
         Set the template, accent colour and site name once under Brand
-        defaults in the dashboard (paid plans can add a logo too). Every card that leaves them
-        out uses them, so the snippet above never needs to change.
+        defaults in the dashboard (paid plans can add a logo too). Any card that doesn&apos;t set
+        its own values uses these, so the snippet above never needs to change.
       </P>
 
       <Callout>

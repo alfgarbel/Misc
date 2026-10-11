@@ -6,7 +6,7 @@ export const meta: PostMeta = {
   slug: "astro-og-image",
   title: "Open Graph images for every Astro page, from one layout",
   description:
-    "Give every page of an Astro site its own og:image by adding one tag to your base layout. No image pipeline, no build step, works with static and server output.",
+    "Give every page of an Astro site its own og:image by adding one tag to your base layout. You don't need an image pipeline or a build step, and it works with static and server output.",
   cardSubtitle: "One tag in your base layout covers every page.",
   date: "2026-10-11",
   readingMinutes: 3,

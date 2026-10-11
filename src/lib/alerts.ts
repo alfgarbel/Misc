@@ -72,7 +72,7 @@ export async function maybeSendQuotaAlert(
       await sendEmail({
         to: user.email,
         subject: "OGsmith: 80% of your monthly renders used",
-        text: `Heads up — you've used ${used.toLocaleString()} of your ${limit.toLocaleString()} monthly renders on the ${PLANS[plan].name} plan.
+        text: `You've used ${used.toLocaleString()} of your ${limit.toLocaleString()} monthly renders on the ${PLANS[plan].name} plan.
 
 If you expect more traffic this month, upgrade at ${base}/pricing to avoid interruptions. Usage details: ${base}/dashboard`,
       });
@@ -82,7 +82,7 @@ If you expect more traffic this month, upgrade at ${base}/pricing to avoid inter
         subject: "OGsmith: monthly render quota reached",
         text: `You've hit your ${limit.toLocaleString()}-render monthly quota on the ${PLANS[plan].name} plan, so image requests now return 429 until the quota resets on the 1st (UTC).
 
-Upgrade at ${base}/pricing to resume rendering immediately — the new quota applies as soon as the subscription is active.`,
+Upgrade at ${base}/pricing to resume rendering right away. The new quota applies as soon as the subscription is active.`,
       });
     }
   } catch (err) {

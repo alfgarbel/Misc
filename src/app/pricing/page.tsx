@@ -166,7 +166,7 @@ function AgencyPreview() {
       <div className="mt-6 flex flex-wrap items-center gap-4">
         {email ? (
           <a
-            href={`mailto:${email}?subject=${encodeURIComponent("Agency plan — put me on the list")}`}
+            href={`mailto:${email}?subject=${encodeURIComponent("Agency plan: put me on the list")}`}
             className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium hover:border-zinc-500"
           >
             Tell us you want it
@@ -238,7 +238,7 @@ export default async function PricingPage({
       <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h1 className="text-center text-4xl font-bold">Pricing</h1>
         <p className="mt-3 text-center text-zinc-400">
-          Every plan is a flat monthly price with a generous render quota.
+          Every plan has a flat monthly price and a monthly render quota.
         </p>
         {canYearly ? <IntervalToggle yearly={yearly} /> : null}
         <div className={`${canYearly ? "mt-8" : "mt-12"} grid gap-6 lg:grid-cols-3`}>
