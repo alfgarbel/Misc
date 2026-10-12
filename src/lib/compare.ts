@@ -59,7 +59,7 @@ export const COMPARISONS: Comparison[] = [
     chooseUs: [
       "You want cards on every page today, on any stack, without writing a renderer.",
       "Someone who doesn't code should be able to change the design.",
-      "You need to update cards platforms have already cached, or test which design gets more clicks.",
+      "You need new shares to show your new design even where platforms cached the old one, or want to test which design gets more clicks.",
     ],
     faq: [
       {

@@ -107,7 +107,7 @@ ${posts}
 
 ## Optional
 
-- MCP server: \`npm run mcp\` in the OGsmith repository starts a Model Context Protocol server, so an assistant can render cards, list templates, check usage and run batches with an ordinary API key.
+- MCP server: \`npx -y ogsmith-mcp\` starts a Model Context Protocol server, so an assistant can render cards, list templates, check usage and run batches with an ordinary API key.
 `;
 }
 

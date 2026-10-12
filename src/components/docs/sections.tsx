@@ -782,8 +782,9 @@ Authorization: Bearer og_yourkey
             <A href="/docs/cache-refresh" className="text-indigo-400 hover:underline">
               cache version
             </A>{" "}
-            automatically, so the watermark disappears from links you&apos;ve
-            already shared as well as from new ones.
+            automatically, so once your site republishes, new shares of links
+            you&apos;ve already posted get the clean card too. Posts that are
+            already out may keep the preview the platform stored.
           </li>
         </ul>
 
@@ -847,7 +848,7 @@ export const DOC_SECTIONS: DocSection[] = [
     slug: "cache-refresh",
     title: "Refreshing cached cards",
     description:
-      "Make X, Slack, Discord and WhatsApp show a new card on links that were already shared.",
+      "Make X, Slack, Discord and WhatsApp show your new card when a link is shared again, even after they cached the old one.",
     Body: CacheRefresh,
   },
   {
