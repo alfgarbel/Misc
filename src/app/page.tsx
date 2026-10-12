@@ -6,7 +6,8 @@ import Playground from "@/components/Playground";
 import { PLANS, VAT_NOTE, VAT_SHORT } from "@/lib/plans";
 import { appUrl } from "@/lib/stripe";
 import { TRIAL_DAYS } from "@/lib/trial";
-import { SHOWCASE, showcaseSrc } from "@/lib/showcase";
+import { SHOWCASE } from "@/lib/showcase";
+import ShowcaseImage from "@/components/ShowcaseImage";
 import { jsonLdScript, organizationJsonLd, softwareJsonLd } from "@/lib/llms";
 
 // Set here, not in the layout, so other pages don't inherit "/" as theirs.
@@ -152,16 +153,21 @@ function SharedPost({
   );
 }
 
-function CardImage({ slug, alt }: { slug: string; alt: string }) {
+function CardImage({
+  slug,
+  alt,
+  sizes = "(min-width: 1024px) 640px, 100vw",
+}: {
+  slug: string;
+  alt: string;
+  sizes?: string;
+}) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={showcaseSrc(slug)}
+    <ShowcaseImage
+      slug={slug}
       alt={alt}
-      width={1200}
-      height={630}
-      loading="lazy"
-      className="w-full rounded-lg border border-zinc-800 shadow-xl shadow-black/40"
+      sizes={sizes}
+      className="h-auto w-full rounded-lg border border-zinc-800 shadow-xl shadow-black/40"
     />
   );
 }
@@ -203,20 +209,36 @@ function FeatureVisual({ kind, base }: { kind: "tag" | "brand" | "redesign"; bas
         <div className="col-span-2">
           <CardImage slug="changelog" alt="Example card in the announce template" />
         </div>
-        <CardImage slug="store" alt="Example card in the split template" />
-        <CardImage slug="podcast" alt="Example card in the quote template" />
+        <CardImage
+          slug="store"
+          alt="Example card in the split template"
+          sizes="(min-width: 1024px) 320px, 50vw"
+        />
+        <CardImage
+          slug="podcast"
+          alt="Example card in the quote template"
+          sizes="(min-width: 1024px) 320px, 50vw"
+        />
       </div>
     );
   }
   return (
     <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-4">
       <figure className="flex flex-col gap-2">
-        <CardImage slug="blog" alt="A blog post's card before the redesign" />
+        <CardImage
+          slug="blog"
+          alt="A blog post's card before the redesign"
+          sizes="(min-width: 640px) 300px, 100vw"
+        />
         <figcaption className="text-sm text-zinc-500">Before</figcaption>
       </figure>
       <ArrowIcon className="mx-auto h-6 w-6 rotate-90 text-zinc-500 sm:rotate-0" />
       <figure className="flex flex-col gap-2">
-        <CardImage slug="blog-redesign" alt="The same post's card after the redesign" />
+        <CardImage
+          slug="blog-redesign"
+          alt="The same post's card after the redesign"
+          sizes="(min-width: 640px) 300px, 100vw"
+        />
         <figcaption className="text-sm text-zinc-300">After, on the next share</figcaption>
       </figure>
     </div>
@@ -311,13 +333,12 @@ export default function Home() {
                     i % 3 === 1 ? "md:translate-y-6" : ""
                   } ${i >= 4 ? "hidden md:block" : ""}`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={showcaseSrc(card.slug)}
+                  <ShowcaseImage
+                    slug={card.slug}
                     alt={`Example card for ${card.useCase.toLowerCase()}`}
-                    width={1200}
-                    height={630}
-                    className="w-full"
+                    sizes="(min-width: 768px) 330px, 50vw"
+                    eager={i < 3}
+                    className="h-auto w-full"
                   />
                 </figure>
               ))}
@@ -355,14 +376,11 @@ export default function Home() {
               </SharedPost>
               <SharedPost label="With OGsmith" tone="good">
                 <div className="overflow-hidden rounded-lg border border-zinc-700">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={showcaseSrc("blog")}
+                  <ShowcaseImage
+                    slug="blog"
                     alt="The same link with an OGsmith card"
-                    width={1200}
-                    height={630}
-                    loading="lazy"
-                    className="w-full"
+                    sizes="(min-width: 768px) 520px, 100vw"
+                    className="h-auto w-full"
                   />
                   <p className="px-3 py-2 text-sm text-zinc-500">blog.acme.dev</p>
                 </div>
