@@ -26,12 +26,12 @@ const FEATURES: Array<{
 }> = [
   {
     title: "Point it at your page",
-    body: "Add one tag to your site's template with the page's address in it. OGsmith reads each page's own title and description, so every new post gets its card without anyone filling anything in.",
+    body: "Add one tag to your site's template with the page's address in it. OGsmith reads each page's own title, description and image, so every new post gets its card without anyone filling anything in.",
     visual: "tag",
   },
   {
     title: "Your brand, without a design tool",
-    body: "Pick one of seven templates with your colours, or lay out your own card in the visual editor and upload your brand font. Titles stay readable at any length.",
+    body: "Pick one of eight templates with your colours, or lay out your own card in the visual editor and upload your brand font. Titles stay readable at any length.",
     visual: "brand",
   },
   {
@@ -199,7 +199,7 @@ function FeatureVisual({ kind, base }: { kind: "tag" | "brand" | "redesign"; bas
   content="${base}/api/og?key=…&url=PAGE_URL" />`}
         </pre>
         <ArrowIcon className="h-6 w-6 rotate-90 text-zinc-500" />
-        <CardImage slug="store" alt="The card OGsmith builds from a product page's own name and price" />
+        <CardImage slug="trail" alt="The card OGsmith builds from a post's own title and photo" />
       </div>
     );
   }
@@ -326,7 +326,7 @@ export default function Home() {
               shows the product's output rather than describing it. */}
           <div className="relative mx-auto mt-14 max-w-5xl">
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
-              {SHOWCASE.map((card, i) => (
+              {SHOWCASE.slice(0, 6).map((card, i) => (
                 <figure
                   key={card.slug}
                   className={`overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-xl shadow-black/40 ${

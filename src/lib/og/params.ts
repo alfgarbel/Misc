@@ -9,6 +9,7 @@ export const TEMPLATES = [
   "quote",
   "announce",
   "link",
+  "cover",
 ] as const;
 export type TemplateId = (typeof TEMPLATES)[number];
 

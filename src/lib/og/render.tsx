@@ -766,6 +766,147 @@ function LinkTemplate({ p, watermark, logo, hero, design }: TplProps) {
   );
 }
 
+/** Cuts text at a word boundary so it can't run past the space budgeted for it. */
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`;
+}
+
+/**
+ * The page's own image, full bleed, with the headline set over it.
+ *
+ * Unlike `link`, which places scraped artwork whole in a side panel, this
+ * crops it to fill the card: a photo or illustration then carries the
+ * card the way a designed one would. The scrim runs from the bottom, where
+ * the text sits, and fades out before the top so the image stays the
+ * subject. With no image to draw (no ?url=, or the page has none) it falls
+ * back to a block of the accent colour, so the template never renders
+ * empty.
+ */
+function CoverTemplate({ p, watermark, logo, hero, tall, design }: TplProps) {
+  const c = palette(p.theme);
+  const DW = design?.width ?? 1200;
+  const DH = design?.height ?? 630;
+  const PAD = 72;
+  const TEXT_WIDTH = DW - PAD * 2;
+  const titleSize = fittedFontSize(
+    { fontSize: 68, w: TEXT_WIDTH, lineHeight: 1.08, autoFit: true },
+    p.title,
+    3
+  );
+  const subtitle = p.subtitle ? clip(p.subtitle, 140) : "";
+  // Over a photo the copy needs its own ground; the theme decides whether
+  // that ground is dark or light, so a light card stays a light card.
+  const scrim = hero
+    ? `linear-gradient(to top, ${withAlpha(c.bg, 0.9)} 0%, ${withAlpha(
+        c.bg,
+        0.66
+      )} 28%, ${withAlpha(c.bg, 0.18)} 55%, ${withAlpha(c.bg, 0)} 80%)`
+    : null;
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: tall ? "center" : "flex-end",
+        padding: PAD,
+        backgroundColor: c.bg,
+        // Spread rather than set to undefined: satori parses every style
+        // value it is given, and an undefined one is not a valid image.
+        ...(hero
+          ? {}
+          : {
+              backgroundImage: `linear-gradient(135deg, ${withAlpha(p.accent, 0.95)} 0%, ${withAlpha(
+                p.accent,
+                0.45
+              )} 45%, ${c.bg} 100%)`,
+            }),
+        color: c.fg,
+      }}
+    >
+      {hero ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={hero.dataUrl}
+          width={DW}
+          height={DH}
+          alt=""
+          style={{ position: "absolute", top: 0, left: 0, width: DW, height: DH, objectFit: "cover" }}
+        />
+      ) : null}
+      {scrim ? (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: DW,
+            height: DH,
+            display: "flex",
+            backgroundImage: scrim,
+          }}
+        />
+      ) : null}
+      <div style={{ display: "flex", flexDirection: "column", position: "relative" }}>
+        <div
+          style={{
+            width: 72,
+            height: 6,
+            borderRadius: 999,
+            backgroundColor: hero ? p.accent : c.fg,
+            marginBottom: 28,
+          }}
+        />
+        <div
+          style={{
+            fontSize: titleSize,
+            fontWeight: 700,
+            lineHeight: 1.08,
+            letterSpacing: "-0.02em",
+            maxWidth: TEXT_WIDTH,
+          }}
+        >
+          {p.title}
+        </div>
+        {subtitle ? (
+          <div
+            style={{
+              marginTop: 20,
+              fontSize: 30,
+              lineHeight: 1.35,
+              opacity: 0.82,
+              maxWidth: TEXT_WIDTH - 80,
+            }}
+          >
+            {subtitle}
+          </div>
+        ) : null}
+        {p.site ? (
+          <div
+            style={{
+              marginTop: 36,
+              display: "flex",
+              alignItems: "center",
+              fontSize: 26,
+              opacity: 0.85,
+            }}
+          >
+            {logo ? <Logo src={logo} size={36} /> : null}
+            {p.site}
+          </div>
+        ) : null}
+      </div>
+      {watermark ? <Watermark theme={p.theme} /> : null}
+    </div>
+  );
+}
+
 /**
  * Fits a template authored at DESIGN_WIDTH onto a canvas of another width.
  *
@@ -840,6 +981,9 @@ export async function renderOgImage(
       break;
     case "link":
       element = <LinkTemplate {...props} />;
+      break;
+    case "cover":
+      element = <CoverTemplate {...props} />;
       break;
     default:
       element = <GradientTemplate {...props} />;

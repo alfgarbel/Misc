@@ -64,8 +64,9 @@ export async function renderResolvedCard(
     };
   }
 
+  const drawsPageImage = parsed.data.template === "link" || parsed.data.template === "cover";
   const hero =
-    parsed.data.template === "link" && opts.pageMeta
+    drawsPageImage && opts.pageMeta
       ? await loadHeroImage(opts.pageMeta.imageUrl)
       : null;
 

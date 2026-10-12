@@ -3,13 +3,13 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { TEMPLATES } from "@/lib/og/params";
-import { SHOWCASE } from "@/lib/showcase";
+import { SHOWCASE, showcaseSrc } from "@/lib/showcase";
 import ShowcaseImage from "@/components/ShowcaseImage";
 
 export const metadata: Metadata = {
   title: "Templates",
   description:
-    "Every OGsmith card template, rendered live by the API: gradient, minimal, split, terminal, quote, announce, and link.",
+    "Every OGsmith card template, rendered live by the API: gradient, minimal, split, terminal, quote, announce, link and cover.",
   alternates: { canonical: "/templates" },
 };
 
@@ -73,9 +73,28 @@ const SAMPLES: Record<
     theme: "dark",
     blurb: "Made for ?url=. It pairs the page's own image with its title.",
   },
+  cover: {
+    title: "Three days walking the Picos de Europa",
+    subtitle: "What we packed, where we slept, and the one trail we'd skip.",
+    site: "trails.example.com",
+    accent: "#ff6a2b",
+    theme: "dark",
+    blurb: "Made for ?url=. The page's own image fills the card, headline on top.",
+  },
+};
+
+/**
+ * Templates that draw the page's own image can't show it through the demo
+ * endpoint (?url= needs a key), so their sample is a prerendered card that
+ * brings its own image.
+ */
+const PRERENDERED: Partial<Record<(typeof TEMPLATES)[number], string>> = {
+  cover: showcaseSrc("trail"),
 };
 
 function sampleUrl(template: string): string {
+  const prerendered = PRERENDERED[template as keyof typeof PRERENDERED];
+  if (prerendered) return prerendered;
   const s = SAMPLES[template as keyof typeof SAMPLES];
   const p = new URLSearchParams({
     template,

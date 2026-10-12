@@ -12,9 +12,29 @@ export interface ShowcaseCard {
   useCase: string;
   blurb: string;
   params: Record<string, string>;
+  /**
+   * An image in public/showcase-assets standing in for the page's own
+   * og:image, for templates that draw it (cover, link). Real renders get
+   * it from ?url=; these cards are prerendered, so they bring their own.
+   */
+  heroAsset?: { file: string; width: number; height: number };
 }
 
 export const SHOWCASE: ShowcaseCard[] = [
+  {
+    slug: "trail",
+    useCase: "Posts with a photo",
+    blurb: "A page with its own image gets it full bleed, with the headline on top.",
+    params: {
+      template: "cover",
+      theme: "dark",
+      accent: "#ff6a2b",
+      title: "Three days walking the Picos de Europa",
+      subtitle: "What we packed, where we slept, and the one trail we'd skip.",
+      site: "trails.example.com",
+    },
+    heroAsset: { file: "mountains.jpg", width: 1600, height: 840 },
+  },
   {
     slug: "blog",
     useCase: "Blog posts",
