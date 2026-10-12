@@ -3,7 +3,8 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { TEMPLATES } from "@/lib/og/params";
-import { SHOWCASE, showcaseSrc } from "@/lib/showcase";
+import { SHOWCASE } from "@/lib/showcase";
+import ShowcaseImage from "@/components/ShowcaseImage";
 
 export const metadata: Metadata = {
   title: "Templates",
@@ -134,14 +135,11 @@ export default function TemplatesPage() {
               return (
                 <figure key={card.slug} className="flex min-w-0 flex-col gap-3">
                   <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={showcaseSrc(card.slug)}
+                    <ShowcaseImage
+                      slug={card.slug}
                       alt={`Example card for ${card.useCase.toLowerCase()}`}
-                      width={1200}
-                      height={630}
-                      loading="lazy"
-                      className="w-full"
+                      sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+                      className="h-auto w-full"
                     />
                   </div>
                   <figcaption>
