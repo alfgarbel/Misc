@@ -1,6 +1,18 @@
 import { parseOgParams } from "@/lib/og/params";
 import { renderOgImage } from "@/lib/og/render";
-import { ALL_SHOWCASE_CARDS } from "@/lib/showcase";
+import { readFile } from "fs/promises";
+import { join } from "path";
+import { ALL_SHOWCASE_CARDS, type ShowcaseCard } from "@/lib/showcase";
+import type { HeroImage } from "@/lib/urlcard/image";
+
+/** Stands in for the page image ?url= would have fetched. */
+async function heroFor(card: ShowcaseCard): Promise<HeroImage | null> {
+  if (!card.heroAsset) return null;
+  const { file, width, height } = card.heroAsset;
+  const bytes = await readFile(join(process.cwd(), "public", "showcase-assets", file));
+  const type = file.endsWith(".png") ? "image/png" : "image/jpeg";
+  return { dataUrl: `data:${type};base64,${bytes.toString("base64")}`, width, height };
+}
 
 export const runtime = "nodejs";
 // Fixed inputs, so every card is rendered once at build time.
@@ -23,5 +35,5 @@ export async function GET(
     // Unreachable for the literals in lib/showcase.ts; a build error beats a blank card.
     throw new Error(`Showcase card "${slug}" has invalid parameters`);
   }
-  return renderOgImage(parsed.data, { watermark: false });
+  return renderOgImage(parsed.data, { watermark: false, hero: await heroFor(card) });
 }

@@ -15,7 +15,7 @@ const PARAMS: Array<{
   },
   {
     name: "template",
-    type: "gradient | minimal | split | terminal | quote | announce",
+    type: "gradient | minimal | split | terminal | quote | announce | link | cover",
     def: "gradient",
     desc: "Which card layout to render.",
   },
@@ -335,10 +335,14 @@ function UrlToCard({ base, A }: SectionProps) {
         </div>
         <p className="mt-4 text-sm text-zinc-400">
           Remember to URL-encode the address you pass. The{" "}
-          <code className="text-zinc-300">link</code> template is built for
-          this: it puts the page&apos;s own image across the top and the title,
-          description and site beneath. Every other template works too, using
-          only the text.
+          <code className="text-zinc-300">link</code> and{" "}
+          <code className="text-zinc-300">cover</code> templates are built for
+          this. <code className="text-zinc-300">link</code> places the
+          page&apos;s own image whole in a panel beside the title;{" "}
+          <code className="text-zinc-300">cover</code> crops it to fill the card
+          and sets the title over it. Every other template works too, using
+          only the text. Without an image, <code className="text-zinc-300">cover</code>{" "}
+          falls back to a block of your accent colour.
         </p>
         <p className="mt-4 text-sm text-zinc-400">
           Anything you state explicitly wins, so you can let the page supply

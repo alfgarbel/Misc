@@ -5,6 +5,13 @@ import Link from "next/link";
 import CopyBlock from "@/components/checker/CopyBlock";
 import { TEMPLATES } from "@/lib/og/params";
 
+/**
+ * cover draws the page's own image, which only reaches the renderer through
+ * ?url= with a key; in the demo it would show its no-image fallback and
+ * undersell itself, so the picker leaves it out.
+ */
+const PICKABLE = TEMPLATES.filter((t) => t !== "cover");
+
 /** Escapes a value for use inside a double-quoted HTML attribute. */
 function attrEscape(value: string): string {
   return value
@@ -80,7 +87,7 @@ export default function SuggestedCard({
   return (
     <div className="flex flex-col gap-4">
       <div role="group" aria-label="Template" className="flex flex-wrap gap-2">
-        {TEMPLATES.map((t) => (
+        {PICKABLE.map((t) => (
           <button
             key={t}
             type="button"

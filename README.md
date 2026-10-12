@@ -30,8 +30,8 @@ GET /api/og?key=og_yourkey&template=split&title=My%20post&site=myblog.com&accent
 - **Next.js 16** (App Router, TypeScript, Tailwind) — landing page with live
   playground, audience pages (`/for/marketing`, `/for/developers`), template
   gallery, docs, pricing, terms/privacy, sitemap/robots.
-- **Image API** — `GET /api/og` with 7 templates (gradient, minimal, split,
-  terminal, quote, announce, link), dark/light themes, accent colors, auto-scaling
+- **Image API** — `GET /api/og` with 8 templates (gradient, minimal, split,
+  terminal, quote, announce, link, cover), dark/light themes, accent colors, auto-scaling
   typography. Rendered with `next/og` (satori) + bundled Inter fonts (OFL).
 - **Auth** — email + password (bcrypt), JWT session cookies (jose), email
   verification and password reset (single-use hashed tokens; sends via Resend

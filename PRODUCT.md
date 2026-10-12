@@ -36,7 +36,7 @@ The reason to choose OGsmith over Bannerbear, Placid or building it with @vercel
 
 ## Capabilities and Constraints
 
-- Seven templates (gradient, minimal, split, terminal, quote, announce, link), dark/light themes, accent colours; visual editor with brand font and logo upload.
+- Eight templates (gradient, minimal, split, terminal, quote, announce, link, cover; link and cover draw the page's own image from ?url=), dark/light themes, accent colours; visual editor with brand font and logo upload.
 - A/B testing splits pages, not viewers (platforms show one image to everyone); outcomes come from the site's own analytics via the API, so it suits sites with many pages and some developer help; CSV batch rendering to zip with signed webhook; signed URLs; usage API; up to 10 API keys per account.
 - Plans (prices net of tax, VAT added at checkout; EU reverse charge with tax ID): Free $0 with 500 renders/mo; Pro $19/mo, 20,000 renders; Scale $49/mo, 150,000 renders. Yearly billing is ten months' price. Flat quotas, no overage charges.
 - Free accounts render clean for 14 days, then new renders carry a watermark. Cards platforms already fetched keep their clean cached copy.
