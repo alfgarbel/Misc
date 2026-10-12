@@ -113,8 +113,7 @@ export default function ForMarketingPage() {
     <>
       <Nav />
       <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
-        <p className="text-sm text-zinc-400">For content and growth teams</p>
-        <h1 className="mt-2 text-balance text-[1.75rem] font-bold leading-tight sm:text-4xl">
+        <h1 className="text-balance text-[1.75rem] font-bold leading-tight sm:text-4xl">
           Every link you share gets a card that looks like you
         </h1>
         <p className="mt-4 max-w-2xl text-pretty leading-relaxed text-zinc-400">
