@@ -8,7 +8,7 @@ import { jsonLdScript } from "@/lib/llms";
 
 const TITLE = "Social cards for marketing teams, without waiting on developers";
 const DESCRIPTION =
-  "Design your link previews in a visual editor, test which design gets more clicks, and update cards on links you've already shared. Your developer adds one tag, once.";
+  "Design your link previews in a visual editor, test which design gets more clicks, and change your design without new shares showing the old card. Your developer adds one tag, once.";
 
 export const metadata: Metadata = {
   title: { absolute: `${TITLE} · OGsmith` },
@@ -34,9 +34,9 @@ const JOBS: Array<{ title: string; before: string; after: string }> = [
   },
   {
     title: "Rebrand without broken previews",
-    before: "X, Slack and WhatsApp keep showing the old image on every link already shared.",
+    before: "X, Slack and WhatsApp keep showing the old image every time a link is shared again.",
     after:
-      "Changing a design or your logo moves your cache version up. Links already shared pick up the new artwork on the site's next deploy, even on platforms with no refresh tool.",
+      "Changing a design or your logo moves your cache version up. After the site's next deploy, every new share gets the new artwork, even on platforms with no refresh tool.",
   },
   {
     title: "See what people will see",
@@ -85,8 +85,8 @@ const FAQ: Array<{ q: string; a: string }> = [
     a: "It splits pages, not viewers: half your posts get design A and half get design B, and you compare the two groups. That answers which design works better across your content. Results come from your own analytics, which your developer connects once, and the dashboard won't call a winner until each side has enough pages and outcomes.",
   },
   {
-    q: "We changed our branding. Will old links update?",
-    a: "Yes, if the tag includes your cache version. Changing a design, a brand default or your logo moves that version up, and the next time the site deploys every link gets a new image address that X, Slack, Discord and WhatsApp fetch again. None of those platforms offers any other way to refresh.",
+    q: "We changed our branding. Will our links update?",
+    a: "New shares will, if the tag includes your cache version. Changing a design, a brand default or your logo moves that version up, and after the site's next deploy every page has a new image address that X, Slack, Discord and WhatsApp fetch the next time the link is shared. Posts that were already out may keep the preview the platform stored when they were posted. None of those platforms offers any other way to refresh.",
   },
   {
     q: "Is this an AI image generator?",
@@ -120,7 +120,7 @@ export default function ForMarketingPage() {
         <p className="mt-4 max-w-2xl text-pretty leading-relaxed text-zinc-400">
           OGsmith makes the image people see when your posts are shared on X, LinkedIn, Slack and
           WhatsApp. Design it in your brand, test which version gets more clicks, and change it
-          after links are out. Your developer sets it up once, and your team handles the rest.
+          whenever you like. Your developer sets it up once, and your team handles the rest.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link

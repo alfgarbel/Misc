@@ -47,7 +47,7 @@ export const COMPARISONS: Comparison[] = [
       { label: "Layout", them: "Flexbox and a subset of CSS; no grid", us: "Built-in templates plus a visual editor, no code" },
       { label: "Fonts and assets", them: "ttf, otf or woff, bundled; the bundle is capped at 500 KB", us: "Upload fonts and images in the dashboard" },
       { label: "Cards from a page's own tags", them: "You write it", us: "Built in with url=" },
-      { label: "Changing a card already shared", them: "You build the cache-busting", us: "One click; platforms re-fetch the new version" },
+      { label: "New card on the next share after a redesign", them: "You build the cache-busting", us: "Built in; new shares fetch the new version" },
       { label: "A/B testing designs", them: "You build it", us: "Built in, with significance" },
       { label: "Works outside Next.js", them: "Yes, on Vercel and other JS runtimes", us: "Any stack, including WordPress and Webflow" },
     ],
@@ -98,7 +98,7 @@ export const COMPARISONS: Comparison[] = [
     ],
     chooseUs: [
       "What you need is a card for every link you share, at a much lower cost per image.",
-      "You want to test card designs against each other, or refresh cards already shared.",
+      "You want to test card designs against each other, or change designs without new shares showing the old card.",
     ],
     faq: [
       {

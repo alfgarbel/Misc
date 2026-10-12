@@ -25,7 +25,7 @@ export default async function Nav() {
       href="/signup"
       className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
     >
-      Get started
+      Start free
     </Link>
   );
 

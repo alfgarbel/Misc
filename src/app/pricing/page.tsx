@@ -57,7 +57,7 @@ const COMPARE_ROWS: Array<{ label: string; value: (p: Plan) => Cell }> = [
   { label: "Webhook endpoints", value: (p) => String(p.webhooks) },
   { label: "All templates & themes", value: () => true },
   { label: "Cards straight from a URL", value: () => true },
-  { label: "Cache refresh for shared links", value: () => true },
+  { label: "Fresh cards after a redesign", value: () => true },
   { label: "CDN-cached responses", value: () => true },
   { label: "Quota alert emails", value: () => true },
   { label: "Support", value: (p) => (p.id === "scale" ? "Priority" : "Email") },

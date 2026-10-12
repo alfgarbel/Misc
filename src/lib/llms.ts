@@ -89,6 +89,7 @@ ${DOC_SECTIONS.map((s) => `- [${s.title}](${base}/docs/${s.slug}): ${s.descripti
 - [OpenAPI description](${base}/openapi.json) of \`/api/og\` and \`/api/usage\`.
 - [Templates](${base}/templates): every built-in layout, rendered live.
 - [For marketing teams](${base}/for/marketing): visual editor, A/B tests by page and cache refresh, set up once by a developer.
+- [For developers](${base}/for/developers): one GET request, cards from a page's own metadata, signed URLs, usage API, WordPress plugin and MCP server.
 
 ## Tools
 
