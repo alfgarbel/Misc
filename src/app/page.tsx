@@ -73,7 +73,7 @@ const ALSO_INCLUDED: Array<{ title: string; body: string }> = [
 const STEPS: Array<{ title: string; body: string }> = [
   {
     title: "Check your link",
-    body: "Paste a page and see what X, LinkedIn, Slack and WhatsApp show today, with the card OGsmith would give it.",
+    body: "Paste a page and see what seven platforms show today, with the card OGsmith would give it.",
   },
   {
     title: "Add one tag",
@@ -199,7 +199,7 @@ function FeatureVisual({ kind, base }: { kind: "tag" | "brand" | "redesign"; bas
   content="${base}/api/og?key=…&url=PAGE_URL" />`}
         </pre>
         <ArrowIcon className="h-6 w-6 rotate-90 text-zinc-500" />
-        <CardImage slug="blog" alt="The card OGsmith builds from a blog post's own title" />
+        <CardImage slug="store" alt="The card OGsmith builds from a product page's own name and price" />
       </div>
     );
   }
@@ -210,8 +210,8 @@ function FeatureVisual({ kind, base }: { kind: "tag" | "brand" | "redesign"; bas
           <CardImage slug="changelog" alt="Example card in the announce template" />
         </div>
         <CardImage
-          slug="store"
-          alt="Example card in the split template"
+          slug="event"
+          alt="Example card in the gradient template"
           sizes="(min-width: 1024px) 320px, 50vw"
         />
         <CardImage
@@ -307,8 +307,8 @@ export default function Home() {
             </button>
           </form>
           <p className="mt-3 text-sm text-zinc-400">
-            It&apos;s free and needs no account. See what X, LinkedIn, Slack
-            and WhatsApp show for it today.
+            It&apos;s free and needs no account. See what X, LinkedIn, Slack,
+            WhatsApp, Discord, Facebook and iMessage show for it today.
           </p>
           <p className="mt-6 text-sm text-zinc-400">
             Setting it up for your team? See how it works{" "}
