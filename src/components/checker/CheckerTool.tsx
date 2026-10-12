@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import PlatformPreviews from "@/components/checker/PlatformPreviews";
-import CopyBlock from "@/components/checker/CopyBlock";
+import SuggestedCard from "@/components/checker/SuggestedCard";
 import { cachedReport, checkUrl, coerceUrl } from "@/lib/checker";
 import type { Finding, Severity } from "@/lib/checker";
 import { makeRateLimiter, clientIp } from "@/lib/ratelimit";
@@ -9,6 +8,7 @@ import { appUrl } from "@/lib/stripe";
 import { getDb } from "@/lib/db";
 import { recordEvent } from "@/lib/funnel";
 import { TRIAL_DAYS } from "@/lib/trial";
+import { PLANS } from "@/lib/plans";
 
 /**
  * Reading someone else's server is not free, and this page needs no login.
@@ -94,15 +94,6 @@ function UrlForm({ defaultValue, action }: { defaultValue?: string; action: stri
       </button>
     </form>
   );
-}
-
-/** Escapes a value for use inside a double-quoted HTML attribute. */
-function attrEscape(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 /**
@@ -213,26 +204,7 @@ export default async function CheckerTool({
       // the difference between that looking correct and looking stuck.
       const redirected = report.pageUrl !== target;
 
-      const suggested = new URLSearchParams({
-        template: "gradient",
-        title,
-        site,
-      });
-      if (meta.description) suggested.set("subtitle", meta.description);
-
-      const metaTags = [
-        `<meta property="og:title" content="${attrEscape(title)}">`,
-        meta.description
-          ? `<meta property="og:description" content="${attrEscape(meta.description)}">`
-          : null,
-        `<meta property="og:image" content="${attrEscape(`${base}/api/og?key=YOUR_KEY&${suggested.toString()}`)}">`,
-        `<meta property="og:image:width" content="1200">`,
-        `<meta property="og:image:height" content="630">`,
-        `<meta property="og:url" content="${attrEscape(report.pageUrl)}">`,
-        `<meta name="twitter:card" content="summary_large_image">`,
-      ]
-        .filter(Boolean)
-        .join("\n");
+      const planNote = `Free plan: ${PLANS.free.monthlyRenders.toLocaleString("en-US")} renders a month, with no watermark for the first ${TRIAL_DAYS} days.`;
 
       body = (
         <div className="flex flex-col gap-10">
@@ -301,35 +273,20 @@ export default async function CheckerTool({
             <div>
               <h2 className="text-xl font-bold">What it could look like</h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Rendered from this page&apos;s own title and description. The
-                small mark in the corner is the free tier&apos;s.
+                Rendered from this page&apos;s own title and description. Pick
+                a template to compare; the small mark in the corner is the
+                demo&apos;s.
               </p>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/api/og?${suggested.toString()}`}
-              alt="A card OGsmith would generate for this page"
-              width={1200}
-              height={630}
-              className="w-full rounded-xl border border-zinc-800"
+            <SuggestedCard
+              base={base}
+              pageUrl={report.pageUrl}
+              title={title}
+              site={site}
+              description={meta.description ?? null}
+              replacing={Boolean(tags.ogImage)}
+              planNote={planNote}
             />
-            <p className="text-sm text-zinc-400">
-              Add these to your <code className="text-zinc-300">&lt;head&gt;</code>
-              {tags.ogImage ? ", replacing what's there" : ""} and every share
-              picks it up:
-            </p>
-            <CopyBlock code={metaTags} />
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href={`/signup?url=${encodeURIComponent(report.pageUrl)}`}
-                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-zinc-950 hover:bg-indigo-500"
-              >
-                Get this card free for {TRIAL_DAYS} days
-              </Link>
-              <Link href="/docs" className="text-sm text-indigo-400 hover:underline">
-                Read the docs
-              </Link>
-            </div>
           </section>
         </div>
       );
