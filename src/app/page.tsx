@@ -12,64 +12,60 @@ import { jsonLdScript, organizationJsonLd, softwareJsonLd } from "@/lib/llms";
 // Set here, not in the layout, so other pages don't inherit "/" as theirs.
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-const FEATURE_GROUPS: Array<{
-  name: string;
-  blurb: string;
-  items: Array<{ title: string; body: string }>;
+/**
+ * The three things a visitor of any background can picture, shown large.
+ * Developer detail lives on /for/developers, so nothing here needs a
+ * glossary.
+ */
+const FEATURES: Array<{
+  title: string;
+  body: string;
+  note?: string;
+  visual: "tag" | "brand" | "redesign";
 }> = [
   {
-    name: "Put it on your site",
-    blurb: "One tag works on any stack. You don't need an SDK or a build step.",
-    items: [
-      {
-        title: "One GET request",
-        body: "Point your <meta property=\"og:image\"> at a URL and you're done. Works from any language or framework.",
-      },
-      {
-        title: "Point it at a URL",
-        body: "Skip the parameters: give OGsmith a link and it reads the page's own title, description and image to build the card.",
-      },
-      {
-        title: "Fast and serverless",
-        body: "Images render in milliseconds with satori instead of a headless browser. Responses are CDN-cached, so repeat crawls are free.",
-      },
-    ],
+    title: "Point it at your page",
+    body: "Add one tag to your site's template with the page's address in it. OGsmith reads each page's own title and description, so every new post gets its card without anyone filling anything in.",
+    visual: "tag",
   },
   {
-    name: "Make it yours",
-    blurb: "Look like your brand without opening a design tool.",
-    items: [
-      {
-        title: "Templates that read well in a feed",
-        body: "Seven hand-tuned templates with themes and accent colors. They stay legible at any title length.",
-      },
-      {
-        title: "Or design your own",
-        body: "A visual editor for your own layouts: drag text, images and shapes, upload your brand font, and render it by name.",
-      },
-      {
-        title: "Usage you can predict",
-        body: "Flat monthly quotas and no overage charges. You'll see it on your dashboard, and by email, well before the limit.",
-      },
-    ],
+    title: "Your brand, without a design tool",
+    body: "Pick one of seven templates with your colours, or lay out your own card in the visual editor and upload your brand font. Titles stay readable at any length.",
+    visual: "brand",
   },
   {
-    name: "Get more clicks",
-    blurb: "Tools for after the card is live.",
-    items: [
-      {
-        title: "Change your look after you ship",
-        body: "X, Slack, Discord and WhatsApp cache your card and give you no way to clear it. Bump your cache version and every published link picks up the new artwork.",
-      },
-      {
-        title: "Test which design wins",
-        body: "Run one design against another across your pages and read the result with a proper significance test.",
-      },
-      {
-        title: "Bulk when you need files",
-        body: "Render a whole back catalogue from a CSV, download it as a zip, and get a signed webhook when it's done.",
-      },
-    ],
+    title: "Change the design whenever you like",
+    body: "Platforms keep the image they first fetched for each address, and most give you no way to clear it. OGsmith puts a version number in your image addresses: change your design, republish your site, and every new share picks up the new card.",
+    note: "Posts that are already out may keep their old preview, depending on the platform.",
+    visual: "redesign",
+  },
+];
+
+/** Everything else, one line each, for the visitor who wants the full list. */
+const ALSO_INCLUDED: Array<{ title: string; body: string }> = [
+  {
+    title: "A/B test designs",
+    body: "Give half your pages one design and half another, and compare the clicks your analytics reports.",
+  },
+  {
+    title: "Cards in bulk",
+    body: "Upload a CSV and download every card in a zip.",
+  },
+  {
+    title: "Bills you can predict",
+    body: "Flat monthly quotas, no overage charges, and an email before you reach the limit.",
+  },
+  {
+    title: "Works on any site",
+    body: "Anything that can set a meta tag, with a plugin for WordPress.",
+  },
+  {
+    title: "Fast and cached",
+    body: "Cards render in milliseconds and are served from a CDN; cached fetches don't count.",
+  },
+  {
+    title: "A checker for 7 platforms",
+    body: "X, LinkedIn, Slack, Discord, WhatsApp, Facebook and iMessage.",
   },
 ];
 
@@ -79,25 +75,13 @@ const STEPS: Array<{ title: string; body: string }> = [
     body: "Paste a page and see what X, LinkedIn, Slack and WhatsApp show today, with the card OGsmith would give it.",
   },
   {
-    title: "Paste one tag",
-    body: "Sign up, copy the og:image tag from your dashboard and put it in your page's <head>. With url= there's nothing else to fill in.",
+    title: "Add one tag",
+    body: "Sign up and copy one tag from your dashboard into your site's template. It's a few minutes' work for whoever looks after the site, and only needed once.",
   },
   {
     title: "Every share gets a card",
     body: "The next time anyone shares the page, platforms fetch your card. Your dashboard tells you when the first one does.",
   },
-];
-
-/** Honest about where doing it yourself is the right call. */
-const COMPARISON: Array<{ row: string; diy: string; ogsmith: string }> = [
-  { row: "Cost", diy: "Free library, your hosting", ogsmith: `Free to start, from $${PLANS.pro.priceMonthlyUsd}/mo` },
-  { row: "Time to first card", diy: "An afternoon of layout and font wrangling", ogsmith: "Five minutes" },
-  { row: "Works outside your framework", diy: "Next.js and Vercel first", ogsmith: "Any site that can set a meta tag" },
-  { row: "Cards from a page's own metadata", diy: "You write the scraper", ogsmith: "Built in, with url=" },
-  { row: "Change designs after links are shared", diy: "You build cache-busting", ogsmith: "One click" },
-  { row: "Design without code", diy: "No", ogsmith: "Visual editor" },
-  { row: "A/B test designs", diy: "No", ogsmith: "Built in, with significance" },
-  { row: "See what each platform shows", diy: "Separate tools per platform", ogsmith: "Link checker for 7 platforms" },
 ];
 
 const FAQ: Array<{ q: string; a: string }> = [
@@ -110,10 +94,6 @@ const FAQ: Array<{ q: string; a: string }> = [
     a: "You need to be able to add one meta tag to your pages. With url= OGsmith reads each page's title and description itself, so the tag is the same everywhere except for the page address. Most CMSs, including WordPress, Ghost and Webflow, let you set it in the page settings or the theme's <head>.",
   },
   {
-    q: "Why not build it myself with @vercel/og?",
-    a: "If you're on Next.js and enjoy tuning layouts, that's a fine choice. OGsmith is for when you'd rather not maintain it: it works on any stack, reads cards straight from your pages, lets you change designs after links are shared, and gives non-developers an editor.",
-  },
-  {
     q: "What happens when the trial ends?",
     a: `For ${TRIAL_DAYS} days your cards render without a watermark. After that, new cards on the Free plan carry a small mark. Cards platforms have already cached keep their clean copy, so nothing you've shared changes overnight.`,
   },
@@ -123,7 +103,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "I changed my design. Why do old shares still show the old card?",
-    a: "Platforms cache a card per URL and most won't let you clear it. OGsmith adds a version number to your image URLs: bump it from the dashboard and every link picks up the new card the next time it's shared.",
+    a: "Platforms keep the image they first fetched for each address, and most won't let you clear it. OGsmith puts a version number in your image addresses. When you change a design the number goes up, and once your site republishes, every new share gets the new card. Posts that were already out may keep the preview the platform stored when they were posted.",
   },
 ];
 
@@ -172,6 +152,77 @@ function SharedPost({
   );
 }
 
+function CardImage({ slug, alt }: { slug: string; alt: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={showcaseSrc(slug)}
+      alt={alt}
+      width={1200}
+      height={630}
+      loading="lazy"
+      className="w-full rounded-lg border border-zinc-800 shadow-xl shadow-black/40"
+    />
+  );
+}
+
+function ArrowIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+/** Each feature shows its result: the tag and its card, the range of looks, a redesign. */
+function FeatureVisual({ kind, base }: { kind: "tag" | "brand" | "redesign"; base: string }) {
+  if (kind === "tag") {
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <pre className="w-full overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs leading-relaxed text-emerald-400 sm:text-sm">
+          {`<meta property="og:image"
+  content="${base}/api/og?key=…&url=PAGE_URL" />`}
+        </pre>
+        <ArrowIcon className="h-6 w-6 rotate-90 text-zinc-500" />
+        <CardImage slug="blog" alt="The card OGsmith builds from a blog post's own title" />
+      </div>
+    );
+  }
+  if (kind === "brand") {
+    return (
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="col-span-2">
+          <CardImage slug="changelog" alt="Example card in the announce template" />
+        </div>
+        <CardImage slug="store" alt="Example card in the split template" />
+        <CardImage slug="podcast" alt="Example card in the quote template" />
+      </div>
+    );
+  }
+  return (
+    <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-4">
+      <figure className="flex flex-col gap-2">
+        <CardImage slug="blog" alt="A blog post's card before the redesign" />
+        <figcaption className="text-sm text-zinc-500">Before</figcaption>
+      </figure>
+      <ArrowIcon className="mx-auto h-6 w-6 rotate-90 text-zinc-500 sm:rotate-0" />
+      <figure className="flex flex-col gap-2">
+        <CardImage slug="blog-redesign" alt="The same post's card after the redesign" />
+        <figcaption className="text-sm text-zinc-300">After, on the next share</figcaption>
+      </figure>
+    </div>
+  );
+}
+
 export default function Home() {
   const base = appUrl().replace(/\/$/, "");
   const faqJsonLd = {
@@ -196,17 +247,14 @@ export default function Home() {
         {/* Hero: the checker is the first thing to try, so it's a field here,
             not a link to another page. */}
         <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-20">
-          <p className="mx-auto mb-4 w-fit rounded-full border border-indigo-500/40 bg-indigo-500/10 px-4 py-1 text-sm text-indigo-300">
-            Open Graph images as an API
-          </p>
           <h1 className="mx-auto max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight text-balance sm:text-6xl lg:text-7xl">
             Every link, <span className="text-indigo-500">forged</span> into a
             card
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400">
-            OGsmith renders 1200×630 Open Graph images on demand, so your
-            pages stop showing blank link previews. You don&apos;t need a
-            headless browser, a design tool or a build step.
+            When someone shares your page on X, LinkedIn, Slack or WhatsApp,
+            OGsmith gives it a proper preview image instead of a bare link or
+            a grey box.
           </p>
 
           <form
@@ -241,13 +289,13 @@ export default function Home() {
             and WhatsApp show for it today.
           </p>
           <p className="mt-6 text-sm text-zinc-400">
-            Already know you want it?{" "}
-            <Link href="/signup" className="font-medium text-indigo-400 hover:underline">
-              Get your free API key
+            Setting it up for your team? See how it works{" "}
+            <Link href="/for/marketing" className="font-medium text-indigo-400 underline-offset-4 hover:underline">
+              for marketing teams
             </Link>{" "}
             or{" "}
-            <Link href="/docs" className="font-medium text-indigo-400 hover:underline">
-              read the docs
+            <Link href="/for/developers" className="font-medium text-indigo-400 underline-offset-4 hover:underline">
+              for developers
             </Link>
             .
           </p>
@@ -279,10 +327,6 @@ export default function Home() {
               className="pointer-events-none absolute inset-x-0 -bottom-6 h-24 bg-gradient-to-t from-zinc-950 to-transparent"
             />
           </div>
-          <code className="relative mx-auto mt-10 block w-fit max-w-full overflow-x-auto whitespace-nowrap rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs text-emerald-400">
-            &lt;meta property=&quot;og:image&quot;
-            content=&quot;{base}/api/og?title=...&quot; /&gt;
-          </code>
         </section>
 
         {/* Before and after */}
@@ -290,7 +334,7 @@ export default function Home() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHeading
               title="The same link, shared twice"
-              sub="Posts with a large image get noticed. Posts with a grey box get scrolled past."
+              sub="Without a preview image, most platforms show a bare link or a small grey box."
             />
             <div className="grid gap-8 md:grid-cols-2">
               <SharedPost label="Without a card" tone="bad">
@@ -352,65 +396,46 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features, grouped by the job they do */}
+        {/* Features: three things anyone can picture, then the rest in a list */}
         <section className="border-t border-zinc-800 bg-zinc-950 py-20">
-          <div className="mx-auto flex max-w-6xl flex-col gap-14 px-4 sm:px-6">
-            {FEATURE_GROUPS.map((group) => (
-              <div key={group.name} className="grid gap-6 lg:grid-cols-[16rem_1fr]">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">{group.name}</h2>
-                  <p className="mt-2 text-sm text-zinc-400">{group.blurb}</p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {group.items.map((f) => (
-                    <div
-                      key={f.title}
-                      className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5"
-                    >
-                      <h3 className="mb-2 font-semibold text-white">{f.title}</h3>
-                      <p className="text-sm leading-relaxed text-zinc-400">{f.body}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Build vs buy */}
-        <section className="border-t border-zinc-800 py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHeading
-              title="Build it yourself, or use OGsmith?"
-              sub="@vercel/og is free and good. Here's what you'd be signing up to maintain."
-            />
-            <div className="overflow-x-auto rounded-xl border border-zinc-800">
-              <table className="w-full min-w-[36rem] text-left text-sm">
-                <thead className="bg-zinc-900 text-zinc-400">
-                  <tr>
-                    <th scope="col" className="px-4 py-3 font-medium">
-                      <span className="sr-only">Compared on</span>
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
-                      Do it yourself
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-medium text-indigo-300">
-                      OGsmith
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800">
-                  {COMPARISON.map((r) => (
-                    <tr key={r.row}>
-                      <th scope="row" className="px-4 py-3 font-medium text-zinc-200">
-                        {r.row}
-                      </th>
-                      <td className="px-4 py-3 text-zinc-400">{r.diy}</td>
-                      <td className="px-4 py-3 text-zinc-200">{r.ogsmith}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <SectionHeading title="What you get" />
+            <div className="flex flex-col gap-16 sm:gap-20">
+              {FEATURES.map((f, i) => (
+                <div
+                  key={f.title}
+                  className={`flex flex-col items-center gap-8 lg:gap-14 ${
+                    i % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"
+                  }`}
+                >
+                  <div className="w-full lg:w-5/12">
+                    <h3 className="text-2xl font-bold tracking-tight text-balance text-white">
+                      {f.title}
+                    </h3>
+                    <p className="mt-3 max-w-prose text-pretty leading-relaxed text-zinc-400">
+                      {f.body}
+                    </p>
+                    {f.note ? (
+                      <p className="mt-3 max-w-prose text-sm text-zinc-500">{f.note}</p>
+                    ) : null}
+                  </div>
+                  <div className="w-full lg:w-7/12">
+                    <FeatureVisual kind={f.visual} base={base} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-20 border-t border-zinc-800 pt-10">
+              <h3 className="text-lg font-semibold text-white">Also included</h3>
+              <dl className="mt-6 grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+                {ALSO_INCLUDED.map((item) => (
+                  <div key={item.title}>
+                    <dt className="font-medium text-zinc-100">{item.title}</dt>
+                    <dd className="mt-1 text-sm leading-relaxed text-zinc-400">{item.body}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           </div>
         </section>
@@ -420,7 +445,7 @@ export default function Home() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHeading
               title="Try it live"
-              sub="Tweak the parameters and render a real image from the API."
+              sub="Pick a template, type a title and render a real card."
             />
             <Playground />
           </div>
@@ -455,7 +480,9 @@ export default function Home() {
                   </p>
                   <p className="mt-3 text-sm text-zinc-400">
                     {plan.monthlyRenders.toLocaleString()} renders / month
-                    {plan.watermark ? " · free trial, then watermarked" : " · no watermark"}
+                    {plan.watermark
+                      ? ` · no watermark for ${TRIAL_DAYS} days, then watermarked`
+                      : " · no watermark"}
                   </p>
                 </div>
               ))}
@@ -519,7 +546,7 @@ export default function Home() {
                 href="/signup"
                 className="rounded-lg border border-zinc-700 px-6 py-3 text-center font-medium text-zinc-300 hover:border-zinc-500"
               >
-                Get your free API key
+                Start free
               </Link>
             </div>
           </div>

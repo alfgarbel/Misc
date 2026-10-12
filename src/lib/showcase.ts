@@ -95,6 +95,30 @@ export const SHOWCASE: ShowcaseCard[] = [
   },
 ];
 
+/**
+ * Cards that illustrate a feature rather than a kind of site, so they stay
+ * out of the example walls. "blog-redesign" is the blog card's page after a
+ * change of design: same title, new artwork.
+ */
+export const SHOWCASE_EXTRAS: ShowcaseCard[] = [
+  {
+    slug: "blog-redesign",
+    useCase: "Blog posts, after a redesign",
+    blurb: "The same article with a new design.",
+    params: {
+      template: "split",
+      theme: "dark",
+      accent: "#ff6a2b",
+      title: "What we learned shipping 40 releases in a year",
+      subtitle: "Engineering blog · 8 min read",
+      site: "blog.acme.dev",
+    },
+  },
+];
+
+/** Every prerendered card, examples and feature illustrations alike. */
+export const ALL_SHOWCASE_CARDS: ShowcaseCard[] = [...SHOWCASE, ...SHOWCASE_EXTRAS];
+
 export function showcaseSrc(slug: string): string {
   return `/showcase/${slug}`;
 }

@@ -89,6 +89,7 @@ ${DOC_SECTIONS.map((s) => `- [${s.title}](${base}/docs/${s.slug}): ${s.descripti
 - [OpenAPI description](${base}/openapi.json) of \`/api/og\` and \`/api/usage\`.
 - [Templates](${base}/templates): every built-in layout, rendered live.
 - [For marketing teams](${base}/for/marketing): visual editor, A/B tests by page and cache refresh, set up once by a developer.
+- [For developers](${base}/for/developers): one GET request, cards from a page's own metadata, signed URLs, usage API, WordPress plugin and MCP server.
 
 ## Tools
 
@@ -106,7 +107,7 @@ ${posts}
 
 ## Optional
 
-- MCP server: \`npm run mcp\` in the OGsmith repository starts a Model Context Protocol server, so an assistant can render cards, list templates, check usage and run batches with an ordinary API key.
+- MCP server: \`npx -y ogsmith-mcp\` starts a Model Context Protocol server, so an assistant can render cards, list templates, check usage and run batches with an ordinary API key.
 `;
 }
 
