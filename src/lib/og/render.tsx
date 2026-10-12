@@ -817,12 +817,16 @@ function CoverTemplate({ p, watermark, logo, hero, tall, design }: TplProps) {
         justifyContent: tall ? "center" : "flex-end",
         padding: PAD,
         backgroundColor: c.bg,
-        backgroundImage: hero
-          ? undefined
-          : `linear-gradient(135deg, ${withAlpha(p.accent, 0.95)} 0%, ${withAlpha(
-              p.accent,
-              0.45
-            )} 45%, ${c.bg} 100%)`,
+        // Spread rather than set to undefined: satori parses every style
+        // value it is given, and an undefined one is not a valid image.
+        ...(hero
+          ? {}
+          : {
+              backgroundImage: `linear-gradient(135deg, ${withAlpha(p.accent, 0.95)} 0%, ${withAlpha(
+                p.accent,
+                0.45
+              )} 45%, ${c.bg} 100%)`,
+            }),
         color: c.fg,
       }}
     >
