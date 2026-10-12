@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import PlatformPreviews from "@/components/checker/PlatformPreviews";
 import SuggestedCard from "@/components/checker/SuggestedCard";
@@ -206,6 +207,23 @@ export default async function CheckerTool({
 
       const planNote = `Free plan: ${PLANS.free.monthlyRenders.toLocaleString("en-US")} renders a month, with no watermark for the first ${TRIAL_DAYS} days.`;
 
+      // A designed card that already previews correctly shouldn't be pitched
+      // a built-in template as an improvement.
+      const hasWorkingCard =
+        diagnosis.verdict === "good" && Boolean(tags.ogImage) && Boolean(image?.ok);
+
+      const suggestion = (
+        <SuggestedCard
+          base={base}
+          pageUrl={report.pageUrl}
+          title={title}
+          site={site}
+          description={meta.description ?? null}
+          replacing={Boolean(tags.ogImage)}
+          planNote={planNote}
+        />
+      );
+
       body = (
         <div className="flex flex-col gap-10">
           <UrlForm defaultValue={url} action={action} />
@@ -269,25 +287,52 @@ export default async function CheckerTool({
             />
           </section>
 
-          <section className="flex flex-col gap-4">
-            <div>
-              <h2 className="text-xl font-bold">What it could look like</h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Rendered from this page&apos;s own title and description. Pick
-                a template to compare; the small mark in the corner is the
-                demo&apos;s.
-              </p>
-            </div>
-            <SuggestedCard
-              base={base}
-              pageUrl={report.pageUrl}
-              title={title}
-              site={site}
-              description={meta.description ?? null}
-              replacing={Boolean(tags.ogImage)}
-              planNote={planNote}
-            />
-          </section>
+          {hasWorkingCard ? (
+            // The page already has a card that works everywhere we looked.
+            // Offering a built-in template as "what it could look like" here
+            // reads as an upgrade even when it's a step down from a designed
+            // card, so lead with the verdict and keep the comparison opt-in.
+            <section className="flex flex-col gap-4">
+              <div>
+                <h2 className="text-xl font-bold">Your card already works</h2>
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-400">
+                  There&apos;s nothing to fix on this page. Where OGsmith helps is
+                  keeping cards like this automatic on every page: one tag, your
+                  own design from the{" "}
+                  <Link href="/docs/templates" className="text-indigo-400 underline-offset-4 hover:underline">
+                    visual editor
+                  </Link>{" "}
+                  (with your images and fonts), A/B tests, and new cards on the
+                  next share after a redesign.
+                </p>
+              </div>
+              <details className="group rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-zinc-100">
+                  Compare with the built-in templates
+                  <span aria-hidden="true" className="text-zinc-400 transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 text-sm text-zinc-500">
+                  Rendered from this page&apos;s own title and description. The
+                  small mark in the corner is the demo&apos;s.
+                </p>
+                <div className="mt-4">{suggestion}</div>
+              </details>
+            </section>
+          ) : (
+            <section className="flex flex-col gap-4">
+              <div>
+                <h2 className="text-xl font-bold">What it could look like</h2>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Rendered from this page&apos;s own title and description. Pick
+                  a template to compare; the small mark in the corner is the
+                  demo&apos;s.
+                </p>
+              </div>
+              {suggestion}
+            </section>
+          )}
         </div>
       );
     }
