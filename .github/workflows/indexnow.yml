@@ -1,0 +1,24 @@
+# Tells IndexNow (Bing, Yandex and others) about every URL in the sitemap
+# each time Vercel finishes a production deploy. Can also be run by hand
+# from the Actions tab.
+name: IndexNow
+
+on:
+  deployment_status:
+  workflow_dispatch:
+
+jobs:
+  submit:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npx --yes tsx@4 scripts/indexnow.ts
+        env:
+          NEXT_PUBLIC_APP_URL: https://ogsmith.app
