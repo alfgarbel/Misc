@@ -5,7 +5,9 @@
  * /<key>.txt (see public/), so it lives in code rather than in an env var.
  */
 export const INDEXNOW_KEY = "104a5d061150489f547064011dacbdb4";
-export const INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow";
+// Bing shares every submission with the other IndexNow engines, and answers
+// synchronously when the key can't be verified, so failures surface here.
+export const INDEXNOW_ENDPOINT = "https://www.bing.com/indexnow";
 
 // The protocol caps a single submission at 10,000 URLs.
 const MAX_URLS = 10_000;
@@ -55,20 +57,26 @@ export function indexNowPayloads(base: string, urls: string[]): IndexNowPayload[
   return payloads;
 }
 
-/** Submits the URLs and returns the engine's status code for each chunk. */
+export interface IndexNowResult {
+  urls: number;
+  status: number;
+  body: string;
+}
+
+/** Submits the URLs and returns the engine's answer for each chunk. */
 export async function submitIndexNow(
   base: string,
   urls: string[],
   fetchImpl: typeof fetch = fetch
-): Promise<number[]> {
-  const statuses: number[] = [];
+): Promise<IndexNowResult[]> {
+  const results: IndexNowResult[] = [];
   for (const payload of indexNowPayloads(base, urls)) {
     const res = await fetchImpl(INDEXNOW_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify(payload),
     });
-    statuses.push(res.status);
+    results.push({ urls: payload.urlList.length, status: res.status, body: (await res.text()).slice(0, 500) });
   }
-  return statuses;
+  return results;
 }

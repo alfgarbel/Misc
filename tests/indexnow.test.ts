@@ -52,7 +52,7 @@ describe("IndexNow", () => {
       calls.push([url, init]);
       return new Response(null, { status: 202 });
     }) as unknown as typeof fetch;
-    expect(await submitIndexNow(base, [`${base}/a`], fake)).toEqual([202]);
+    expect(await submitIndexNow(base, [`${base}/a`], fake)).toEqual([{ urls: 1, status: 202, body: "" }]);
     expect(calls[0][0]).toBe(INDEXNOW_ENDPOINT);
     expect(calls[0][1].method).toBe("POST");
     expect(JSON.parse(calls[0][1].body as string).urlList).toEqual([`${base}/a`]);
