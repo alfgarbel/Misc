@@ -124,6 +124,10 @@ Run tests with `npm test`. Build with `npm run build`.
    Cron then calls `/api/cron/activation` daily (see `vercel.json`) to send
    the day-3 nudge and the trial-ending reminder. Without it, none go out.
 6. **Domain:** point one at the deployment and update `NEXT_PUBLIC_APP_URL`.
+7. **IndexNow (Bing, Yandex and others):** the key file is already served at
+   `/104a5d061150489f547064011dacbdb4.txt`. After a deploy that adds or
+   changes pages, run `NEXT_PUBLIC_APP_URL=https://your-domain npm run indexnow`
+   to submit every URL in the live sitemap, or pass specific URLs after `--`.
 
 ## Finding people to write to
 
