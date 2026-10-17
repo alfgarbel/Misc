@@ -101,6 +101,29 @@ export default function ActivationChecklist({
     }
   }, []);
 
+  const remembered = useRef<string | null>(savedUrl);
+
+  /**
+   * Saves the page as this account's onboarding URL. On a new account the
+   * server also takes the site's name, colour and icon as brand defaults;
+   * when it does, the preview is redrawn so it shows them.
+   */
+  async function rememberUrl(target: string) {
+    if (remembered.current === target) return;
+    remembered.current = target;
+    const res = await fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: target }),
+    }).catch(() => null);
+    const data = res?.ok ? await res.json().catch(() => ({})) : {};
+    if (data.brandApplied) {
+      previewed.current = null;
+      void renderPreview(target);
+      router.refresh();
+    }
+  }
+
   useEffect(() => {
     // Two one-time handovers from signup, both post-mount because
     // sessionStorage doesn't exist during SSR. The key is only read here:
@@ -118,13 +141,11 @@ export default function ActivationChecklist({
     const start = savedUrl ?? carried;
     if (carried && !savedUrl) {
       setUrl(carried);
-      void fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: carried }),
-      });
+      void rememberUrl(carried);
     }
     if (start) void renderPreview(start);
+    // rememberUrl only changes with renderPreview and the router.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedUrl, renderPreview]);
 
   useEffect(
@@ -201,7 +222,12 @@ export default function ActivationChecklist({
               spellCheck={false}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              onBlur={() => url.trim() && void renderPreview(url.trim())}
+              onBlur={() => {
+                const target = url.trim();
+                if (!target) return;
+                void renderPreview(target);
+                void rememberUrl(target);
+              }}
               placeholder="your-site.com/blog/first-post"
               className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none placeholder:text-zinc-600 focus:border-indigo-500"
             />

@@ -70,7 +70,7 @@ function clean(value: string | null, max: number): string | null {
 }
 
 /** Only the head is scanned; body content is not card metadata. */
-function headOf(html: string): string {
+export function headOf(html: string): string {
   const end = html.search(/<\/head\s*>/i);
   // Some pages omit </head>; cap the scan so a huge body isn't walked.
   return end === -1 ? html.slice(0, 200_000) : html.slice(0, end);
@@ -78,7 +78,7 @@ function headOf(html: string): string {
 
 const META_TAG = /<meta\b[^>]*>/gi;
 
-function attr(tag: string, name: string): string | null {
+export function attr(tag: string, name: string): string | null {
   const re = new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i");
   const m = tag.match(re);
   if (!m) return null;
